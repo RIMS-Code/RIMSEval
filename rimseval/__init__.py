@@ -1,5 +1,8 @@
 """Initialization of the rimseval package."""
 
+from . import lst_processor
+
+
 # Package information
 __version__ = "0.0.0"
 
