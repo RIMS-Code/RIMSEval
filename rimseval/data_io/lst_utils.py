@@ -1,5 +1,6 @@
 """This file contains utilities for processing list files."""
 
+from numba import njit
 import numpy as np
 
 
@@ -50,17 +51,15 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
             # parse data
             tmp_channel = int(bin_tmp[boundaries[2][0] : boundaries[2][1]], 2)
             if tmp_channel == channel:
-                data_arr[ion_counter][0] = int(
-                    bin_tmp[boundaries[0][0] : boundaries[0][1]], 2
+                swp_val, time_val = get_sweep_time_ascii(
+                    bin_tmp, boundaries[0], boundaries[1]
                 )
-                data_arr[ion_counter][1] = int(
-                    bin_tmp[boundaries[1][0] : boundaries[1][1]], 2
-                )
+                data_arr[ion_counter][0] = swp_val
+                data_arr[ion_counter][1] = time_val
                 ion_counter += 1
             elif tmp_channel == tag:
-                data_arr_tag[tag_counter] = int(
-                    bin_tmp[boundaries[0][0] : boundaries[0][1]], 2
-                )
+                swp_val, _ = get_sweep_time_ascii(bin_tmp, boundaries[0], boundaries[1])
+                data_arr_tag[tag_counter] = swp_val
                 tag_counter += 1
 
     data_arr = data_arr[:ion_counter]
@@ -69,6 +68,25 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
     return data_arr, data_arr_tag
 
 
+def get_sweep_time_ascii(data, sweep_b, time_b):
+    """Get sweep and time from a given ASCII string.
+
+    :param data: ASCII string
+    :type data: str
+    :param sweep_b: Boundaries of sweep
+    :type sweep_b: (int, int)
+    :param time_b: Boundaries of time
+    :type time_b: (int, int)
+
+    :return: sweep, time
+    :rtype: int, int
+    """
+    sweep_val = int(data[sweep_b[0] : sweep_b[1]], 2)
+    time_val = int(data[time_b[0] : time_b[1]], 2)
+    return sweep_val, time_val
+
+
+@njit
 def transfer_lst_to_crd_data(data_in, max_sweep, ion_range):
     """Transfer lst file specific data to the crd format.
 
@@ -88,18 +106,21 @@ def transfer_lst_to_crd_data(data_in, max_sweep, ion_range):
     # go through and sort out max range issues
     threshold = max_sweep // 2
     multiplier = 0
-    adder = 0
+    last_shot = data[0][0]
     for it in range(1, data.shape[0]):
-        last = data[it - 1][0]
-        curr = data[it][0]
-        thr = threshold + adder
-        if curr < thr < last:  # need to flip
+        curr_shot = data[it][0]
+        if (
+            curr_shot < threshold < last_shot and last_shot - curr_shot > threshold
+        ):  # need to flip forward
             multiplier += 1
-        # todo: figure out flipping back with a test
-        # elif last < threshold < curr:  # flip back
-        #     multiplier -= 1
+        elif (
+            last_shot < threshold < curr_shot and curr_shot - last_shot > threshold
+        ):  # flip back
+            multiplier -= 1
+        # modify data
         adder = multiplier * max_sweep
         data[it][0] += adder
+        last_shot = curr_shot
 
     # now sort the np array
     data_sort = data[data[:, 0].argsort()]

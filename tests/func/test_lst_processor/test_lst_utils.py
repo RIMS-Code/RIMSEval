@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 
-import rimseval.lst_processor.lst_utils as utl
+import rimseval.data_io.lst_utils as utl
 
 
 def test_ascii_to_ndarray_ascii_1a_no_tag(init_lst_proc):
@@ -45,27 +45,60 @@ def test_ascii_to_ndarray_ascii_1a_tag(init_lst_proc):
     np.testing.assert_equal(ret_tag, expected_tag)
 
 
+def test_get_sweep_time_ascii():
+    """Transfer binary number to base 10 int based on boundaries."""
+    bin_str = "1000101101"
+    sweep_boundaries = (0, 5)
+    time_boundaries = (5, 10)
+    sweep_exp = int(bin_str[sweep_boundaries[0] : sweep_boundaries[1]], 2)
+    time_exp = int(bin_str[time_boundaries[0] : time_boundaries[1]], 2)
+
+    sweep_ret, time_ret = utl.get_sweep_time_ascii(
+        bin_str, sweep_boundaries, time_boundaries
+    )
+    assert sweep_ret == sweep_exp
+    assert time_ret == time_exp
+
+
 def test_transfer_lst_to_crd_data():
+    max_sweep = 1023
     data_in = np.array(
-        [[1, 500], [2, 265], [1, 600], [5, 700], [1023, 200], [2, 100], [5, 5000]],
+        [
+            [1, 500],
+            [2, 265],
+            [1, 600],
+            [5, 700],
+            [500, 5000],
+            [550, 2],
+            [501, 55],
+            [800, 50],
+            [1023, 200],
+            [2, 100],
+            [1023, 13],
+            [5, 5000],
+        ],
         dtype=np.uint32,
     )
-    max_sweep = 1023
-    range = 1000
+    ion_range = 1000
 
     # expected shots array
     shots_array_exp = np.zeros(1023 + 5, dtype=np.uint32)
     shots_array_exp[0] = 2
     shots_array_exp[1] = 1
     shots_array_exp[4] = 1
-    shots_array_exp[1022] = 1
+    shots_array_exp[500] = 1
+    shots_array_exp[549] = 1
+    shots_array_exp[799] = 1
+    shots_array_exp[1022] = 2
     shots_array_exp[1024] = 1
 
     # expected ions array
-    ions_array_exp = np.array([500, 600, 265, 700, 200, 100], dtype=np.uint32)
+    ions_array_exp = np.array(
+        [500, 600, 265, 700, 55, 2, 50, 200, 13, 100], dtype=np.uint32
+    )
 
     shots_array_ret, ions_array_ret = utl.transfer_lst_to_crd_data(
-        data_in, max_sweep, range
+        data_in, max_sweep, ion_range
     )
 
     np.testing.assert_equal(shots_array_ret, shots_array_exp)

@@ -1,6 +1,6 @@
 """Initialization of the rimseval package."""
 
-from . import lst_processor
+from . import data_io
 
 
 # Package information

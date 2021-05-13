@@ -43,10 +43,10 @@ def test_channel_tag_wrong_type(init_lst_proc):
     assert exc_msg == "Channel number must be given as an integer."
 
 
-@pytest.mark.parametrize("data_format", rimseval.lst_processor.LST2CRD.DataFormat)
+@pytest.mark.parametrize("data_format", rimseval.data_io.LST2CRD.DataFormat)
 def test_data_format(data_format):
     """Get / Set the data format."""
-    cls = rimseval.lst_processor.LST2CRD()
+    cls = rimseval.data_io.LST2CRD()
     cls.data_format = data_format
     assert cls.data_format == data_format
 

@@ -12,7 +12,7 @@ import rimseval
 def init_lst_proc():
     """Clean initialization of class and reset to defaults after usage."""
     # spin up class
-    cls = rimseval.lst_processor.LST2CRD()
+    cls = rimseval.data_io.LST2CRD()
 
     yield cls
 
@@ -24,4 +24,5 @@ def init_lst_proc():
 
     # reset all other variables
     cls._file_info = {}  # dictionary with parsed header info
-    cls._file_data = None  # file data
+    cls._data_signal = None  # main signal data
+    cls._data_tag = None  # tag data

@@ -2,9 +2,12 @@
 
 from datetime import datetime
 from enum import Enum
+import struct
+
 import numpy as np
 from pathlib import Path
 
+from . import crd_utils
 from . import lst_utils
 
 
@@ -13,6 +16,18 @@ class LST2CRD:
 
     ToDo: Examples
     """
+
+    class BinWidthTDC(Enum):
+        """Bin width defined by instrument.
+
+        These are only FASTComTec instruments. The name of each entry is equal to
+        the identifier that can be found in a datafile (lst).
+        The entries of the enum are as following:
+        - binwidth in ps
+        """
+
+        MPA4A = 100
+        MCS8A = 80
 
     class DataFormat(Enum):
         """Available formats for this routine that are already implemented.
@@ -147,13 +162,15 @@ class LST2CRD:
         - self._tag_data (if a tag was selected)
 
         This routine sets the following information parameters in self._file_info:
-        - "range": shot range
+        - "bin_width": Sets the binwidth in ps, depending on the instrument
+        - "calfact": Calibration factor, to scale range to bins
+        - "shot_range": shot range
         - "timestamp": Time and date of file recording
-        - "no_ions": Number of ions in data
 
         :raises ValueError: File name not provided.
         :raises ValueError: Channel for data not provided
         :raises FileError: The Data Format is not available
+        :raises NotImplementedError: The current data format is not (yet) implemented.
         """
         if self.file_name is None:
             raise ValueError("Please set a file name.")
@@ -169,11 +186,43 @@ class LST2CRD:
         header = content[:index_start_data]
         data_ascii = content[index_start_data:]
 
-        # Find date
-        for it in range(len(header)):
+        # set the bin width - in ps
+        bin_width = None
+        for it in self.BinWidthTDC:
+            if it.name.lower() in header[0].lower():
+                bin_width = it.value
+                break
+        if bin_width is None:
+            raise NotImplementedError(
+                f"The current data format cannot be identified. "
+                f"The datafile header starts with: {header[0]}. "
+                f"Available instruments are the following: "
+                f"{[it.name for it in self.BinWidthTDC]}"
+            )
+        else:
+            self._file_info["bin_width"] = bin_width
+
+        # find calfact - in ns
+        calfact = None
+        for head in header:
+            if head[0:8] == "calfact=":
+                calfact = float(head.split("=")[1])
+                self._file_info["calfact"] = calfact
+                break
+
+        # find the range
+        for head in header:
+            if head[0:5] == "range":
+                ion_range = int(head.split("=")[1])
+                mult_fact = calfact / (bin_width / 1000)  # get range in bin_width
+                self._file_info["ion_range"] = int(ion_range * mult_fact)
+                break
+
+        # Find timestamp
+        for head in header:
             tmp_date_str = "cmline0="
-            if header[it][0 : len(tmp_date_str)] == tmp_date_str:
-                datetime_str = header[it].replace(tmp_date_str, "").split()
+            if head[0 : len(tmp_date_str)] == tmp_date_str:
+                datetime_str = head.replace(tmp_date_str, "").split()
                 date_tmp = datetime_str[0].split("/")  # month, day, year
                 time_tmp = datetime_str[1].split(":")  # h, min, sec
                 self._file_info["timestamp"] = datetime(
@@ -185,13 +234,6 @@ class LST2CRD:
                     second=int(float(time_tmp[2])),
                 )
                 break
-
-        # find the range
-        for it in range(len(header)):
-            if header[it][0:5] == "range":
-                self._file_info["range"] = int(content[it].split("=")[1])
-                break
-
         # find the data format or raise an error
         # todo
 
@@ -205,11 +247,88 @@ class LST2CRD:
         self._file_info["no_ions"] = len(data_sig)
 
     def write_crd(self):
-        """Write a CRD file from the data that is in the class.
+        """Write CRD file(s) from the data that are in the class.
 
-        Note: A file must have been read first.
+        Note: A file must have been read first. Also, this routine doesn't actually
+            write the crd file itself, but it handles the tags, etc., and then
+            sources the actual writing task out.
 
         :raises ValueError: No data has been read in.
         """
         if self._data_signal is None:
             raise ValueError("No data has been read in yet.")
+
+        # calculate the maximum number of sweeps that can be recorded
+        max_sweeps = self.data_format.value[2][0][1] - self.data_format.value[2][0][0]
+
+        # get the data
+        data_shots, data_ions = lst_utils.transfer_lst_to_crd_data(
+            self._data_signal, max_sweeps, self._file_info["ion_range"]
+        )
+        if self._channel_tag is not None:  # we have tagged data
+            # todo: split data if a tag is present
+            pass
+
+        # Write main data
+        fname = self.file_name.with_suffix(".crd")
+        self._write_crd(fname, data_shots, data_ions)
+
+        # Write the tagged data, if required
+        if self._channel_tag is not None:
+            # todo: write tag data
+            pass
+
+    def _write_crd(self, fname, data_shots, data_ions):
+        """Write an actual CRD file as defined.
+
+        Defaults of this writing are populated from the default dictionary in crd_utils.
+
+        :param fname: File name to write to
+        :type fname: pathlib.Path
+        :param data_shots: Prepared array with all shots included.
+        :type data_shots: ndarray
+        :param data_ions: Prepared array with all ions included.
+        :type data_ions: ndarray
+        """
+        default = crd_utils.CURRENT_DEFAULTS
+
+        # prepare date and time
+        dt = self._file_info["timestamp"]
+        dt_fmt = (
+            f"{dt.year:04}:{dt.month:02}:{dt.day:02} "
+            f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}"
+        )
+
+        with open(fname, "wb") as fout:
+            # header
+            fout.write(default["fileID"])
+            fout.write(struct.pack("20s", bytes(dt_fmt, "utf-8")))
+            fout.write(default["minVer"])
+            fout.write(default["majVer"])
+            fout.write(default["sizeOfHeaders"])
+            fout.write(default["shotPattern"])
+            fout.write(default["tofFormat"])
+            fout.write(default["polarity"])
+            fout.write(struct.pack("<I", self._file_info["bin_width"]))
+            fout.write(struct.pack("<I", 1))  # first bin - 1 indexed
+            fout.write(struct.pack("<I", self._file_info["ion_range"]))  # last bin
+            fout.write(default["xDim"])
+            fout.write(default["yDim"])
+            fout.write(default["shotsPerPixel"])
+            fout.write(default["pixelPerScan"])
+            fout.write(default["nOfScans" ""])
+            fout.write(struct.pack("<Q", len(data_shots)))  # number of shots
+            fout.write(default["calib_a"])
+            fout.write(default["calib_b"])
+            fout.write(default["deltaT"])
+
+            # write the data
+            ion_cnt = 0
+            for shot in data_shots:
+                fout.write(struct.pack("<I", shot))
+                for it in range(shot):
+                    fout.write(struct.pack("<I", data_ions[ion_cnt]))
+                    ion_cnt += 1
+
+            # EoF
+            fout.write(default["eof"])
