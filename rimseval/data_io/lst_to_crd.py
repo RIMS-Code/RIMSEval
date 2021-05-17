@@ -34,13 +34,13 @@ class LST2CRD:
 
         Various formats that are implemented when dealing with ASCII data.
         The value is composed of a tuple of 2 entries.
-          - First: entry: width of the binary number (binary_width)
-          - Second entry: Tuple of tuples with start, stop on where to read
-            0: sweep - 1: time - 2: channel
+          - 0: entry: width of the binary number (binary_width)
+          - 1: Tuple of tuples with start, stop on where to read
+               0: sweep - 1: time - 2: channel
         """
 
         ASC_1A = (48, ((0, 16), (16, 44), (45, 48)))
-        ASC_9 = (64, ((1, 21), (21, 59), (60, 63)))
+        ASC_9 = (64, ((1, 21), (21, 59), (60, 64)))
 
     class DATFormat(Enum):
         """Available formats (time_patch) for binary data.
