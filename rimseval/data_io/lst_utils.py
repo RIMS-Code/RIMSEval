@@ -36,8 +36,8 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
         )  # only sweep, not the channel
 
     # some helper variables for easy conversion
-    binary_width = fmt.value[1]
-    boundaries = fmt.value[2]
+    binary_width = fmt.value[0]
+    boundaries = fmt.value[1]
 
     # counter for ions in the right channel
     ion_counter = 0
@@ -66,6 +66,32 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
     if tag is not None:
         data_arr_tag = data_arr_tag[:tag_counter]
     return data_arr, data_arr_tag
+
+
+def dat_to_ndarray(fname, fmt, channel, tag=None):
+    """Turn binary data into a numpy array.
+
+    Takes the whole data block and returns the data in a properly formatted numpy array.
+    For speed, using numba JITing.
+
+    :param fname: File name of the data file.
+    :type fnamem: pathlib.Path
+    :param fmt: Format of the data
+    :type fmt: LST2CRD.DataFormat
+    :param channel: Channel the data is in
+    :type channel: int
+    :param tag: Channel the tag is in, or None if no tag
+    :type tag: int/None
+
+    :return: Data, Tag Data
+    :rtype: ndarray, ndarray/None
+    """
+    with open(fname, "rb") as f_in:
+        f_read = f_in.read()
+    data_ind = f_read.find(b"[DATA]") + len(b"[DATA]\r\n")
+    data = f_read[data_ind:]
+    print("a")
+    # todo to be continued...
 
 
 def get_sweep_time_ascii(data, sweep_b, time_b):

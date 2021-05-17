@@ -20,9 +20,9 @@ def init_lst_proc():
     cls._file_name = None
     cls._channel_data = None
     cls._channel_tag = None
-    cls._data_format = cls.DataFormat.ASCII_1A
 
     # reset all other variables
     cls._file_info = {}  # dictionary with parsed header info
+    cls._data_format = None
     cls._data_signal = None  # main signal data
     cls._data_tag = None  # tag data

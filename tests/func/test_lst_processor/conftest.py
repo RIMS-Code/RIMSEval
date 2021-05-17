@@ -15,7 +15,7 @@ def mpa4a_data_ascii():
     :rtype: (int, DataFormat, list)
     """
     channel = 4
-    fmt = rimseval.lst_processor.LST2CRD.DataFormat.ASCII_1A
+    fmt = rimseval.lst_processor.LST2CRD.ASCIIFormat.ASCII_1A
     data = [
         "000200b95a54",
         "000300b95a54",

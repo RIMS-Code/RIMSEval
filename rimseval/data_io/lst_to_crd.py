@@ -29,31 +29,35 @@ class LST2CRD:
         MPA4A = 100
         MCS8A = 80
 
-    class DataFormat(Enum):
+    class ASCIIFormat(Enum):
         """Available formats for this routine that are already implemented.
 
-        The name of the Data format consists of "ASCII" or "BIN" (self explanatory) and
-        and time patch value that can be read from the
-        The value is composed of a tuple of 3 entries. The first entry shows if it is
-        ascii or binary. The second and third entries are as following:
-        - For ASCII:
-          - Second entry: width of the binary number (binary_width)
-          - Third entry: Tuple of tuples with start, stop on where to read
+        Various formats that are implemented when dealing with ASCII data.
+        The value is composed of a tuple of 2 entries.
+          - First: entry: width of the binary number (binary_width)
+          - Second entry: Tuple of tuples with start, stop on where to read
             0: sweep - 1: time - 2: channel
-        - For binary:
-          - Second entry: Instructions on how to struct.unpack the binary
-          - Position in this thus created list for 0: sweep - 1: time - 2: channel
         """
 
-        ASCII_1A = ("ascii", 48, ((0, 16), (16, 44), (45, 48)))
-        ASCII_9 = ("ascii", 64, ((1, 21), (21, 59), (60, 63)))
+        ASC_1A = (48, ((0, 16), (16, 44), (45, 48)))
+        ASC_9 = (64, ((1, 21), (21, 59), (60, 63)))
+
+    class DATFormat(Enum):
+        """Available formats (time_patch) for binary data.
+
+        Various binary data formats are incorporated. Value is compmosed of 2 entries:
+          - 0: Data length in bytes
+          - 1: Encoding of the binary value to read with struct.unpack()
+          - 2: Tuple, Where in the decoded list are: 0: sweep - 1: time - 2: channel
+        """
+
+        DAT_9 = (8, "<")
 
     def __init__(
         self,
         file_name=None,
         channel_data=None,
         channel_tag=None,
-        data_format=DataFormat.ASCII_1A,
     ):
         """Initialize the LST2CRD class.
 
@@ -70,10 +74,10 @@ class LST2CRD:
         self._channel_data = channel_data
         self._channel_tag = channel_tag
         self._file_name = file_name
-        self._data_format = data_format
 
         # initialize values for future use
         self._file_info = {}  # dictionary with parsed header info
+        self._data_format = None  # format of the data. auto set on reading
         self._data_signal = None  # data for signal
         self._data_tag = None  # data for tag
 
@@ -126,7 +130,7 @@ class LST2CRD:
 
     @data_format.setter
     def data_format(self, newval):
-        if not isinstance(newval, self.DataFormat):
+        if not isinstance(newval, self.ASCIIFormat):
             raise TypeError(
                 f"Your data format {newval} is not a valid type. "
                 f"You must choose an object from the `DataFormat` instance."
@@ -164,8 +168,10 @@ class LST2CRD:
         This routine sets the following information parameters in self._file_info:
         - "bin_width": Sets the binwidth in ps, depending on the instrument
         - "calfact": Calibration factor, to scale range to bins
+        - "data_type": Sets the data type, 'ascii' for ASCII or 'dat' for binary, str
         - "shot_range": shot range
         - "timestamp": Time and date of file recording
+        - "time_patch": Data format, as reported by Fastcomtec as time_patch. as str
 
         :raises ValueError: File name not provided.
         :raises ValueError: Channel for data not provided
@@ -218,6 +224,18 @@ class LST2CRD:
                 self._file_info["ion_range"] = int(ion_range * mult_fact)
                 break
 
+        # find the data type, ascii or binary
+        for head in header:
+            if head[0:6] == "mpafmt":
+                data_type = head.split("=")[1]
+                self._file_info["data_type"] = data_type
+
+        # find the time patch
+        for head in header:
+            if head[0:10] == "time_patch":
+                time_patch = head.split("=")[1]
+                self._file_info["time_patch"] = time_patch
+
         # Find timestamp
         for head in header:
             tmp_date_str = "cmline0="
@@ -234,12 +252,17 @@ class LST2CRD:
                     second=int(float(time_tmp[2])),
                 )
                 break
-        # find the data format or raise an error
-        # todo
 
-        data_sig, data_tag = lst_utils.ascii_to_ndarray(
-            data_ascii, self.data_format, self.channel_data, self.channel_tag
-        )
+        # find the data format or raise an error
+        self.set_data_format()
+
+        if data_type.lower() == "asc":
+            data_sig, data_tag = lst_utils.ascii_to_ndarray(
+                data_ascii, self._data_format, self.channel_data, self.channel_tag
+            )
+        else:
+            # todo binary reader
+            pass
         self._data_signal = data_sig
         self._data_tag = data_tag
 
@@ -259,7 +282,7 @@ class LST2CRD:
             raise ValueError("No data has been read in yet.")
 
         # calculate the maximum number of sweeps that can be recorded
-        max_sweeps = self.data_format.value[2][0][1] - self.data_format.value[2][0][0]
+        max_sweeps = self.data_format.value[1][0][1] - self.data_format.value[1][0][0]
 
         # get the data
         data_shots, data_ions = lst_utils.transfer_lst_to_crd_data(
@@ -277,6 +300,29 @@ class LST2CRD:
         if self._channel_tag is not None:
             # todo: write tag data
             pass
+
+    def set_data_format(self):
+        """Set the data format according to what is saved in file_info dictionary.
+
+        The "data_type" and "time_patch" values must be present in the dictionary.
+        Writes the information to itself, to the `_data_format` variable.
+
+        :raises KeyError: Values are not in dictionary.
+        :raises ValueError: Needs to be binary or ASCII data
+        """
+        data_type = self._file_info["data_type"]
+        time_patch = self._file_info["time_patch"]
+        fmt_str = f"{data_type.upper()}_{time_patch.upper()}"
+        if data_type.lower() == "asc":
+            fmt = self.ASCIIFormat[fmt_str]
+        elif data_type.lower() == "dat":
+            # todo bin data
+            pass
+        else:
+            raise ValueError(
+                f"The data type {fmt_str} seems to be neither binary " f"nor ASCII."
+            )
+        self._data_format = fmt
 
     def _write_crd(self, fname, data_shots, data_ions):
         """Write an actual CRD file as defined.

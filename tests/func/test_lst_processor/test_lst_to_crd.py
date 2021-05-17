@@ -43,21 +43,6 @@ def test_channel_tag_wrong_type(init_lst_proc):
     assert exc_msg == "Channel number must be given as an integer."
 
 
-@pytest.mark.parametrize("data_format", rimseval.data_io.LST2CRD.DataFormat)
-def test_data_format(data_format):
-    """Get / Set the data format."""
-    cls = rimseval.data_io.LST2CRD()
-    cls.data_format = data_format
-    assert cls.data_format == data_format
-
-
-def test_data_format_type_error(init_lst_proc):
-    """Raise a TypeError when data format is not the correct object."""
-    wrong_data_format = "ASCII_6B"
-    with pytest.raises(TypeError):
-        init_lst_proc.data_format = wrong_data_format
-
-
 def test_file_name(init_lst_proc):
     """Get / set a filename and path."""
     test_path = Path("./test.txt")
@@ -77,6 +62,14 @@ def test_file_name_wrong_type(init_lst_proc):
 
 
 # METHODS #
+
+
+def test_set_data_format(init_lst_proc):
+    """Set the data format according to dictionary values."""
+    init_lst_proc._file_info["data_type"] = "asc"
+    init_lst_proc._file_info["time_patch"] = "9"
+    init_lst_proc.set_data_format()
+    assert init_lst_proc._data_format == init_lst_proc.ASCIIFormat.ASC_9
 
 
 def test_write_crd_no_data(init_lst_proc):

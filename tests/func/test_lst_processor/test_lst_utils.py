@@ -1,5 +1,6 @@
 """Test list file utilities."""
 
+import pathlib
 import pytest
 import numpy as np
 
@@ -15,7 +16,7 @@ def test_ascii_to_ndarray_ascii_1a_no_tag(init_lst_proc):
         "0003000e7474",
         "000000000000",  # zero
     ]
-    fmt = init_lst_proc.DataFormat.ASCII_1A
+    fmt = init_lst_proc.ASCIIFormat.ASC_1A
     channel = 4
     expected_return = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
 
@@ -33,7 +34,7 @@ def test_ascii_to_ndarray_ascii_1a_tag(init_lst_proc):
         "0003000e7474",
         "000000000000",  # zero
     ]
-    fmt = init_lst_proc.DataFormat.ASCII_1A
+    fmt = init_lst_proc.ASCIIFormat.ASC_1A
     channel = 4
     tag = 3
     expected_data = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
@@ -43,6 +44,13 @@ def test_ascii_to_ndarray_ascii_1a_tag(init_lst_proc):
 
     np.testing.assert_equal(ret_data, expected_data)
     np.testing.assert_equal(ret_tag, expected_tag)
+
+
+# def test_dat_to_ndarray():
+#     """Bla"""
+#     fname = pathlib.Path("../../../temp/lst_files/mcs8a_binary_short_2M_signal_dg.lst")
+#     utl.dat_to_ndarray(fname, None, None)
+#     assert True
 
 
 def test_get_sweep_time_ascii():
