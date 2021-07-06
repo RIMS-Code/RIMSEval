@@ -18,8 +18,6 @@ CURRENT_DEFAULTS = {
     "shotsPerPixel": struct.pack("<I", 0),
     "pixelPerScan": struct.pack("<I", 0),
     "nOfScans": struct.pack("<I", 0),
-    "calib_a": struct.pack("<d", np.nan),
-    "calib_b": struct.pack("<d", np.nan),
     "deltaT": struct.pack("<d", 0),
     "eof": struct.pack("4s", bytes("OK!", "utf-8")),
 }

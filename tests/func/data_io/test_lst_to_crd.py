@@ -1,4 +1,4 @@
-"""Tests for `lst_to_crd.py`"""
+"""Tests for `test_lst_to_crd.py`"""
 
 from hypothesis import given, strategies as st
 import numpy as np

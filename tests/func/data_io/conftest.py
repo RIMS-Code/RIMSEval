@@ -1,4 +1,4 @@
-# PYTEST FIXTURES FOR TEST_LST_PROCESSOR #
+"""PyTest fixtures for func tests in data_io."""
 
 import pytest
 

@@ -261,8 +261,7 @@ class LST2CRD:
                 data_ascii, self._data_format, self.channel_data, self.channel_tag
             )
         else:
-            # todo binary reader
-            pass
+            raise NotImplementedError("Binary data is currently not supported.")
         self._data_signal = data_sig
         self._data_tag = data_tag
 
@@ -277,9 +276,16 @@ class LST2CRD:
             sources the actual writing task out.
 
         :raises ValueError: No data has been read in.
+        :raises IOError: Data is empty.
         """
         if self._data_signal is None:
             raise ValueError("No data has been read in yet.")
+
+        if self._data_signal.shape[0] == 0:
+            raise IOError(
+                "There are no counts present in this file. Please double "
+                "check that you are using the correct channel for the signal."
+            )
 
         # calculate the maximum number of sweeps that can be recorded
         max_sweeps = self.data_format.value[1][0][1] - self.data_format.value[1][0][0]
@@ -316,8 +322,7 @@ class LST2CRD:
         if data_type.lower() == "asc":
             fmt = self.ASCIIFormat[fmt_str]
         elif data_type.lower() == "dat":
-            # todo bin data
-            pass
+            raise NotImplementedError("Binary data is currently not supported.")
         else:
             raise ValueError(
                 f"The data type {fmt_str} seems to be neither binary " f"nor ASCII."
@@ -362,10 +367,8 @@ class LST2CRD:
             fout.write(default["yDim"])
             fout.write(default["shotsPerPixel"])
             fout.write(default["pixelPerScan"])
-            fout.write(default["nOfScans" ""])
-            fout.write(struct.pack("<Q", len(data_shots)))  # number of shots
-            fout.write(default["calib_a"])
-            fout.write(default["calib_b"])
+            fout.write(default["nOfScans"])
+            fout.write(struct.pack("<I", len(data_shots)))  # number of shots
             fout.write(default["deltaT"])
 
             # write the data
