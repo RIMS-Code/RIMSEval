@@ -3,6 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 import struct
+import warnings
 
 import numpy as np
 import pathlib
@@ -50,11 +51,70 @@ class CRDReader:
     def parse_data(self, data):
         """Parse the actual data out and put into the appropriate array.
 
+        For this parsing to work, everything has to be just right, i.e., the number
+        of shots have to be exactly defined and the data should have the right length.
+        If not, this needs to throw a warning and move on to parse in a slower way.
+
         :param data: Binary string of all the data according to CRD specification.
         :type data: bytes
+
+        :warning: Number of Shots do not agree with the number of shots in the list or
+            certain ions are outside the binRange. Fallback to slower reading routine.
+        :warning: There is more data in this file than indicated by the number of Shots.
         """
-        # todo continue here
-        pass
+        n_shots = self.header["nofShots"]
+        bin_start = self.header["binStart"]
+        # fixme: There's going to be a problem here if bin_start is not zero or 1!
+        n_bins = self.header["binEnd"] - self.header["binStart"]
+        tof_data = np.zeros((n_shots, n_bins), dtype=np.int32)
+
+        # loop through the data
+        shot = 0
+        curr_ind = 0
+        warning_occured = False  # bool if we had a warning and need to take it slow
+        while shot < n_shots:
+            for it in range(struct.unpack("<I", data[curr_ind : curr_ind + 4])[0]):
+                try:
+                    curr_ind += 4
+                    channel = struct.unpack("<I", data[curr_ind : curr_ind + 4])[0]
+                    # fixme problem with start bin!
+                    tof_data[shot][channel] += 1
+                except IndexError as e:
+                    print(f"nofShots: {n_shots}")
+                    print(e)
+                    warnings.warn(
+                        "The CRD file is of bad form: Either there are ions "
+                        "in it that are outside the specified bin range, or "
+                        "there are fewer shots in it than expected. I will "
+                        "now fall back to a slow reading method."
+                    )
+                    warning_occured = True
+                    shot = n_shots  # to break out of while loop
+                    break
+            curr_ind += 4
+            shot += 1
+
+        if warning_occured:
+            self.parse_data_fallback(data)
+            return
+        elif curr_ind != len(data):
+            warnings.warn(
+                "It seems like there is more data in this CRD file than "
+                "the number of shots header entry show. I will now fall back "
+                "to a slow reading method."
+            )
+            self.parse_data_fallback(data)
+            return
+        else:
+            self._tof_data = tof_data
+
+    def parse_data_fallback(self, data):
+        """Slow reading routine in case the CRD file is corrupt.
+
+        Here we don't assume anything and just try to read the data into lists and
+        append them. Sure, this is going to be slow, but better than no data at all.
+        """
+        raise NotImplementedError
 
     def read_data(self):
         """Read in the data and parse out the header.

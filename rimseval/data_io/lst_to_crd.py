@@ -288,7 +288,9 @@ class LST2CRD:
             )
 
         # calculate the maximum number of sweeps that can be recorded
-        max_sweeps = self.data_format.value[1][0][1] - self.data_format.value[1][0][0]
+        max_sweeps = pow(
+            2, self.data_format.value[1][0][1] - self.data_format.value[1][0][0]
+        )
 
         # get the data
         data_shots, data_ions = lst_utils.transfer_lst_to_crd_data(
