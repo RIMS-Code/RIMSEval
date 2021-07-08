@@ -6,7 +6,6 @@ import struct
 import warnings
 
 import numpy as np
-import pathlib
 
 from . import crd_utils
 
@@ -33,7 +32,12 @@ class CRDReader:
         self.header = {}
 
         # data
-        self._tof_data = None
+        self._ions_per_shot = None
+        self._all_tofs = None
+
+        # some quick-available variables
+        self._nof_shots = None
+        self._nof_ions = None
 
         # init end of file
         self.eof = False
@@ -42,9 +46,32 @@ class CRDReader:
         self.read_data()
 
     @property
-    def tof_data(self):
-        """Get the time of flight data."""
-        return self._tof_data
+    def data(self):
+        """Get the data.
+
+        :return: 1D array with ions per shot, 1D array with bin in which ions arrived
+        :rtype: ndarray<dtype=np.int32>, ndarray<dtype=np.int32>
+        """
+
+        return self._ions_per_shot, self._all_tofs
+
+    @property
+    def nof_ions(self):
+        """Get the number of shots.
+
+        :return: Number of shots.
+        :rtype: int
+        """
+        return self._nof_ions
+
+    @property
+    def nof_shots(self):
+        """Get the number of ions.
+
+        :return: Number of ions.
+        :rtype: int
+        """
+        return self._nof_shots
 
     # FUNCTIONS #
 
@@ -62,51 +89,51 @@ class CRDReader:
             certain ions are outside the binRange. Fallback to slower reading routine.
         :warning: There is more data in this file than indicated by the number of Shots.
         """
-        n_shots = self.header["nofShots"]
-        bin_start = self.header["binStart"]
-        # fixme: There's going to be a problem here if bin_start is not zero or 1!
-        n_bins = self.header["binEnd"] - self.header["binStart"]
-        tof_data = np.zeros((n_shots, n_bins), dtype=np.int32)
+        nof_shots = self.header["nofShots"]
+        self._nof_shots = nof_shots
+
+        ions_per_shot = np.zeros(nof_shots, dtype=np.int32)
+        # calculate number of ions from filesize
+        nof_ions = len(data) // 4 - nof_shots
+        self._nof_ions = nof_ions
+        all_tofs = np.zeros(nof_ions, dtype=np.int32)
 
         # loop through the data
-        shot = 0
-        curr_ind = 0
+        shot_ind = 0  # index in ions_per_shot array
+        all_tof_ind = 0  # index in all_tofs array
+        bin_ind = 0  # index in binary file
         warning_occured = False  # bool if we had a warning and need to take it slow
-        while shot < n_shots:
-            for it in range(struct.unpack("<I", data[curr_ind : curr_ind + 4])[0]):
+        while shot_ind < nof_shots:
+            # ions in the given shot
+            curr_ions_in_shot = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
+            ions_per_shot[shot_ind] = curr_ions_in_shot
+            # now write out the times
+            for it in range(curr_ions_in_shot):
                 try:
-                    curr_ind += 4
-                    channel = struct.unpack("<I", data[curr_ind : curr_ind + 4])[0]
-                    # fixme problem with start bin!
-                    tof_data[shot][channel] += 1
-                except IndexError as e:
-                    print(f"nofShots: {n_shots}")
-                    print(e)
-                    warnings.warn(
-                        "The CRD file is of bad form: Either there are ions "
-                        "in it that are outside the specified bin range, or "
-                        "there are fewer shots in it than expected. I will "
-                        "now fall back to a slow reading method."
-                    )
+                    bin_ind += 4
+                    curr_time_bin = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
+                    all_tofs[all_tof_ind] = curr_time_bin
+                    all_tof_ind += 1
+                except IndexError:
                     warning_occured = True
-                    shot = n_shots  # to break out of while loop
+                    shot_ind = nof_shots  # to break out of while loop
                     break
-            curr_ind += 4
-            shot += 1
+            bin_ind += 4
+            shot_ind += 1
 
-        if warning_occured:
-            self.parse_data_fallback(data)
-            return
-        elif curr_ind != len(data):
+        if warning_occured or bin_ind != len(data):
             warnings.warn(
-                "It seems like there is more data in this CRD file than "
-                "the number of shots header entry show. I will now fall back "
-                "to a slow reading method."
+                f"This CRD file does not adhere to the specifications and might be "
+                f"corrupt. I will try a slow reading routine now in order to get the "
+                f"data. Some information: \n"
+                f"nof_shots: {self.nof_shots}\n"
+                f"nof_ions: {self.nof_ions}\n"
             )
             self.parse_data_fallback(data)
             return
         else:
-            self._tof_data = tof_data
+            self._ions_per_shot = ions_per_shot
+            self._all_tofs = all_tofs
 
     def parse_data_fallback(self, data):
         """Slow reading routine in case the CRD file is corrupt.
@@ -114,7 +141,24 @@ class CRDReader:
         Here we don't assume anything and just try to read the data into lists and
         append them. Sure, this is going to be slow, but better than no data at all.
         """
-        raise NotImplementedError
+        ions_per_shot = []
+        all_tofs = []
+
+        bin_ind = 0  # index inside of binary `data`
+        while bin_ind < len(data):
+            curr_ions_in_shot = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
+            ions_per_shot.append(curr_ions_in_shot)
+            # now append the times
+            for it in range(curr_ions_in_shot):
+                bin_ind += 4
+                curr_time_bin = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
+                all_tofs.append(curr_time_bin)
+            bin_ind += 4
+
+        self._nof_shots = len(ions_per_shot)
+        self._ions_per_shot = np.array(ions_per_shot)
+        self._nof_ions = len(all_tofs)
+        self._all_tofs = np.array(all_tofs)
 
     def read_data(self):
         """Read in the data and parse out the header.
