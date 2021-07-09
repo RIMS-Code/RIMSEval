@@ -1,11 +1,12 @@
 """CRD reader to handle any kind of header and version (currently v1)."""
 
-from datetime import datetime
 from pathlib import Path
 import struct
+from typing import Tuple
 import warnings
 
 import numpy as np
+import numpy.typing as npt
 
 from . import crd_utils
 
@@ -16,11 +17,10 @@ class CRDReader:
     ToDo: Example
     """
 
-    def __init__(self, fname):
+    def __init__(self, fname: Path) -> None:
         """Read in a CRD file and make all header arguments available.
 
         :param fname: Filename
-        :type fname: Path
 
         :raises TypeError: Fname must be a valid path.
         """
@@ -46,36 +46,48 @@ class CRDReader:
         self.read_data()
 
     @property
-    def data(self):
+    def all_tofs(self) -> np.ndarray:
+        """Get all time of flight bins.
+
+        :return: 1D array with bin in which ions arrived
+        """
+        return self._all_tofs
+
+    @property
+    def data(self) -> Tuple[np.ndarray, np.ndarray]:
         """Get the data.
 
         :return: 1D array with ions per shot, 1D array with bin in which ions arrived
-        :rtype: ndarray<dtype=np.int32>, ndarray<dtype=np.int32>
         """
-
         return self._ions_per_shot, self._all_tofs
 
     @property
-    def nof_ions(self):
+    def ions_per_shot(self) -> np.ndarray:
+        """Get ions per shot array.
+
+        :return: 1D array with ions per shot
+        """
+        return self._ions_per_shot
+
+    @property
+    def nof_ions(self) -> int:
         """Get the number of shots.
 
         :return: Number of shots.
-        :rtype: int
         """
         return self._nof_ions
 
     @property
-    def nof_shots(self):
+    def nof_shots(self) -> int:
         """Get the number of ions.
 
         :return: Number of ions.
-        :rtype: int
         """
         return self._nof_shots
 
     # FUNCTIONS #
 
-    def parse_data(self, data):
+    def parse_data(self, data: bytes) -> None:
         """Parse the actual data out and put into the appropriate array.
 
         For this parsing to work, everything has to be just right, i.e., the number
@@ -83,7 +95,6 @@ class CRDReader:
         If not, this needs to throw a warning and move on to parse in a slower way.
 
         :param data: Binary string of all the data according to CRD specification.
-        :type data: bytes
 
         :warning: Number of Shots do not agree with the number of shots in the list or
             certain ions are outside the binRange. Fallback to slower reading routine.
@@ -135,11 +146,13 @@ class CRDReader:
             self._ions_per_shot = ions_per_shot
             self._all_tofs = all_tofs
 
-    def parse_data_fallback(self, data):
+    def parse_data_fallback(self, data: bytes) -> None:
         """Slow reading routine in case the CRD file is corrupt.
 
         Here we don't assume anything and just try to read the data into lists and
         append them. Sure, this is going to be slow, but better than no data at all.
+
+        :param data: Array of all the data.
         """
         ions_per_shot = []
         all_tofs = []
@@ -160,7 +173,7 @@ class CRDReader:
         self._nof_ions = len(all_tofs)
         self._all_tofs = np.array(all_tofs)
 
-    def read_data(self):
+    def read_data(self) -> None:
         """Read in the data and parse out the header.
 
         The header information will be stored in the header dictionary. All entry

@@ -1,10 +1,16 @@
 """This file contains utilities for processing list files."""
 
+from typing import Any, List, Tuple, Union
+
 from numba import njit
 import numpy as np
 
+from .lst_to_crd import LST2CRD
 
-def ascii_to_ndarray(data_list, fmt, channel, tag=None):
+
+def ascii_to_ndarray(
+    data_list: List[str], fmt: LST2CRD.ASCIIFormat, channel: int, tag: int = None
+) -> Tuple[np.ndarray, np.ndarray]:
     """Turn ASCII LST data to a numpy array.
 
     Fixme: Might want to break this into two routines, with and without tag
@@ -13,16 +19,11 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
     For speed, using numba JITing.
 
     :param data_list: Data, directly supplied from the TDC block.
-    :type data_list: List[str]
     :param fmt: Format of the data
-    :type fmt: LST2CRD.DataFormat
     :param channel: Channel the data is in
-    :type channel: int
     :param tag: Channel the tag is in, or None if no tag
-    :type tag: int/None
 
     :return: Data, Tag Data
-    :rtype: ndarray, ndarray/None
 
     :raises TypeError: Wrong data format encountered.
     """
@@ -68,18 +69,16 @@ def ascii_to_ndarray(data_list, fmt, channel, tag=None):
     return data_arr, data_arr_tag
 
 
-def get_sweep_time_ascii(data, sweep_b, time_b):
+def get_sweep_time_ascii(
+    data: str, sweep_b: Tuple[int, int], time_b: Tuple[int, int]
+) -> Tuple[int, int]:
     """Get sweep and time from a given ASCII string.
 
     :param data: ASCII string
-    :type data: str
     :param sweep_b: Boundaries of sweep
-    :type sweep_b: (int, int)
     :param time_b: Boundaries of time
-    :type time_b: (int, int)
 
     :return: sweep, time
-    :rtype: int, int
     """
     sweep_val = int(data[sweep_b[0] : sweep_b[1]], 2)
     time_val = int(data[time_b[0] : time_b[1]], 2)
@@ -87,7 +86,9 @@ def get_sweep_time_ascii(data, sweep_b, time_b):
 
 
 @njit
-def transfer_lst_to_crd_data(data_in, max_sweep, ion_range):
+def transfer_lst_to_crd_data(
+    data_in: np.ndarray, max_sweep: int, ion_range: int
+) -> Tuple[np.ndarray, np.ndarray, bool]:
     """Transfer lst file specific data to the crd format.
 
     :param data: Array: One ion per line, two entries: sweep first (shot), then time

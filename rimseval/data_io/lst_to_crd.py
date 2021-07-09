@@ -18,7 +18,7 @@ class LST2CRD:
     Example:
         >>> from pathlib import Path
         >>> from rimseval.data_io import LST2CRD
-        >>> file = Path(path/to/file.lst)
+        >>> file = Path("path/to/file.lst")
         >>> lst = LST2CRD(file_name=file, channel_data=1, tag_data=None)
         >>> lst.read_list_file()
         >>> lst.write_crd()
@@ -62,20 +62,15 @@ class LST2CRD:
 
     def __init__(
         self,
-        file_name=None,
-        channel_data=None,
-        channel_tag=None,
-    ):
+        file_name: Path = None,
+        channel_data: int = None,
+        channel_tag: int = None,
+    ) -> None:
         """Initialize the LST2CRD class.
 
         :param file_name: File name and path of file to be read.
-        :type file_name: pathlib.Path
         :param channel_data: Number of channel the data are in.
-        :type channel_data: int
         :param channel_tag: Number of channel the tag is in, None for no tag.
-        :type channel_tag: int
-        :param data_format: Format the data is in.
-        :type data_format: DataFormat instance (enum)
         """
         # set the default values
         self._channel_data = channel_data
@@ -91,28 +86,26 @@ class LST2CRD:
     # PROPERTIES #
 
     @property
-    def channel_data(self):
+    def channel_data(self) -> int:
         """Get / set the channel number of the data.
 
         :return: Channel number of data
-        :rtype: int
 
         :raises TypeError: Channel number is not an integer.
         """
         return self._channel_data
 
     @channel_data.setter
-    def channel_data(self, newval):
+    def channel_data(self, newval: int) -> None:
         if not isinstance(newval, int):
             raise TypeError("Channel number must be given as an integer.")
         self._channel_data = newval
 
     @property
-    def channel_tag(self):
+    def channel_tag(self) -> int:
         """Get / set the channel number of the tag.
 
         :return: Channel number of tag
-        :rtype: int
 
         :raises TypeError: Channel number is not an integer.
         """
@@ -125,18 +118,17 @@ class LST2CRD:
         self._channel_tag = newval
 
     @property
-    def data_format(self):
+    def data_format(self) -> ASCIIFormat:
         """Select the data format to use to convert the LST file to CRD.
 
         :return: The currently chosen data format.
-        :rtype: DataFormat enum
 
         :raises TypeError: Data format is not a DataFormat enum.
         """
         return self._data_format
 
     @data_format.setter
-    def data_format(self, newval):
+    def data_format(self, newval: ASCIIFormat) -> None:
         if not isinstance(newval, self.ASCIIFormat):
             raise TypeError(
                 f"Your data format {newval} is not a valid type. "
@@ -145,7 +137,7 @@ class LST2CRD:
         self._data_format = newval
 
     @property
-    def file_name(self):
+    def file_name(self) -> Path:
         """Get / set the file name for the file to be read / written.
 
         :return: The path and file name to the selected object.
@@ -156,7 +148,7 @@ class LST2CRD:
         return self._file_name
 
     @file_name.setter
-    def file_name(self, newval):
+    def file_name(self, newval: Path) -> None:
         if not isinstance(newval, Path):
             raise TypeError(
                 f"Path must be a `pathlib.Path` object but is a {type(newval)}."
@@ -165,7 +157,7 @@ class LST2CRD:
 
     # METHODS #
 
-    def read_list_file(self):
+    def read_list_file(self) -> None:
         """Read a list file specified in `self.file_name`.
 
         This routine sets the following parameters of the class:
@@ -279,7 +271,7 @@ class LST2CRD:
         # set number of ions
         self._file_info["no_ions"] = len(data_sig)
 
-    def write_crd(self):
+    def write_crd(self) -> None:
         """Write CRD file(s) from the data that are in the class.
 
         Note: A file must have been read first. Also, this routine doesn't actually
@@ -349,17 +341,16 @@ class LST2CRD:
             )
         self._data_format = fmt
 
-    def _write_crd(self, fname, data_shots, data_ions):
+    def _write_crd(
+        self, fname: Path, data_shots: np.ndarray, data_ions: np.ndarray
+    ) -> None:
         """Write an actual CRD file as defined.
 
         Defaults of this writing are populated from the default dictionary in crd_utils.
 
         :param fname: File name to write to
-        :type fname: pathlib.Path
         :param data_shots: Prepared array with all shots included.
-        :type data_shots: ndarray
         :param data_ions: Prepared array with all ions included.
-        :type data_ions: ndarray
         """
         default = crd_utils.CURRENT_DEFAULTS
 
