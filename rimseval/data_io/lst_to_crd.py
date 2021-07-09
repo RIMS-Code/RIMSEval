@@ -15,7 +15,13 @@ from . import lst_utils
 class LST2CRD:
     """Convert list files to CRD files.
 
-    ToDo: Examples
+    Example:
+        >>> from pathlib import Path
+        >>> from rimseval.data_io import LST2CRD
+        >>> file = Path(path/to/file.lst)
+        >>> lst = LST2CRD(file_name=file, channel_data=1, tag_data=None)
+        >>> lst.read_list_file()
+        >>> lst.write_crd()
     """
 
     class BinWidthTDC(Enum):
@@ -175,8 +181,8 @@ class LST2CRD:
         - "time_patch": Data format, as reported by Fastcomtec as time_patch. as str
 
         :raises ValueError: File name not provided.
-        :raises ValueError: Channel for data not provided
-        :raises FileError: The Data Format is not available
+        :raises ValueError: Channel for data not provided.
+        :raises IOError: The Data Format is not available / could not be found in file.
         :raises NotImplementedError: The current data format is not (yet) implemented.
         """
         if self.file_name is None:
@@ -226,10 +232,14 @@ class LST2CRD:
                 break
 
         # find the data type, ascii or binary
+        data_type = None
         for head in header:
             if head[0:6] == "mpafmt":
                 data_type = head.split("=")[1]
                 self._file_info["data_type"] = data_type
+                break
+        if data_type is None:
+            raise IOError("Could not find a data type in the list file!")
 
         # find the time patch
         for head in header:
@@ -360,7 +370,9 @@ class LST2CRD:
             f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}"
         )
 
-        # fixme get the new bin range
+        # get the new bin range
+        bin_start = data_ions.min()
+        bin_end = data_ions.max()
 
         with open(fname, "wb") as fout:
             # header
@@ -373,8 +385,8 @@ class LST2CRD:
             fout.write(default["tofFormat"])
             fout.write(default["polarity"])
             fout.write(struct.pack("<I", self._file_info["bin_width"]))
-            fout.write(struct.pack("<I", 1))  # first bin - 1 indexed
-            fout.write(struct.pack("<I", self._file_info["ion_range"]))  # last bin
+            fout.write(struct.pack("<I", bin_start))
+            fout.write(struct.pack("<I", bin_end))
             fout.write(default["xDim"])
             fout.write(default["yDim"])
             fout.write(default["shotsPerPixel"])

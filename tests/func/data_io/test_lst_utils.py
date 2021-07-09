@@ -105,9 +105,10 @@ def test_transfer_lst_to_crd_data():
         [500, 600, 265, 700, 55, 2, 50, 200, 13, 100], dtype=np.uint32
     )
 
-    shots_array_ret, ions_array_ret = utl.transfer_lst_to_crd_data(
+    shots_array_ret, ions_array_ret, out_of_range = utl.transfer_lst_to_crd_data(
         data_in, max_sweep, ion_range
     )
 
     np.testing.assert_equal(shots_array_ret, shots_array_exp)
     np.testing.assert_equal(ions_array_ret, ions_array_exp)
+    assert out_of_range  # some ions are above ion range
