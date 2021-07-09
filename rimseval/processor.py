@@ -1,8 +1,10 @@
 """Processes a CRD file."""
 
 from pathlib import Path
+from typing import List, Tuple, Union
 import warnings
 
+from numba import jit, njit
 import numpy as np
 
 from .data_io.crd_reader import CRDReader
@@ -35,9 +37,11 @@ class CRDFileProcessor:
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 
-        :param dbins: Number of dead bins
-        :type dbins: int
+        :param dbins: Number of dead bins after original bin (total - 1).
         """
+        self.data = processor_utils.dead_time_correction(
+            self.data, self.crd.nof_shots, dbins
+        )
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.
@@ -57,12 +61,56 @@ class CRDFileProcessor:
         self.tof = np.arange(bin_start, bin_end + 1, 1) * bin_length + delta_t
         self.data = processor_utils.sort_data_into_spectrum(self.crd.all_tofs)
 
-        print(bin_start, bin_end)
-        print(self.crd.all_tofs.min(), self.crd.all_tofs.max())
-
         if self.tof.shape != self.data.shape:
+            # fixme remove print
+            print(f"Header binStart: {bin_start}, binEnd: {bin_end}")
+            print(
+                f"File binStart: {self.crd.all_tofs.min()}, "
+                f"binEnd {self.crd.all_tofs.max()}"
+            )
             warnings.warn(
                 "Bin ranges in CRD file were of bad length. Creating ToF "
                 "array without CRD header input."
             )
             self.tof = np.arange(len(self.data)) * bin_length
+
+    def spectrum_part(
+        self, rng: Union[Tuple[int, int], Tuple[Tuple[int, int]]]
+    ) -> None:
+        """Create ToF for a part of the spectra.
+
+        Select part of the shot range. These ranges will be 1 indexed!
+
+        :rng: Shot range, either as a tuple (from, to) or as a tuple of multiple
+            ((from1, to1), (from2, to2), ...).
+
+        :raises ValueError: Ranges are not defined from, to where from < to
+        :raises ValueError: Tuples are not mutually exclusive.
+        """
+        rng = np.array(rng)
+        if len(rng.shape) == 1:  # only one entry
+            rng = rng.reshape(1, 2)
+
+        # subtract 1 such that zero indexed
+        rng -= 1
+
+        # sort by first entry
+        rng = rng[rng[:, 0].argsort()]
+
+        # check if any issues with the
+        if all(rng[:, 1] < rng[:, 0]):
+            raise ValueError(
+                "The `from, to` values in your range are not defined "
+                "such that `from` < `to`."
+            )
+
+        # check that mutually exclusive
+        for it in range(1, len(rng)):
+            if rng[it - 1][1] >= rng[it][0]:
+                raise ValueError("Your ranges are not mutually exclusive.")
+
+        # get ions such that they are a view on the range
+        ions_per_shot, all_tofs = self.crd.all_data
+
+        # todo create index list of from where to where to filter all_tofs
+        # todo filter all_tofs as in full spectrum above to create data

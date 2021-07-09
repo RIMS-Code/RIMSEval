@@ -46,20 +46,20 @@ class CRDReader:
         self.read_data()
 
     @property
+    def all_data(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Get the data.
+
+        :return: 1D array with ions per shot, 1D array with bin in which ions arrived
+        """
+        return self._ions_per_shot, self._all_tofs
+
+    @property
     def all_tofs(self) -> np.ndarray:
         """Get all time of flight bins.
 
         :return: 1D array with bin in which ions arrived
         """
         return self._all_tofs
-
-    @property
-    def data(self) -> Tuple[np.ndarray, np.ndarray]:
-        """Get the data.
-
-        :return: 1D array with ions per shot, 1D array with bin in which ions arrived
-        """
-        return self._ions_per_shot, self._all_tofs
 
     @property
     def ions_per_shot(self) -> np.ndarray:
