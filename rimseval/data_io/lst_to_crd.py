@@ -3,6 +3,7 @@
 from datetime import datetime
 from enum import Enum
 import struct
+import warnings
 
 import numpy as np
 from pathlib import Path
@@ -293,9 +294,16 @@ class LST2CRD:
         )
 
         # get the data
-        data_shots, data_ions = lst_utils.transfer_lst_to_crd_data(
+        data_shots, data_ions, ions_out_of_range = lst_utils.transfer_lst_to_crd_data(
             self._data_signal, max_sweeps, self._file_info["ion_range"]
         )
+
+        if ions_out_of_range:
+            warnings.warn(
+                "The lst file contained ions that were outside the allowed "
+                "range. These ions were not written to the crd file."
+            )
+
         if self._channel_tag is not None:  # we have tagged data
             # todo: split data if a tag is present
             pass
@@ -351,6 +359,8 @@ class LST2CRD:
             f"{dt.year:04}:{dt.month:02}:{dt.day:02} "
             f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}"
         )
+
+        # fixme get the new bin range
 
         with open(fname, "wb") as fout:
             # header

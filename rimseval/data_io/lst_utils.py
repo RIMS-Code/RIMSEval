@@ -98,8 +98,8 @@ def transfer_lst_to_crd_data(data_in, max_sweep, ion_range):
     :type ion_range: int
 
     :return: Array of how many ions are in each shot, Array of all arrival times of
-        these ions
-    :rtype: ndarray, ndarray
+        these ions, and a bool if there are any ions out of range
+    :rtype: ndarray, ndarray, bool
     """
     data = data_in.copy()
 
@@ -132,10 +132,13 @@ def transfer_lst_to_crd_data(data_in, max_sweep, ion_range):
     )
 
     it = 0
+    ions_out_of_range = False
     for shot, ion in data_sort:
         if ion <= ion_range:
             shots[shot - 1] += 1  # zero versus one based
             ions[it] = ion
             it += 1
+        else:
+            ions_out_of_range = True
 
-    return shots, ions
+    return shots, ions, ions_out_of_range
