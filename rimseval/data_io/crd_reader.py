@@ -6,7 +6,6 @@ from typing import Tuple
 import warnings
 
 import numpy as np
-import numpy.typing as npt
 
 from . import crd_utils
 
