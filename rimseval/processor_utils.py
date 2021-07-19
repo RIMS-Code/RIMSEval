@@ -32,6 +32,31 @@ def dead_time_correction(data: np.ndarray, nof_shots: int, dbins: int) -> np.nda
     return data
 
 
+def multi_range_indexes(rng: np.array) -> np.array:
+    """Create multi range indexes.
+
+    :param rng: Range, given as a numpy array of two entries each.
+
+    :return: A 1D array with all the indexes spelled out. This allows for viewing
+        numpy arrays for multiple windows.
+    """
+    num_shots = 0
+    ind_tmp = []
+    for rit in rng:
+        if rit[0] != rit[1]:
+            arranged_tmp = np.arange(rit[0], rit[1] + 1)
+            ind_tmp.append(arranged_tmp)
+            num_shots += len(arranged_tmp)
+
+    indexes = np.zeros(num_shots, dtype=int)
+    ind_b = 0
+    for rit in ind_tmp:
+        ind_e = ind_b + len(rit)
+        indexes[ind_b:ind_e] = rit
+        ind_b = ind_e
+    return indexes
+
+
 @njit
 def sort_data_into_spectrum(ions: np.ndarray) -> np.ndarray:
     """Sort ion data in 1D array into an overall array and sum them up.

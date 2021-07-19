@@ -3,6 +3,7 @@
 from enum import Enum
 import struct
 
+from numba import njit
 import numpy as np
 
 # current default CRD header information, packed and ready to be written
@@ -58,3 +59,21 @@ class CRDHeader(Enum):
         ("nofShots", 4, "<I"),
         ("deltaT", 8, "<d"),
     )
+
+
+@njit
+def shot_to_tof_mapper(ions_per_shot: np.array) -> np.array:
+    """Mapper for ions_to_shot to all_tofs.
+
+    Takes ions_per_shot array and creates a mapper that describes which ranges in the
+    all_tofs array a given shot refers to.
+
+    :param ions_per_shot: Ion per shots array.
+    """
+    mapper = np.zeros((ions_per_shot.shape[0], 2), dtype=np.int32)
+    curr_ind = 0
+    for it, ion_per_shot in enumerate(ions_per_shot):
+        mapper[it][0] = curr_ind
+        mapper[it][1] = curr_ind + ion_per_shot
+        curr_ind += ion_per_shot
+    return mapper

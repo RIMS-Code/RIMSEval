@@ -34,6 +34,9 @@ class CRDFileProcessor:
         self.mass = None
         self.data = None
 
+        # file info
+        self.nof_shots = self.crd.nof_shots
+
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 
@@ -75,7 +78,7 @@ class CRDFileProcessor:
             self.tof = np.arange(len(self.data)) * bin_length
 
     def spectrum_part(
-        self, rng: Union[Tuple[int, int], Tuple[Tuple[int, int]]]
+        self, rng: Tuple[Tuple[int, int], Tuple[Tuple[int, int]]]
     ) -> None:
         """Create ToF for a part of the spectra.
 
@@ -110,7 +113,19 @@ class CRDFileProcessor:
                 raise ValueError("Your ranges are not mutually exclusive.")
 
         # get ions such that they are a view on the range
-        ions_per_shot, all_tofs = self.crd.all_data
+        all_tofs = self.crd.all_tofs
 
-        # todo create index list of from where to where to filter all_tofs
-        # todo filter all_tofs as in full spectrum above to create data
+        # filter ions per shot
+        ion_indexes = processor_utils.multi_range_indexes(rng)
+
+        # create all_tof ranges and filter
+        rng_all_tofs = self.crd.ions_to_tof_map[ion_indexes]
+        tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
+
+        # if empty shape: we got no data!
+        if len(tof_indexes) == 0:
+            self.data = np.zeros_like(self.data)
+        else:
+            self.data = processor_utils.sort_data_into_spectrum(all_tofs[tof_indexes])
+
+        self.nof_shots = len(ion_indexes)

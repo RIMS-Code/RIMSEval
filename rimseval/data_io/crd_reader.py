@@ -33,6 +33,7 @@ class CRDReader:
         # data
         self._ions_per_shot = None
         self._all_tofs = None
+        self._ions_to_tof_map = None
 
         # some quick-available variables
         self._nof_shots = None
@@ -67,6 +68,14 @@ class CRDReader:
         :return: 1D array with ions per shot
         """
         return self._ions_per_shot
+
+    @property
+    def ions_to_tof_map(self) -> np.ndarray:
+        """Get the index mapper for ions_per_shot -> tof.
+
+        :return: Mapper with indexes where tofs are in all_tofs
+        """
+        return self._ions_to_tof_map
 
     @property
     def nof_ions(self) -> int:
@@ -216,3 +225,6 @@ class CRDReader:
             self.parse_data(rest[:-4])
         else:
             self.parse_data(rest)
+
+        # now call the mapper routine
+        self._ions_to_tof_map = crd_utils.shot_to_tof_mapper(self._ions_per_shot)
