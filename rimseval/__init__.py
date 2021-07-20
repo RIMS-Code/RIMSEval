@@ -1,6 +1,7 @@
 """Initialization of the rimseval package."""
 
 from . import data_io
+from . import legacy
 from . import processor
 
 # Package information
