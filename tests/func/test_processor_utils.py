@@ -3,6 +3,44 @@
 import numpy as np
 
 import rimseval.processor_utils as pu
+import rimseval.data_io.crd_utils as crdu
+
+
+def test_create_packages():
+    """Create packages from data."""
+    ions_per_shot = np.array([0, 0, 1, 0, 2, 0, 3, 2, 1, 4])
+    all_tofs = np.array([20, 25, 70, 53, 68, 11, 54, 12, 68, 99, 65, 48, 7])
+    bin_start = all_tofs.min()
+    bin_end = all_tofs.max()
+    len_data = bin_end - bin_start + 1
+    tofs_mapper = crdu.shot_to_tof_mapper(ions_per_shot)
+    assert ions_per_shot.sum() == len(all_tofs)
+    assert all_tofs.max() < len_data + bin_start  # sanity checks for setup
+
+    # packages expected
+    pkg_length = 4
+    nof_pkg = len(ions_per_shot) // pkg_length
+    if len(ions_per_shot) % pkg_length > 0:
+        nof_pkg += 1
+
+    pkg_nof_shots_exp = np.zeros(nof_pkg) + pkg_length
+    if (tmp := len(ions_per_shot) % pkg_length) > 0:
+        pkg_nof_shots_exp[-1] = tmp
+
+    pkg_data_exp = np.zeros((nof_pkg, len_data))
+
+    for it, shot in enumerate(ions_per_shot):
+        pkg_it = it // pkg_length
+        mapper = tofs_mapper[it]
+        tofs = all_tofs[mapper[0] : mapper[1]]
+        for tof in tofs:
+            pkg_data_exp[pkg_it][int(tof) - bin_start] += 1
+
+    pkg_data_rec, pkg_nof_shots_rec = pu.create_packages(
+        pkg_length, tofs_mapper, all_tofs
+    )
+    np.testing.assert_equal(pkg_nof_shots_rec, pkg_nof_shots_exp)
+    np.testing.assert_equal(pkg_data_rec, pkg_data_exp)
 
 
 def test_multi_range_indexes():
@@ -22,3 +60,14 @@ def test_multi_range_indexes_empty():
     ranges = np.array([[0, 0], [0, 0]])
     indexes_exp = np.array([])
     np.testing.assert_equal(pu.multi_range_indexes(ranges), indexes_exp)
+
+
+def test_sort_data_into_spectrum():
+    """Sort some small data into a spectrum."""
+    ions = np.array([0, 1, 5, 10, 9])
+    assert ions.min() == 0  # requirement for this simple test
+    spectrum_exp = np.zeros(ions.max() - ions.min() + 1)
+    for ion in ions:
+        spectrum_exp[ion] += 1
+    spectrum_rec = pu.sort_data_into_spectrum(ions)
+    np.testing.assert_equal(spectrum_rec, spectrum_exp)

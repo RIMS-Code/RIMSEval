@@ -28,22 +28,76 @@ class CRDFileProcessor:
         """
         # read in the CRD file
         self.crd = CRDReader(fname)
+        self.ions_per_shot = self.crd.ions_per_shot
+        self.ions_to_tof_map = self.crd.ions_to_tof_map
+        self.all_tofs = self.crd.all_tofs
 
         # create ToF spectrum
         self.tof = None
         self.mass = None
         self.data = None
+        self.data_pkg = None
 
         # file info
         self.nof_shots = self.crd.nof_shots
+        self.nof_shots_pkg = None
 
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 
+        If packages were set, the dead time correction is performed on each package
+        individually as well.
+
         :param dbins: Number of dead bins after original bin (total - 1).
         """
         self.data = processor_utils.dead_time_correction(
-            self.data, self.crd.nof_shots, dbins
+            self.data.reshape(1, self.data.shape[0]),
+            np.array(self.nof_shots).reshape(1),
+            dbins,
+        )
+
+        if self.data_pkg is not None:
+            self.data_pkg = processor_utils.dead_time_correction(
+                self.data_pkg, self.nof_shots_pkg, dbins
+            )
+
+    def filter_max_ions_per_pkg(self, max_ions: int) -> None:
+        """Filter out packages with too many ions.
+
+        :param max_ions: Maximum number of ions per package.
+
+        :raise ValueError: Invalid range for number of ions.
+        :raise IOError: Max P
+        """
+        if max_ions < 1:
+            raise ValueError("The maximum number of ions must be larger than 1.")
+        if self.data_pkg is None:
+            raise IOError("There is no packaged data. Please create packages first.")
+
+        total_ions_per_pkg = np.sum(self.data_pkg, axis=1)
+
+        self.data_pkg = np.delete(
+            self.data_pkg, np.where(total_ions_per_pkg > max_ions), axis=0
+        )
+        self.nof_shots_pkg = np.delete(
+            self.nof_shots_pkg, np.where(total_ions_per_pkg > max_ions), axis=0
+        )
+
+    def packages(self, shots: int) -> None:
+        """Break data into packages.
+
+        :param shots: Number of shots per package. The last package will have the rest.
+
+        :raise ValueError: Number of shots out of range
+        """
+        if shots < 1 or shots >= self.nof_shots:
+            raise ValueError(
+                f"Number of shots per package must be between 1 and "
+                f"{self.nof_shots}, but is {shots}."
+            )
+
+        self.data_pkg, self.nof_shots_pkg = processor_utils.create_packages(
+            shots, self.ions_to_tof_map, self.all_tofs
         )
 
     def spectrum_full(self) -> None:
@@ -60,9 +114,14 @@ class CRDFileProcessor:
         bin_start = self.crd.header["binStart"]
         bin_end = self.crd.header["binEnd"]
         delta_t = self.crd.header["deltaT"]
+
+        # reset the data
+        self.ions_to_tof_map = self.crd.ions_to_tof_map
+        self.all_tofs = self.crd.all_tofs
+
         # set up ToF
         self.tof = np.arange(bin_start, bin_end + 1, 1) * bin_length + delta_t
-        self.data = processor_utils.sort_data_into_spectrum(self.crd.all_tofs)
+        self.data = processor_utils.sort_data_into_spectrum(self.all_tofs)
 
         if self.tof.shape != self.data.shape:
             # fixme remove print
@@ -82,7 +141,8 @@ class CRDFileProcessor:
     ) -> None:
         """Create ToF for a part of the spectra.
 
-        Select part of the shot range. These ranges will be 1 indexed!
+        Select part of the shot range. These ranges will be 1 indexed! Always start
+        with the full data range.
 
         :rng: Shot range, either as a tuple (from, to) or as a tuple of multiple
             ((from1, to1), (from2, to2), ...).
@@ -90,6 +150,11 @@ class CRDFileProcessor:
         :raises ValueError: Ranges are not defined from, to where from < to
         :raises ValueError: Tuples are not mutually exclusive.
         """
+        # reset current settings
+        self.ions_to_tof_map = self.crd.ions_to_tof_map
+        self.all_tofs = self.crd.all_tofs
+
+        # range
         rng = np.array(rng)
         if len(rng.shape) == 1:  # only one entry
             rng = rng.reshape(1, 2)
@@ -112,20 +177,23 @@ class CRDFileProcessor:
             if rng[it - 1][1] >= rng[it][0]:
                 raise ValueError("Your ranges are not mutually exclusive.")
 
-        # get ions such that they are a view on the range
-        all_tofs = self.crd.all_tofs
-
         # filter ions per shot
         ion_indexes = processor_utils.multi_range_indexes(rng)
 
         # create all_tof ranges and filter
-        rng_all_tofs = self.crd.ions_to_tof_map[ion_indexes]
+        rng_all_tofs = self.ions_to_tof_map[ion_indexes]
         tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
+
+        all_tofs_filtered = self.all_tofs[tof_indexes]
+        ions_to_tof_map_filtered = self.ions_to_tof_map[ion_indexes]
 
         # if empty shape: we got no data!
         if len(tof_indexes) == 0:
             self.data = np.zeros_like(self.data)
         else:
-            self.data = processor_utils.sort_data_into_spectrum(all_tofs[tof_indexes])
+            self.data = processor_utils.sort_data_into_spectrum(all_tofs_filtered)
 
+        # set back values
+        self.all_tofs = all_tofs_filtered
+        self.ions_to_tof_map = ions_to_tof_map_filtered
         self.nof_shots = len(ion_indexes)
