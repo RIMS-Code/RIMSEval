@@ -44,9 +44,6 @@ def create_packages(
     return pkg_data, nof_shots_pkg
 
 
-from numba import jit
-
-
 @njit
 def dead_time_correction(
     data: np.ndarray, nof_shots: np.ndarray, dbins: int
@@ -87,6 +84,9 @@ def dead_time_correction(
 def multi_range_indexes(rng: np.array) -> np.array:
     """Create multi range indexes.
 
+    If a range is given as (from, to), the from will be included, while the to will
+    be excluded.
+
     :param rng: Range, given as a numpy array of two entries each.
 
     :return: A 1D array with all the indexes spelled out. This allows for viewing
@@ -96,7 +96,7 @@ def multi_range_indexes(rng: np.array) -> np.array:
     ind_tmp = []
     for rit in rng:
         if rit[0] != rit[1]:
-            arranged_tmp = np.arange(rit[0], rit[1] + 1)
+            arranged_tmp = np.arange(rit[0], rit[1])
             ind_tmp.append(arranged_tmp)
             num_shots += len(arranged_tmp)
 
@@ -110,15 +110,17 @@ def multi_range_indexes(rng: np.array) -> np.array:
 
 
 @njit
-def sort_data_into_spectrum(ions: np.ndarray) -> np.ndarray:
+def sort_data_into_spectrum(
+    ions: np.ndarray, bin_start: int, bin_end: int
+) -> np.ndarray:
     """Sort ion data in 1D array into an overall array and sum them up.
 
     :param ions: Arrival time of the ions - number of time bin
+    :param bin_start: First bin of spectrum
+    :param bin_end: Last bin of spectrum
 
     :return: arrival bins summed up
     """
-    bin_start = ions.min()
-    bin_end = ions.max()
     data = np.zeros(bin_end - bin_start + 1)
     for ion in ions:
         data[ion - bin_start] += 1

@@ -46,9 +46,7 @@ def test_create_packages():
 def test_multi_range_indexes():
     """Create multi-range indexes for view on data."""
     ranges = np.array([[0, 2], [3, 6], [0, 0], [15, 22]])
-    indexes_exp = np.array(
-        [0, 1, 2, 3, 4, 5, 6, 15, 16, 17, 18, 19, 20, 21, 22], dtype=int
-    )
+    indexes_exp = np.array([0, 1, 3, 4, 5, 15, 16, 17, 18, 19, 20, 21], dtype=int)
 
     indexes_rec = pu.multi_range_indexes(ranges)
     np.testing.assert_equal(indexes_rec, indexes_exp)
@@ -69,5 +67,5 @@ def test_sort_data_into_spectrum():
     spectrum_exp = np.zeros(ions.max() - ions.min() + 1)
     for ion in ions:
         spectrum_exp[ion] += 1
-    spectrum_rec = pu.sort_data_into_spectrum(ions)
+    spectrum_rec = pu.sort_data_into_spectrum(ions, ions.min(), ions.max())
     np.testing.assert_equal(spectrum_rec, spectrum_exp)

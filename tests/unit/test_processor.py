@@ -39,3 +39,20 @@ def test_filter_max_ions_per_pkg(crd_file):
     crd.packages(1)
     crd.filter_max_ions_per_pkg(max_ions)
     assert crd.data_pkg.sum() == sum_ions
+
+
+def test_filter_max_ions_per_shot(crd_file):
+    """Filter the shots by maximum ions per shot."""
+    _, ions_per_shot, _, fname = crd_file
+    max_ions = ions_per_shot.min() + 1  # filter most out
+    filtered_data = ions_per_shot[np.where(ions_per_shot <= max_ions)]
+    sum_ions_exp = np.sum(filtered_data)
+    nof_shots_exp = len(filtered_data)
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.filter_max_ions_per_shot(max_ions)
+
+    assert crd.nof_shots == nof_shots_exp
+    assert crd.data.sum() == sum_ions_exp
+    np.testing.assert_equal(crd.ions_per_shot, filtered_data)

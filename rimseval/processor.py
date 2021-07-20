@@ -67,7 +67,7 @@ class CRDFileProcessor:
         :param max_ions: Maximum number of ions per package.
 
         :raise ValueError: Invalid range for number of ions.
-        :raise IOError: Max P
+        :raise IOError: No package data available.
         """
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be larger than 1.")
@@ -77,11 +77,38 @@ class CRDFileProcessor:
         total_ions_per_pkg = np.sum(self.data_pkg, axis=1)
 
         self.data_pkg = np.delete(
-            self.data_pkg, np.where(total_ions_per_pkg > max_ions), axis=0
+            self.data_pkg, np.where(total_ions_per_pkg > max_ions)[0], axis=0
         )
         self.nof_shots_pkg = np.delete(
-            self.nof_shots_pkg, np.where(total_ions_per_pkg > max_ions), axis=0
+            self.nof_shots_pkg, np.where(total_ions_per_pkg > max_ions)[0], axis=0
         )
+
+    def filter_max_ions_per_shot(self, max_ions: int) -> None:
+        """Filter out shots that have more than the max_ions defined.
+
+        :param max_ions: Maximum number of ions allowed in a shot.
+
+        :raise ValueError: Invalid range for number of ions.
+        """
+        if max_ions < 1:
+            raise ValueError("The maximum number of ions must be larger than 1.")
+
+        ion_indexes = np.where(self.ions_per_shot <= max_ions)[0]
+
+        rng_all_tofs = self.ions_to_tof_map[ion_indexes]
+        tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
+
+        all_tofs_filtered = self.all_tofs[tof_indexes]
+        self.data = processor_utils.sort_data_into_spectrum(
+            all_tofs_filtered,
+            self.all_tofs.min(),
+            self.all_tofs.max(),
+        )
+
+        self.ions_per_shot = self.ions_per_shot[ion_indexes]
+        self.ions_to_tof_map = self.ions_to_tof_map[ion_indexes]
+        self.all_tofs = all_tofs_filtered
+        self.nof_shots = len(ion_indexes)
 
     def packages(self, shots: int) -> None:
         """Break data into packages.
@@ -121,7 +148,9 @@ class CRDFileProcessor:
 
         # set up ToF
         self.tof = np.arange(bin_start, bin_end + 1, 1) * bin_length + delta_t
-        self.data = processor_utils.sort_data_into_spectrum(self.all_tofs)
+        self.data = processor_utils.sort_data_into_spectrum(
+            self.all_tofs, self.all_tofs.min(), self.all_tofs.max()
+        )
 
         if self.tof.shape != self.data.shape:
             # fixme remove print
@@ -159,14 +188,14 @@ class CRDFileProcessor:
         if len(rng.shape) == 1:  # only one entry
             rng = rng.reshape(1, 2)
 
-        # subtract 1 such that zero indexed
-        rng -= 1
+        # subtract 1 from start range -> zero indexing plus upper limit inclusive now
+        rng[:, 0] -= 1
 
         # sort by first entry
         rng = rng[rng[:, 0].argsort()]
 
         # check if any issues with the
-        if all(rng[:, 1] < rng[:, 0]):
+        if any(rng[:, 1] < rng[:, 0]):
             raise ValueError(
                 "The `from, to` values in your range are not defined "
                 "such that `from` < `to`."
@@ -174,7 +203,7 @@ class CRDFileProcessor:
 
         # check that mutually exclusive
         for it in range(1, len(rng)):
-            if rng[it - 1][1] >= rng[it][0]:
+            if rng[it - 1][1] > rng[it][0]:
                 raise ValueError("Your ranges are not mutually exclusive.")
 
         # filter ions per shot
@@ -191,9 +220,12 @@ class CRDFileProcessor:
         if len(tof_indexes) == 0:
             self.data = np.zeros_like(self.data)
         else:
-            self.data = processor_utils.sort_data_into_spectrum(all_tofs_filtered)
+            self.data = processor_utils.sort_data_into_spectrum(
+                all_tofs_filtered, all_tofs_filtered.min(), all_tofs_filtered.max()
+            )
 
         # set back values
-        self.all_tofs = all_tofs_filtered
+        self.ions_per_shot = self.ions_per_shot[ion_indexes]
         self.ions_to_tof_map = ions_to_tof_map_filtered
+        self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
