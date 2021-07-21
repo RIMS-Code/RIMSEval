@@ -1,7 +1,6 @@
 """Test legacy functions."""
 
-
-from rimseval import legacy
+from rimseval.compatibility import lion_eval
 
 
 def test_extract_block():
@@ -21,4 +20,4 @@ def test_extract_block():
     ]
     data_block_exp = ["0", "1", "2"]
     # bottom char set automatically
-    assert legacy._extract_block(data, top_char=top_char) == data_block_exp
+    assert lion_eval._extract_block(data, top_char=top_char) == data_block_exp

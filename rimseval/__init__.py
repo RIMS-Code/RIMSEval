@@ -1,8 +1,8 @@
 """Initialization of the rimseval package."""
 
 from . import data_io
-from . import legacy
-from . import processor
+from . import interfacer
+from .processor import CRDFileProcessor
 
 # Package information
 __version__ = "0.0.0"

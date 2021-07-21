@@ -1,4 +1,7 @@
-"""Processes a CRD file."""
+"""Processes a CRD file.
+
+Note: Interfacing with external files is done in the `interfacer.py` library.
+"""
 
 from pathlib import Path
 from typing import List, Tuple, Union
@@ -6,6 +9,7 @@ import warnings
 
 from numba import jit, njit
 import numpy as np
+from scipy.optimize import curve_fit
 
 from .data_io.crd_reader import CRDReader
 from . import processor_utils
@@ -38,9 +42,72 @@ class CRDFileProcessor:
         self.data = None
         self.data_pkg = None
 
+        # parameters for calibration and evaluation
+        self._params_mcal = None  # mass calibration
+        self._params_integrals = None  # integral definitions
+        self._params_bg_corr = None  # bg_correction
+
         # file info
         self.nof_shots = self.crd.nof_shots
         self.nof_shots_pkg = None
+
+    # PROPERTIES #
+
+    @property
+    def def_mcal(self) -> np.ndarray:
+        """Mass calibration definitions.
+
+        :return: Mass calibration definitions. The columns are as following:
+            1st: ToF (us)
+            2nd: Mass (amu)
+
+        :raise TypeError: Value is not a numpy ndarray
+        :raise ValueError: At least two parameters must be given for a mass calibration.
+        :raise ValueError: The array is of the wrong shape.
+        """
+        return self._params_mcal
+
+    @def_mcal.setter
+    def def_mcal(self, value):
+        if not isinstance(value, np.ndarray):
+            raise TypeError(
+                f"Mass calibration definition must be given as a numpy "
+                f"ndarray but is a {type(value)}."
+            )
+        if value.shape[0] < 2:
+            raise ValueError("At least two mass calibration points must be given.")
+        if value.shape[1] != 2:
+            raise ValueError("The mass calibration definition is of the wrong shape.")
+        self._params_mcal = value
+
+    @property
+    def def_integrals(self) -> Tuple[List[str], np.ndarray]:
+        """Integral definitions.
+
+        The definitions consist of a tuple of a list and an np.ndarray.
+        The list contains first the names of the integrals.
+        The np.ndarray then contains in each row the lower and upper limit in amu of
+        the peak that needs to be integrated.
+
+        :return: Integral definitions.
+
+        :raise ValueError: Data Shape is wrong
+        """
+        return self._params_integrals
+
+    @def_integrals.setter
+    def def_integrals(self, value):
+        if not value:  # empty list is passed
+            self._params_integrals = None
+        else:
+            if len(value[0]) != len(value[1]):
+                raise ValueError("Name and data array must have the same length.")
+            if value[1].shape[1] != 2:
+                raise ValueError("The data array must have 2 entries for every line.")
+
+            self._params_integrals = value
+
+    # METHODS #
 
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
@@ -110,6 +177,61 @@ class CRDFileProcessor:
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
 
+    def mass_calibration(self) -> None:
+        """Perform a mass calibration on the data.
+
+        Let m be the mass and t the respective time of flight. We can then write:
+
+            .. math::
+                t \propto \sqrt[a]{m}
+
+        Usually it is assumed that $a=2$, i.e., that the square root is taken.
+        We don't have to assume this though. In the generalized form we can now
+        linearize the mass calibration such that:
+
+            .. math::
+                \log(m) = a \log(t) + b
+
+        Here, :math:`a` is, as above, the exponent, and :math:`b` is a second constant.
+        With two values or more for :math:`m` and :math:`t`, we can then make a
+        linear approximation for the mass calibration :math:`m(t)`.
+
+        :return: None
+
+        :raise ValueError: No mass calibration set.
+        """
+
+        def calculate_mass(
+            t_fnc: Union[np.ndarray, float], t0_fnc: float, b_fnc: float
+        ) -> Union[np.ndarray, float]:
+            """Returns the mass for given parameters
+
+            :param t_fnc: time or channel
+            :param t0_fnc: parameter to fit
+            :param b_fnc: parameter to fit
+
+            :return: mass m
+            """
+            return ((t_fnc - t0_fnc) / b_fnc) ** 2
+
+        params = self.def_mcal
+
+        # calculate the initial guess for scipy fitting routine
+        ch1 = params[0][0]
+        m1 = params[0][1]
+        ch2 = params[1][0]
+        m2 = params[1][1]
+        t0 = (ch1 * np.sqrt(m2) - ch2 * np.sqrt(m1)) / (np.sqrt(m2) - np.sqrt(m1))
+        b = np.sqrt((ch1 - t0) ** 2.0 / m1)
+
+        # initial guesses - set them up
+        inig = np.array([t0, b])
+
+        # fit the curve and store the parameters
+        params_fit = curve_fit(calculate_mass, params[:, 0], params[:, 1], p0=(t0, b))
+
+        self.mass = calculate_mass(self.tof, params_fit[0][0], params_fit[0][1])
+
     def packages(self, shots: int) -> None:
         """Break data into packages.
 
@@ -147,7 +269,9 @@ class CRDFileProcessor:
         self.all_tofs = self.crd.all_tofs
 
         # set up ToF
-        self.tof = np.arange(bin_start, bin_end + 1, 1) * bin_length + delta_t
+        self.tof = (
+            np.arange(bin_start, bin_end + 1, 1) * bin_length / 1e6 + delta_t * 1e6
+        )
         self.data = processor_utils.sort_data_into_spectrum(
             self.all_tofs, self.all_tofs.min(), self.all_tofs.max()
         )
@@ -163,7 +287,7 @@ class CRDFileProcessor:
                 "Bin ranges in CRD file were of bad length. Creating ToF "
                 "array without CRD header input."
             )
-            self.tof = np.arange(len(self.data)) * bin_length
+            self.tof = np.arange(len(self.data)) * bin_length / 1e6
 
     def spectrum_part(
         self, rng: Tuple[Tuple[int, int], Tuple[Tuple[int, int]]]

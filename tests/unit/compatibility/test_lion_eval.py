@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from rimseval.legacy import LIONEvalCal
+from rimseval.compatibility.lion_eval import LIONEvalCal
 
 
 def test_lion_eval_cal_file_all(legacy_files_path):
