@@ -19,4 +19,4 @@ __uri__ = "Todo Docs Link"
 __author__ = "Reto Trappitsch"
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2020, Reto Trappitsch"
+__copyright__ = "Copyright (c) 2021, Reto Trappitsch"

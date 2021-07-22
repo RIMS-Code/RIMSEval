@@ -1,0 +1,45 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "rimseval"
+author = "Reto Trappitsch"
+author-email = "reto@galactic-forensics.space"
+home-page = "https://github.com/RIMS-Code/RIMSEval"
+requires = [
+    "matplotlib",
+    "numba",
+    "numpy",
+    "scipy"
+]
+requires-python=">=3.8"
+classifiers = [ "License :: OSI Approved :: MIT License",]
+description-file = "README.md"
+
+[tool.flit.metadata.requires-extra]
+dev = [
+    "darglint>=1.5.1",
+    "flake8",
+    "flake8-bandit",
+    "flake8-black",
+    "flake8-bugbear",
+    "flake8-docstrings",
+    "flake8-import-order",
+]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme"
+]
+test = [
+    "hypothesis",
+    "pytest>=6.0.0",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-sugar"
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=rimseval -v"
+testpaths = "tests"
