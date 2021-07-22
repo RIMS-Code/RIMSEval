@@ -36,11 +36,15 @@ class CRDFileProcessor:
         self.ions_to_tof_map = self.crd.ions_to_tof_map
         self.all_tofs = self.crd.all_tofs
 
-        # create ToF spectrum
+        # Data, ToF, and Masses
         self.tof = None
         self.mass = None
         self.data = None
         self.data_pkg = None
+
+        # Integrals
+        self.integrals = None
+        self.integrals_pkg = None
 
         # parameters for calibration and evaluation
         self._params_mcal = None  # mass calibration
@@ -177,6 +181,34 @@ class CRDFileProcessor:
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
 
+    def integrals_calc(self) -> None:
+        """Calculate integrals for data and packages (if present).
+
+        The integrals to be set per peak are going to be set as an ndarray.
+        Each row will contain one entry in the first column and its associated
+        uncertainty in the second.
+
+        # ToDo Will require special handling once background correction incorporated.
+
+        :return: None
+
+        :raise ValueError: No integrals were set.
+        """
+        if self._params_integrals is None:
+            raise ValueError("No integrals were set.")
+
+        names, limits = self.def_integrals
+
+        windows = []  # integrals defined in mass windows
+        for lower, upper in limits:
+            windows.append(
+                np.where(np.logical_and(self.mass >= lower, self.mass <= upper))
+            )
+
+        self.integrals, self.integrals_pkg = processor_utils.integrals_summing(
+            self.data, tuple(windows), self.data_pkg
+        )
+
     def mass_calibration(self) -> None:
         """Perform a mass calibration on the data.
 
@@ -200,21 +232,13 @@ class CRDFileProcessor:
 
         :raise ValueError: No mass calibration set.
         """
-
-        def calculate_mass(
-            t_fnc: Union[np.ndarray, float], t0_fnc: float, b_fnc: float
-        ) -> Union[np.ndarray, float]:
-            """Returns the mass for given parameters
-
-            :param t_fnc: time or channel
-            :param t0_fnc: parameter to fit
-            :param b_fnc: parameter to fit
-
-            :return: mass m
-            """
-            return ((t_fnc - t0_fnc) / b_fnc) ** 2
+        if self._params_mcal is None:
+            raise ValueError("No mass calibration was set.")
 
         params = self.def_mcal
+
+        # function to return mass with a given functional form
+        calc_mass = processor_utils.calculate_mass_square
 
         # calculate the initial guess for scipy fitting routine
         ch1 = params[0][0]
@@ -224,13 +248,10 @@ class CRDFileProcessor:
         t0 = (ch1 * np.sqrt(m2) - ch2 * np.sqrt(m1)) / (np.sqrt(m2) - np.sqrt(m1))
         b = np.sqrt((ch1 - t0) ** 2.0 / m1)
 
-        # initial guesses - set them up
-        inig = np.array([t0, b])
-
         # fit the curve and store the parameters
-        params_fit = curve_fit(calculate_mass, params[:, 0], params[:, 1], p0=(t0, b))
+        params_fit = curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
 
-        self.mass = calculate_mass(self.tof, params_fit[0][0], params_fit[0][1])
+        self.mass = calc_mass(self.tof, params_fit[0][0], params_fit[0][1])
 
     def packages(self, shots: int) -> None:
         """Break data into packages.

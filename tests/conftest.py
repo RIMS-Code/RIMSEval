@@ -82,6 +82,14 @@ def crd_file(tmpdir) -> Tuple[dict, np.ndarray, np.ndarray, Path]:
 
 
 @pytest.fixture(scope="function")
+def crd_proc_mock(mocker):
+    """Create a mocker instance for the CRDFileProcessor class and return it."""
+    crd_mock = mocker.MagicMock()
+    crd_mock.__class__ = rimseval.processor.CRDFileProcessor
+    return crd_mock
+
+
+@pytest.fixture(scope="function")
 def init_lst_proc():
     """Clean initialization of class and reset to defaults after usage."""
     # spin up class

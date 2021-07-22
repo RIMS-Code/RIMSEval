@@ -1,9 +1,30 @@
 """Utilities for CRD processors. Mostly methods that can be jitted."""
 
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 from numba import njit
 import numpy as np
+
+
+def calculate_mass_square(
+    tm: Union[np.ndarray, float], tm0: float, const: float
+) -> Union[np.ndarray, float]:
+    """Functional prescription for mass calibration.
+
+    Returns the mass with the defined functional description for a mass calibration.
+    Two parameters are required. The equation, with parameters defined as below,
+     is as following:
+
+    ..math::
+        m = \left( \frac{tm - tm0}{const} \right)^{2}
+
+    :param tm: time or channel
+    :param tm0: parameter 1
+    :param const: parameter 2
+
+    :return: mass m
+    """
+    return ((tm - tm0) / const) ** 2
 
 
 @njit
@@ -79,6 +100,35 @@ def dead_time_correction(
             data[lit][it] = -nof_shots[lit] * np.log(1 - data[lit][it] / ndash[it])
 
     return data
+
+
+@njit
+def integrals_summing(
+    data: np.ndarray, windows: Tuple[np.ndarray], data_pkg: np.ndarray = None
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Sum up the integrals within the defined windows and return them.
+
+    :param data: Data to be summed over.
+    :param windows: The windows to be investigated (using numpy views)
+    :param data_pkg: Package data (optional), if present.
+
+    :return: integrals for data, integrals for data_pkg
+    """
+    integrals = np.zeros((len(windows), 2))
+    for it, window in enumerate(windows):
+        integrals[it][0] = data[window].sum()
+        integrals[it][1] = np.sqrt(integrals[it][0])
+
+    # packages
+    integrals_pkg = None
+    if data_pkg is not None:
+        integrals_pkg = np.zeros((data_pkg.shape[0], len(windows), 2))
+        for ht, data_one in enumerate(data_pkg):
+            for it, window in enumerate(windows):
+                integrals_pkg[ht][it][0] = data_pkg[ht][window].sum()
+                integrals[ht][it][1] = np.sqrt(integrals[ht][it][0])
+
+    return integrals, integrals_pkg
 
 
 def multi_range_indexes(rng: np.array) -> np.array:
