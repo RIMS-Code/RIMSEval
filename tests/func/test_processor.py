@@ -8,6 +8,16 @@ from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils as pu
 
 
+def test_data_dimension_after_dead_time_correction(crd_file):
+    """Ensure ToF and data have the same dimensions - BF 2021-07-23."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.dead_time_correction(3)
+
+    assert crd.tof.ndim == crd.data.ndim
+
+
 def test_mass_calibration_2pts(crd_file):
     """Perform mass calibration with two points."""
     _, _, _, fname = crd_file
@@ -30,3 +40,4 @@ def test_mass_calibration_2pts(crd_file):
     mass_rec = crd.mass
     print(tms)
     np.testing.assert_almost_equal(mass_rec, mass_exp)
+    assert crd.mass.ndim == crd.tof.ndim

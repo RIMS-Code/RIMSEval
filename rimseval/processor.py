@@ -125,7 +125,9 @@ class CRDFileProcessor:
             self.data.reshape(1, self.data.shape[0]),
             np.array(self.nof_shots).reshape(1),
             dbins,
-        )
+        )[
+            0
+        ]  # want to shape it back the way it was!
 
         if self.data_pkg is not None:
             self.data_pkg = processor_utils.dead_time_correction(
@@ -193,9 +195,12 @@ class CRDFileProcessor:
         :return: None
 
         :raise ValueError: No integrals were set.
+        :raise ValueError: No mass calibration has been applied.
         """
         if self._params_integrals is None:
             raise ValueError("No integrals were set.")
+        if self.mass is None:
+            raise ValueError("A mass calibration needs to be applied first.")
 
         names, limits = self.def_integrals
 

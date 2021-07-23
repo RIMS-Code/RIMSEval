@@ -77,10 +77,6 @@ def dead_time_correction(
     """
     dbins += 1  # to get total bins
 
-    # if data.ndim == 1:
-    #     data = data.reshape(1, data.shape[0])
-    #     nof_shots = np.array(nof_shots).reshape(1)
-
     for lit in range(len(data)):
         ndash = np.zeros(len(data[lit]))  # initialize array to correct with later
         for it in range(len(ndash)):
@@ -126,7 +122,7 @@ def integrals_summing(
         for ht, data_one in enumerate(data_pkg):
             for it, window in enumerate(windows):
                 integrals_pkg[ht][it][0] = data_pkg[ht][window].sum()
-                integrals[ht][it][1] = np.sqrt(integrals[ht][it][0])
+                integrals_pkg[ht][it][1] = np.sqrt(integrals_pkg[ht][it][0])
 
     return integrals, integrals_pkg
 
