@@ -117,3 +117,31 @@ def test_integrals_pkg(crd_file):
     crd_integrals_sum[:, 1] = np.sqrt(crd_integrals_sum[:, 1])
 
     np.testing.assert_almost_equal(crd.integrals, crd_integrals_sum)
+
+
+def test_integrals_pkg_with_filtering(crd_file):
+    """Filtering in packages and get the sum of the integrals."""
+    _, _, _, fname = crd_file
+    shots_per_pkg = 1
+    max_ions_per_shot = 1
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.packages(shots_per_pkg)
+    crd.filter_max_ions_per_pkg(1)
+
+    # set some random mass cal from 1 to 2
+    crd.def_mcal = np.array([[crd.tof.min(), 1.0], [crd.tof.max(), 2.0]])
+    crd.mass_calibration()
+
+    # now set the integrals to include everything
+    crd.def_integrals = (["all"], np.array([[0.9, 2.1]]))  # avoid floating errors
+    crd.integrals_calc()
+
+    # check that sum agrees -> sqrt of sqsum for uncertainty
+    crd_integrals_sum = np.array(crd.integrals_pkg)
+    crd_integrals_sum[:, :, 1] = crd_integrals_sum[:, :, 1] ** 2
+    crd_integrals_sum = crd_integrals_sum.sum(axis=0)
+    crd_integrals_sum[:, 1] = np.sqrt(crd_integrals_sum[:, 1])
+
+    np.testing.assert_almost_equal(crd.integrals, crd_integrals_sum)

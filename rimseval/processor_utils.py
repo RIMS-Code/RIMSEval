@@ -111,9 +111,6 @@ def integrals_summing(
     :return: integrals for data, integrals for data_pkg
     """
     integrals = np.zeros((len(windows), 2))
-    for it, window in enumerate(windows):
-        integrals[it][0] = data[window].sum()
-        integrals[it][1] = np.sqrt(integrals[it][0])
 
     # packages
     integrals_pkg = None
@@ -123,6 +120,13 @@ def integrals_summing(
             for it, window in enumerate(windows):
                 integrals_pkg[ht][it][0] = data_pkg[ht][window].sum()
                 integrals_pkg[ht][it][1] = np.sqrt(integrals_pkg[ht][it][0])
+        # define all integrals as the sum of the packages -> allow for filtering
+        integrals[:, 0] = integrals_pkg.sum(axis=0)[:, 0]
+        integrals[:, 1] = np.sqrt(np.sum(integrals_pkg[:, :, 1] ** 2, axis=0))
+    else:
+        for it, window in enumerate(windows):
+            integrals[it][0] = data[window].sum()
+            integrals[it][1] = np.sqrt(integrals[it][0])
 
     return integrals, integrals_pkg
 
