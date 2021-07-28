@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import List, Tuple, Union
 import warnings
 
+from iniabu import ini
 from numba import jit, njit
 import numpy as np
 from scipy.optimize import curve_fit
 
 from .data_io.crd_reader import CRDReader
 from . import processor_utils
+from .utilities import string_transformer, peirce
 
 
 class CRDFileProcessor:
@@ -182,6 +184,60 @@ class CRDFileProcessor:
         self.ions_to_tof_map = self.ions_to_tof_map[ion_indexes]
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
+
+    def filter_pkg_peirce(self, ratios: List[Tuple[str, str]]) -> None:
+        """Filter out packages based on Peirce criterion for delta values.
+
+        For the given ratios, calculate the isotope ratio for each package, then
+        calculate the delta values using Solar System abundances. Based on these values,
+        apply Peirce's criterion to reject outliers and delete them from the packages.
+        Ultimately, create the total sum of the integrals again.
+
+        # fixme there's a lot to do here...
+
+        :param ratios: Ratios to consider, e.g., (("46Ti", "48Ti"), ("47Ti", "48Ti")).
+            These ratios must have the same names as the integrals and must be valid
+            isotope names.
+        """
+        peaks = self.def_integrals[0]
+        integrals = self.integrals_pkg[:, :, 0]
+
+        rejected_indexes = []  # we will append numpy arrays here
+        for ratio in ratios:
+            int_ratio = (
+                integrals[:, peaks.index(ratio[0])]
+                / integrals[:, peaks.index(ratio[1])]
+            )
+            int_delta = ini.iso_delta(
+                string_transformer.iso_to_iniabu(ratio[0]),
+                string_transformer.iso_to_iniabu(ratio[1]),
+                int_ratio,
+            )
+            _, _, _, indexes = peirce.reject_outliers(int_delta)
+            rejected_indexes.append(indexes)
+
+        # now create a set out of the indexes and then sort them to become a list
+        index_set = set(rejected_indexes[0])
+        for ind in range(1, len(rejected_indexes)):
+            index_set = index_set.union(rejected_indexes[ind])
+
+        index_list = sorted(map(int, index_set))
+
+        print(
+            f"Peirce criterion rejected {len(index_list)} / {len(self.integrals_pkg)} "
+            f"packages"
+        )
+
+        integrals_pkg = np.delete(self.integrals_pkg, index_list, axis=0)
+
+        # integrals
+        integrals = np.zeros_like(self.integrals)
+        integrals[:, 0] = integrals_pkg.sum(axis=0)[:, 0]
+        integrals[:, 1] = np.sqrt(np.sum(integrals_pkg[:, :, 1] ** 2, axis=0))
+
+        # write back
+        self.integrals = integrals
+        self.integrals_pkg = integrals_pkg
 
     def integrals_calc(self) -> None:
         """Calculate integrals for data and packages (if present).
