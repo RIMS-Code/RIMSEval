@@ -4,6 +4,9 @@ from typing import List, Tuple, Union
 
 from numba import njit
 import numpy as np
+from scipy import optimize
+
+from rimseval.utilities import fitting
 
 
 def calculate_mass_square(
@@ -96,6 +99,26 @@ def dead_time_correction(
             data[lit][it] = -nof_shots[lit] * np.log(1 - data[lit][it] / ndash[it])
 
     return data
+
+
+def gaussian_fit_get_max(xdata: np.ndarray, ydata: np.ndarray) -> float:
+    """Fit a Gaussian to xdata and ydata and return the xvalue of the peak.
+
+    :param xdata: X-axis data
+    :param ydata: Y-axis data
+
+    :return: Maximum mof the peak on the x-axis
+    """
+    mu = xdata[ydata.argmax()]
+    sigma = (xdata[-1] - xdata[0]) / 6  # guess
+    height = ydata.max()
+
+    coeffs = np.array([mu, sigma, height])
+
+    # need some more error checking here to make sure there really is a peak
+
+    params = optimize.leastsq(fitting.residuals_gaussian, coeffs, args=(ydata, xdata))
+    return params[0][0]
 
 
 @njit

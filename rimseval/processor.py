@@ -52,6 +52,7 @@ class CRDFileProcessor:
         self._params_mcal = None  # mass calibration
         self._params_integrals = None  # integral definitions
         self._params_bg_corr = None  # bg_correction
+        self._peak_fwhm = 0.0646  # peak fwhm in us
 
         # file info
         self.nof_shots = self.crd.nof_shots
@@ -112,6 +113,18 @@ class CRDFileProcessor:
                 raise ValueError("The data array must have 2 entries for every line.")
 
             self._params_integrals = value
+
+    @property
+    def peak_fwhm(self) -> float:
+        """Get / Set the FWHM of the peak.
+
+        :return: FWHM of the peak in us.
+        """
+        return self._peak_fwhm
+
+    @peak_fwhm.setter
+    def peak_fwhm(self, value: float) -> None:
+        self._peak_fwhm = value
 
     # METHODS #
 
@@ -313,6 +326,38 @@ class CRDFileProcessor:
         params_fit = curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
 
         self.mass = calc_mass(self.tof, params_fit[0][0], params_fit[0][1])
+
+    def optimize_mcal(self, offset: float = None) -> None:
+        """Takes an existing mass calibration and finds maxima within a FWHM.
+
+        This will act on small corrections for drifts in peaks.
+
+        :param offset: How far do you think the peak has wandered? If None, it will be
+            set to the FWHM value.
+        """
+        if offset is None:
+            offset = self.peak_fwhm
+
+        positions = self.def_mcal[:, 0]
+        positions_new = np.zeros_like(positions) * np.nan  # nan array
+
+        for it, pos in enumerate(positions):
+            min_time = pos - offset - 2 * self.peak_fwhm
+            max_time = pos + offset + 2 * self.peak_fwhm
+            window = np.where(np.logical_and(self.tof > min_time, self.tof < max_time))
+            tofs = self.tof[window]
+            data = self.data[window]
+            positions_new[it] = processor_utils.gaussian_fit_get_max(tofs, data)
+
+        mcal_new = self.def_mcal.copy()
+        index_to_del = []
+        for it, posn in enumerate(positions_new):
+            if np.abs(mcal_new[it][0] - posn) < offset:
+                mcal_new[it][0] = posn
+            else:
+                index_to_del.append(it)
+
+        self.def_mcal = np.delete(mcal_new, index_to_del, axis=0)
 
     def packages(self, shots: int) -> None:
         """Break data into packages.
