@@ -2,6 +2,7 @@
 
 from . import data_io
 from . import interfacer
+from . import utilities
 from .processor import CRDFileProcessor
 
 # Package information
