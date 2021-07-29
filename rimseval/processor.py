@@ -33,6 +33,7 @@ class CRDFileProcessor:
         :type fname: Path
         """
         # read in the CRD file
+        self.fname = fname
         self.crd = CRDReader(fname)
         self.ions_per_shot = self.crd.ions_per_shot
         self.ions_to_tof_map = self.crd.ions_to_tof_map
