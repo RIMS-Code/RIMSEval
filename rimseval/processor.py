@@ -198,7 +198,35 @@ class CRDFileProcessor:
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
 
-    def filter_pkg_peirce(self, ratios: List[Tuple[str, str]]) -> None:
+    def filter_pkg_peirce_countrate(self) -> None:
+        """Filter out packages based on Peirce criterion for total count rate.
+
+        Now we are going to directly use all the integrals to get the sum of the counts,
+        which we will then feed to the rejection routine. Maybe this can detect blasts.
+        """
+        sum_integrals = self.integrals_pkg[:, :, 0].sum(axis=1)
+        _, _, _, rejected_indexes = peirce.reject_outliers(sum_integrals)
+
+        print(
+            f"Peirce criterion rejected "
+            f"{len(rejected_indexes)} / {len(self.integrals_pkg)} "
+            f"packages"
+        )
+        index_list = list(map(int, rejected_indexes))
+        integrals_pkg = np.delete(self.integrals_pkg, index_list, axis=0)
+        self.nof_shots_pkg = np.delete(self.nof_shots_pkg, index_list)
+        self.nof_shots = np.sum(self.nof_shots_pkg)
+
+        # integrals
+        integrals = np.zeros_like(self.integrals)
+        integrals[:, 0] = integrals_pkg.sum(axis=0)[:, 0]
+        integrals[:, 1] = np.sqrt(np.sum(integrals_pkg[:, :, 1] ** 2, axis=0))
+
+        # write back
+        self.integrals = integrals
+        self.integrals_pkg = integrals_pkg
+
+    def filter_pkg_peirce_delta(self, ratios: List[Tuple[str, str]]) -> None:
         """Filter out packages based on Peirce criterion for delta values.
 
         For the given ratios, calculate the isotope ratio for each package, then
@@ -242,6 +270,8 @@ class CRDFileProcessor:
         )
 
         integrals_pkg = np.delete(self.integrals_pkg, index_list, axis=0)
+        self.nof_shots_pkg = np.delete(self.nof_shots_pkg, index_list)
+        self.nof_shots = np.sum(self.nof_shots_pkg)
 
         # integrals
         integrals = np.zeros_like(self.integrals)
@@ -344,6 +374,8 @@ class CRDFileProcessor:
         for it, pos in enumerate(positions):
             min_time = pos - offset - 2 * self.peak_fwhm
             max_time = pos + offset + 2 * self.peak_fwhm
+            if max_time > self.tof.max():  # we don't have a value here
+                continue
             window = np.where(np.logical_and(self.tof > min_time, self.tof < max_time))
             tofs = self.tof[window]
             data = self.data[window]
@@ -357,7 +389,13 @@ class CRDFileProcessor:
             else:
                 index_to_del.append(it)
 
-        self.def_mcal = np.delete(mcal_new, index_to_del, axis=0)
+        mcal_new = np.delete(mcal_new, index_to_del, axis=0)
+        if len(mcal_new) < 2:
+            warnings.warn(
+                "Automatic mass calibration optimization did not find enough peaks."
+            )
+        else:
+            self.def_mcal = mcal_new
 
     def packages(self, shots: int) -> None:
         """Break data into packages.
