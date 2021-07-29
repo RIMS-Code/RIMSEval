@@ -340,23 +340,7 @@ class CRDFileProcessor:
         if self._params_mcal is None:
             raise ValueError("No mass calibration was set.")
 
-        params = self.def_mcal
-
-        # function to return mass with a given functional form
-        calc_mass = processor_utils.calculate_mass_square
-
-        # calculate the initial guess for scipy fitting routine
-        ch1 = params[0][0]
-        m1 = params[0][1]
-        ch2 = params[1][0]
-        m2 = params[1][1]
-        t0 = (ch1 * np.sqrt(m2) - ch2 * np.sqrt(m1)) / (np.sqrt(m2) - np.sqrt(m1))
-        b = np.sqrt((ch1 - t0) ** 2.0 / m1)
-
-        # fit the curve and store the parameters
-        params_fit = curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
-
-        self.mass = calc_mass(self.tof, params_fit[0][0], params_fit[0][1])
+        self.mass = processor_utils.mass_calibration(self.def_mcal, self.tof)
 
     def optimize_mcal(self, offset: float = None) -> None:
         """Takes an existing mass calibration and finds maxima within a FWHM.

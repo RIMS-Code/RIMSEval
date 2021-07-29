@@ -154,6 +154,30 @@ def integrals_summing(
     return integrals, integrals_pkg
 
 
+def mass_calibration(params: np.array, tof: np.array) -> np.array:
+    """Perform the mass calibration.
+
+    :param params: Parameters for mass calibration.
+    :param tof: Array with all the ToFs that need a mass equivalent.
+    """
+    # function to return mass with a given functional form
+    calc_mass = calculate_mass_square
+
+    # calculate the initial guess for scipy fitting routine
+    ch1 = params[0][0]
+    m1 = params[0][1]
+    ch2 = params[1][0]
+    m2 = params[1][1]
+    t0 = (ch1 * np.sqrt(m2) - ch2 * np.sqrt(m1)) / (np.sqrt(m2) - np.sqrt(m1))
+    b = np.sqrt((ch1 - t0) ** 2.0 / m1)
+
+    # fit the curve and store the parameters
+    params_fit = optimize.curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
+
+    mass = calc_mass(tof, params_fit[0][0], params_fit[0][1])
+    return mass
+
+
 def multi_range_indexes(rng: np.array) -> np.array:
     """Create multi range indexes.
 

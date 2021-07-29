@@ -28,7 +28,7 @@ def test_read_lion_eval_calfile(mocker, crd_proc_mock):
     type(cal_mock()).mass_cal = cal_mock_prop_mcal
     type(cal_mock()).integrals = cal_mock_prop_integrals
 
-    interfacer.read_lion_eval_calfile(Path("."), crd=crd_proc_mock)
+    interfacer.read_lion_eval_calfile(crd=crd_proc_mock, fname=Path("."))
 
     np.testing.assert_equal(crd_proc_mock.def_mcal, mcal_exp)
     integrals_rec = crd_proc_mock.def_integrals

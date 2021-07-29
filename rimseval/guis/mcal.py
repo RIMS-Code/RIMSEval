@@ -1,8 +1,9 @@
 """Some Interactive stuff using matplotlib with the PyQt5 backend."""
 
-from typing import List, Union
+from typing import List, Tuple, Union
 import sys
 
+import rimseval.processor_utils
 from PyQt5 import QtCore, QtWidgets, QtGui
 import matplotlib as mpl
 from iniabu import ini
@@ -108,6 +109,10 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
             self._mcal = mcal.tolist()
         self.check_mcal_length()
 
+        # some variables for guessing
+        self._last_element = None
+        self._mass = None  # mass array for guessing
+
         # plot some data
         self.plot_data()
 
@@ -127,17 +132,41 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.close()
 
     def check_mcal_length(self):
-        """Check length of mcal and if >= 2, enable / disable buttons."""
+        """Check length of mcal to set button statuses, start guessing."""
         # apply button
         if len(self._mcal) >= 2:
             self.apply_button.setDisabled(False)
+            self._mass = rimseval.processor_utils.mass_calibration(
+                np.array(self._mcal), self.crd.tof
+            )
         else:
             self.apply_button.setDisabled(True)
+            self._mass = None
+            self._last_element = None
 
         if len(self._mcal) > 0:
             self.undo_button.setDisabled(False)
         else:
             self.undo_button.setDisabled(True)
+
+    def guess_mass(self, tof: float) -> str:
+        """Guess the mass depending on what is currently set.
+
+        If not drawn from iniabu, I assume the user wants even masses!
+
+        :param tof: Time of Flight (us)
+        """
+        ind_tof = np.argmin(np.abs(self.crd.tof - tof))
+        mass = self._mass[ind_tof]
+
+        if self._last_element is not None:  # guess with iniabu
+            name_iso, mass_iso = find_closest_iso(mass, self._last_element)
+            if np.abs(mass_iso - mass) < 0.5:  # within half a mass
+                return name_iso
+            else:
+                return find_closest_iso(mass)[0]
+        else:  # guess mass from values
+            return str(int(np.round(mass, 0)))
 
     def plot_data(self):
         """Plot the data on the canvas."""
@@ -152,8 +181,16 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
 
         :return: Mass of the peak as given by user.
         """
+        if self._mass is not None:
+            guess = self.guess_mass(tof)
+        else:
+            guess = ""
+
         user_input = QtWidgets.QInputDialog.getText(
-            self, "Calibrate Mass", f"Enter isotope name or mass for {tof:.2f}us."
+            self,
+            "Calibrate Mass",
+            f"Enter isotope name or mass for {tof:.2f}us.",
+            text=guess,
         )
 
         def err_invalid_entry():
@@ -162,7 +199,7 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
                 self,
                 "Invalid Input",
                 "No valid input. Please enter a mass (number) or an isotope "
-                "in the format, e.g., 46Ti or Ti46.",
+                "in the format, e.g., 46Ti, Ti46, or Ti-46.",
             )
 
         def err_invalid_isotope(iso):
@@ -179,15 +216,17 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
             )
 
         if user_input[1]:
-            if user_input[0] == "":
+            if (iso := user_input[0]) == "":
                 err_invalid_entry()
                 return self.query_mass(tof)
             try:  # user input is a mass
-                mass = float(user_input[0])
+                mass = float(iso)
             except ValueError:
-                iso = string_transformer.iso_to_iniabu(user_input[0])
+                if "-" not in iso:
+                    iso = string_transformer.iso_to_iniabu(iso)
                 try:
                     mass = ini.iso[iso].mass
+                    self._last_element = ini.iso[iso].name.split("-")[0]
                 except IndexError:
                     err_invalid_isotope(iso)
                     return self.query_mass(tof)
@@ -242,3 +281,18 @@ def create_mass_cal_app(crd: CRDFileProcessor):
     window = CreateMassCalibration(crd)
     window.show()
     app.exec_()
+
+
+def find_closest_iso(mass: float, key: List = None) -> Tuple[str, float]:
+    """Find closest iniabu isotope to given mass and return its name.
+
+    If a key is given, will only consider that element, otherwise all.
+
+    :param mass: Mass of the isotope to look for.
+    :param key: An element or isotope key that is valid for iniabu.
+    """
+    if key is None:
+        key = list(ini.ele_dict.keys())
+    isos = ini.iso[key]
+    index = np.argmin(np.abs(isos.mass - mass))
+    return isos.name[index], isos.mass[index]
