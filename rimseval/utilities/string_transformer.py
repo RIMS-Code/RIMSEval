@@ -26,6 +26,10 @@ def iso_to_iniabu(iso: str) -> str:
             break
         ind += 1
 
-    ret_str = f"{iso[ind:]}-{zz}" if zz_first else f"{iso[ind:][::-1]}-{zz[::-1]}"
+    ret_str = (
+        f"{iso[ind:].capitalize()}-{zz}"
+        if zz_first
+        else f"{iso[ind:][::-1].capitalize()}-{zz[::-1]}"
+    )
 
     return ret_str

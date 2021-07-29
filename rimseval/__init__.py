@@ -1,6 +1,7 @@
 """Initialization of the rimseval package."""
 
 from . import data_io
+from .guis import mcal
 from . import interfacer
 from . import utilities
 from .processor import CRDFileProcessor
