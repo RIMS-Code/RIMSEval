@@ -8,9 +8,11 @@ author = "Reto Trappitsch"
 author-email = "reto@galactic-forensics.space"
 home-page = "https://github.com/RIMS-Code/RIMSEval"
 requires = [
+    "iniabu>=1.0.1",
     "matplotlib",
     "numba",
     "numpy",
+    "PyQt5",
     "scipy"
 ]
 requires-python=">=3.8"
