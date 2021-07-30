@@ -27,14 +27,14 @@ def test_mass_calibration_2pts(crd_file):
     mass_cal = np.zeros((len(tms), 2))
     for it, tm in enumerate(tms):
         mass_cal[it][0] = tm
-        mass_cal[it][1] = pu.calculate_mass_square(tm, params[0], params[1])
+        mass_cal[it][1] = pu.tof_to_mass(tm, params[0], params[1])
 
     # set variables
     crd = CRDFileProcessor(Path(fname))
     crd.spectrum_full()
 
     crd.def_mcal = mass_cal
-    mass_exp = pu.calculate_mass_square(crd.tof, params[0], params[1])
+    mass_exp = pu.tof_to_mass(crd.tof, params[0], params[1])
 
     crd.mass_calibration()
     mass_rec = crd.mass

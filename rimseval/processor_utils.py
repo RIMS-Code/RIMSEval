@@ -9,27 +9,6 @@ from scipy import optimize
 from rimseval.utilities import fitting
 
 
-def calculate_mass_square(
-    tm: Union[np.ndarray, float], tm0: float, const: float
-) -> Union[np.ndarray, float]:
-    """Functional prescription for mass calibration.
-
-    Returns the mass with the defined functional description for a mass calibration.
-    Two parameters are required. The equation, with parameters defined as below,
-     is as following:
-
-    ..math::
-        m = \left( \frac{tm - tm0}{const} \right)^{2}
-
-    :param tm: time or channel
-    :param tm0: parameter 1
-    :param const: parameter 2
-
-    :return: mass m
-    """
-    return ((tm - tm0) / const) ** 2
-
-
 @njit
 def create_packages(
     shots: int,
@@ -154,14 +133,17 @@ def integrals_summing(
     return integrals, integrals_pkg
 
 
-def mass_calibration(params: np.array, tof: np.array) -> np.array:
+def mass_calibration(
+    params: np.array, tof: np.array, return_params: bool = False
+) -> Union[np.array, Tuple[np.array]]:
     """Perform the mass calibration.
 
     :param params: Parameters for mass calibration.
     :param tof: Array with all the ToFs that need a mass equivalent.
+    :param return_params: Return parameters as well? Defaults to False
     """
     # function to return mass with a given functional form
-    calc_mass = calculate_mass_square
+    calc_mass = tof_to_mass
 
     # calculate the initial guess for scipy fitting routine
     ch1 = params[0][0]
@@ -175,7 +157,32 @@ def mass_calibration(params: np.array, tof: np.array) -> np.array:
     params_fit = optimize.curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
 
     mass = calc_mass(tof, params_fit[0][0], params_fit[0][1])
-    return mass
+
+    if return_params:
+        return mass, params_fit[0]
+    else:
+        return mass
+
+
+def mass_to_tof(
+    m: Union[np.ndarray, float], tm0: float, const: float
+) -> Union[np.ndarray, float]:
+    """Functional prescription to turn mass into ToF.
+
+    Returns the ToF with the defined functional description for a mass calibration.
+    Two parameters are required. The equation, with parameters defined as below,
+     is as following:
+
+    ..math::
+        t = \sqrt{m} const + t0
+
+    :param m: mass
+    :param tm0: parameter 1
+    :param const: parameter 2
+
+    :return: time
+    """
+    return np.sqrt(m) * const + tm0
 
 
 def multi_range_indexes(rng: np.array) -> np.array:
@@ -222,3 +229,24 @@ def sort_data_into_spectrum(
     for ion in ions:
         data[ion - bin_start] += 1
     return data
+
+
+def tof_to_mass(
+    tm: Union[np.ndarray, float], tm0: float, const: float
+) -> Union[np.ndarray, float]:
+    """Functional prescription to turn ToF into mass.
+
+    Returns the mass with the defined functional description for a mass calibration.
+    Two parameters are required. The equation, with parameters defined as below,
+     is as following:
+
+    ..math::
+        m = \left( \frac{tm - tm0}{const} \right)^{2}
+
+    :param tm: time or channel
+    :param tm0: parameter 1
+    :param const: parameter 2
+
+    :return: mass m
+    """
+    return ((tm - tm0) / const) ** 2

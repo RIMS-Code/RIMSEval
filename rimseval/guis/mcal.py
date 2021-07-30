@@ -1,5 +1,6 @@
 """Some Interactive stuff using matplotlib with the PyQt5 backend."""
 
+from functools import partial
 from typing import List, Tuple, Union
 import sys
 
@@ -50,16 +51,18 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
 
 
 class CreateMassCalibration(QtWidgets.QMainWindow):
-    def __init__(self, crd: CRDFileProcessor, mcal: np.array = None) -> None:
+    def __init__(self, crd: CRDFileProcessor, logy=True, mcal: np.array = None) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
 
         :param crd: The CRD file processor to work with.
+        :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param mcal: Existing mass calibration.
         """
         super(CreateMassCalibration, self).__init__()
         self.setWindowTitle("Create mass calibration")
 
         self.crd = crd
+        self.logy = logy
 
         # create a matpotlib canvas
         sc = MplCanvasRightClick(self, width=9, height=6, dpi=100)
@@ -102,16 +105,17 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
 
         self.setCentralWidget(widget)
 
+        # some variables for guessing
+        self._last_element = None
+        self._mass = None  # mass array for guessing
+        self._mass_axis = None
+
         # init mass calibration
         if mcal is None:
             self._mcal = []
         else:
             self._mcal = mcal.tolist()
         self.check_mcal_length()
-
-        # some variables for guessing
-        self._last_element = None
-        self._mass = None  # mass array for guessing
 
         # plot some data
         self.plot_data()
@@ -135,14 +139,19 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         """Check length of mcal to set button statuses, start guessing."""
         # apply button
         if len(self._mcal) >= 2:
+            # button
             self.apply_button.setDisabled(False)
-            self._mass = rimseval.processor_utils.mass_calibration(
-                np.array(self._mcal), self.crd.tof
+            # mass calibration
+            self._mass, params = rimseval.processor_utils.mass_calibration(
+                np.array(self._mcal), self.crd.tof, return_params=True
             )
+            # plot secondary axis
+            self.secondary_axis(params=params, visible=True)
         else:
             self.apply_button.setDisabled(True)
             self._mass = None
             self._last_element = None
+            self.secondary_axis(visible=False)
 
         if len(self._mcal) > 0:
             self.undo_button.setDisabled(False)
@@ -171,6 +180,12 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
     def plot_data(self):
         """Plot the data on the canvas."""
         self.sc.axes.plot(self.crd.tof, self.crd.data)
+        self.sc.axes.fill_between(self.crd.tof, self.crd.data)
+        self.sc.axes.set_xlabel("Time of Flight (us)")
+        self.sc.axes.set_ylabel("Counts")
+        if self.logy:
+            self.sc.axes.semilogy()
+            self.sc.axes.set_ylim(bottom=0.7)
 
     def query_mass(self, tof: float) -> Union[float, None]:
         """Query mass from user.
@@ -266,6 +281,42 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
             f"Peak with mass {mass:.2f} found at {tof_max:.2f}us."
         )
 
+    def secondary_axis(self, params: List = None, visible: bool = False) -> None:
+        """Toggle secondary axis.
+
+        :param params: Parameters for the transfer functions t0 and const. Only
+            required when visible=True.
+        :param visible: Turn it on? If so, params are required.
+        """
+        if visible:
+            if params is None:
+                return
+            else:
+                if self._mass_axis is not None:
+                    self._mass_axis.set_visible(False)
+                self._mass_axis = self.sc.axes.secondary_xaxis(
+                    "top",
+                    functions=(
+                        partial(
+                            rimseval.processor_utils.tof_to_mass,
+                            tm0=params[0],
+                            const=params[1],
+                        ),
+                        partial(
+                            rimseval.processor_utils.mass_to_tof,
+                            tm0=params[0],
+                            const=params[1],
+                        ),
+                    ),
+                )
+                self._mass_axis.set_xlabel("Mass (amu)")
+                self._mass_axis.set_color("tab:red")
+                self.sc.draw()
+        elif self._mass_axis is not None:
+            self._mass_axis.set_visible(False)
+            self._mass_axis = None
+            self.sc.draw()
+
     def undo_last_mcal(self):
         """Undo the last mass calibration by popping the last entry of list."""
         tof, mass = self._mcal.pop()
@@ -275,10 +326,15 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.check_mcal_length()
 
 
-def create_mass_cal_app(crd: CRDFileProcessor):
-    """Create a PyQt5 app for the mass cal window."""
+def create_mass_cal_app(crd: CRDFileProcessor, mcal=None, logy=True):
+    """Create a PyQt5 app for the mass cal window.
+
+    :param crd: CRD file to calibrate for.
+    :param mcal: starting calibration to load.
+    :param logy: Should the y axis be logarithmic? Defaults to True.
+    """
     app = QtWidgets.QApplication(sys.argv)
-    window = CreateMassCalibration(crd)
+    window = CreateMassCalibration(crd, mcal=mcal, logy=logy)
     window.show()
     app.exec_()
 
