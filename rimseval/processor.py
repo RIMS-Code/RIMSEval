@@ -171,6 +171,7 @@ class CRDFileProcessor:
         self.nof_shots_pkg = np.delete(
             self.nof_shots_pkg, np.where(total_ions_per_pkg > max_ions)[0], axis=0
         )
+        self.nof_shots = np.sum(self.nof_shots_pkg)
 
     def filter_max_ions_per_shot(self, max_ions: int) -> None:
         """Filter out shots that have more than the max_ions defined.
