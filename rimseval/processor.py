@@ -185,12 +185,15 @@ class CRDFileProcessor:
     def filter_max_ions_per_shot(self, max_ions: int) -> None:
         """Filter out shots that have more than the max_ions defined.
 
+        Note: Do not run this routine more than once if packages have been created.
+        Otherwise it might lead to weird data!
+
         :param max_ions: Maximum number of ions allowed in a shot.
 
         :raise ValueError: Invalid range for number of ions.
         """
         if max_ions < 1:
-            raise ValueError("The maximum number of ions must be larger than 1.")
+            raise ValueError("The maximum number of ions must be >=1.")
 
         ion_indexes = np.where(self.ions_per_shot <= max_ions)[0]
 
@@ -204,6 +207,17 @@ class CRDFileProcessor:
             self.all_tofs.max(),
         )
 
+        """ ToDo
+        Need to find a way to filter the data that I'm rejecting here also
+        out of the package.
+        The ion_indexes are given, if we divide them by the number of shots per
+        package (which should be made a variable), then we should be good to go.
+        Or we could use the first of the `num_ions_pkg`. Note that in either case,
+        this routine can only be run once on the same dataset.
+        
+        -> Subtract / delete the data entry from the package
+        -> subtract the count from the number of counts
+        """
         self.ions_per_shot = self.ions_per_shot[ion_indexes]
         self.ions_to_tof_map = self.ions_to_tof_map[ion_indexes]
         self.all_tofs = all_tofs_filtered
