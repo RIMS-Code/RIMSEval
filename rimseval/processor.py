@@ -45,6 +45,11 @@ class CRDFileProcessor:
         self.data = None
         self.data_pkg = None
 
+        # variables for filtered packages
+        self._filter_max_ion_per_pkg_applied = False  # was max ions per pkg run?
+        self._filter_max_ion_per_pkg_max_ions = None  # max ions filtered with
+        self._filter_max_ion_per_pkg_ind = None  # indices of pkgs that were trashed
+
         # Integrals
         self.integrals = None
         self.integrals_pkg = None
@@ -170,13 +175,19 @@ class CRDFileProcessor:
         if self.data_pkg is None:
             raise IOError("There is no packaged data. Please create packages first.")
 
+        # update helper variables
+        self._filter_max_ion_per_pkg_applied = True
+        self._filter_max_ion_per_pkg_max_ions = max_ions
+
         total_ions_per_pkg = np.sum(self.data_pkg, axis=1)
 
+        self._filter_max_ion_per_pkg_ind = np.where(total_ions_per_pkg > max_ions)[0]
+
         self.data_pkg = np.delete(
-            self.data_pkg, np.where(total_ions_per_pkg > max_ions)[0], axis=0
+            self.data_pkg, self._filter_max_ion_per_pkg_ind, axis=0
         )
         self.nof_shots_pkg = np.delete(
-            self.nof_shots_pkg, np.where(total_ions_per_pkg > max_ions)[0], axis=0
+            self.nof_shots_pkg, self._filter_max_ion_per_pkg_ind, axis=0
         )
 
         self.data = np.sum(self.data_pkg, axis=0)
@@ -195,6 +206,9 @@ class CRDFileProcessor:
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be >=1.")
 
+        # fixme: this is all invalid if packaging already exists.
+        # the packages do not get redone and won't agree afterwards with the counts
+
         ion_indexes = np.where(self.ions_per_shot <= max_ions)[0]
 
         rng_all_tofs = self.ions_to_tof_map[ion_indexes]
@@ -207,6 +221,7 @@ class CRDFileProcessor:
             self.all_tofs.max(),
         )
 
+        # Todo
         """ ToDo
         Need to find a way to filter the data that I'm rejecting here also
         out of the package.
