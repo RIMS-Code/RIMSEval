@@ -26,14 +26,14 @@ def black(session):
 #     session.run("flit", "build")
 
 
-# @nox.session(python=python_default)
-# def docs(session):
-#     """Build the documentation."""
-#     session.install("sphinx", "sphinx_rtd_theme", "-r", "requirements.txt", "pytest")
-#     session.chdir("docs")
-#     session.run(
-#         "sphinx-build", "-b", "html", ".", "_build/html/"
-#     )  # as for readthedocs.io
+@nox.session(python=python_default)
+def docs(session):
+    """Build the documentation."""
+    session.install("sphinx", "sphinx_rtd_theme", "-r", "requirements.txt", "pytest")
+    session.chdir("docs")
+    session.run(
+        "sphinx-build", "-b", "html", ".", "_build/html/"
+    )  # as for readthedocs.io
 
 
 @nox.session(python=python_default)
@@ -56,7 +56,9 @@ def safety(session):
     """Safety check for all dependencies."""
     session.install("safety", "-r", "requirements.txt", "-r", "requirements-dev.txt")
     session.run(
-        "safety", "check", "--full-report",
+        "safety",
+        "check",
+        "--full-report",
     )
 
 
