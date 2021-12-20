@@ -47,7 +47,7 @@ class CRDFileProcessor:
 
         # variables for filtered packages
         self._filter_max_ion_per_pkg_applied = False  # was max ions per pkg run?
-        self._filter_max_ion_per_pkg_max_ions = None  # max ions filtered with
+        self._pkg_size = None  # max ions filtered with
         self._filter_max_ion_per_pkg_ind = None  # indices of pkgs that were trashed
 
         # Integrals
@@ -165,6 +165,9 @@ class CRDFileProcessor:
     def filter_max_ions_per_pkg(self, max_ions: int) -> None:
         """Filter out packages with too many ions.
 
+        .. note:: Only run more than once if filtering out more. Otherwise, you need
+        to reset the dataset first.
+
         :param max_ions: Maximum number of ions per package.
 
         :raise ValueError: Invalid range for number of ions.
@@ -177,7 +180,6 @@ class CRDFileProcessor:
 
         # update helper variables
         self._filter_max_ion_per_pkg_applied = True
-        self._filter_max_ion_per_pkg_max_ions = max_ions
 
         total_ions_per_pkg = np.sum(self.data_pkg, axis=1)
 
@@ -196,8 +198,8 @@ class CRDFileProcessor:
     def filter_max_ions_per_shot(self, max_ions: int) -> None:
         """Filter out shots that have more than the max_ions defined.
 
-        Note: Do not run this routine more than once if packages have been created.
-        Otherwise it might lead to weird data!
+        .. note:: Only run more than once if filtering out more. Otherwise, you need
+        to reset the dataset first.
 
         :param max_ions: Maximum number of ions allowed in a shot.
 
@@ -206,12 +208,30 @@ class CRDFileProcessor:
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be >=1.")
 
-        # fixme: this is all invalid if packaging already exists.
-        # the packages do not get redone and won't agree afterwards with the counts
+        shots_indexes = np.where(self.ions_per_shot <= max_ions)[0]
+        shots_rejected = np.where(self.ions_per_shot > max_ions)[0]
 
-        ion_indexes = np.where(self.ions_per_shot <= max_ions)[0]
+        # reject filtered packages, i.e., remove ions from deleted packages
+        if self._filter_max_ion_per_pkg_applied:
+            for pkg_it in self._filter_max_ion_per_pkg_ind:
+                lower_lim = pkg_it * self._pkg_size
+                upper_lim = lower_lim + self._pkg_size
+                shots_indexes = shots_indexes[
+                    np.where(
+                        np.logical_or(
+                            shots_indexes < lower_lim, shots_indexes >= upper_lim
+                        )
+                    )
+                ]
+                shots_rejected = shots_rejected[
+                    np.where(
+                        np.logical_or(
+                            shots_rejected < lower_lim, shots_rejected >= upper_lim
+                        )
+                    )
+                ]
 
-        rng_all_tofs = self.ions_to_tof_map[ion_indexes]
+        rng_all_tofs = self.ions_to_tof_map[shots_indexes]
         tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
 
         all_tofs_filtered = self.all_tofs[tof_indexes]
@@ -221,25 +241,38 @@ class CRDFileProcessor:
             self.all_tofs.max(),
         )
 
-        # Todo
-        """ ToDo
-        Need to find a way to filter the data that I'm rejecting here also
-        out of the package.
-        The ion_indexes are given, if we divide them by the number of shots per
-        package (which should be made a variable), then we should be good to go.
-        Or we could use the first of the `num_ions_pkg`. Note that in either case,
-        this routine can only be run once on the same dataset.
-        
-        -> Subtract / delete the data entry from the package
-        -> subtract the count from the number of counts
-        """
-        self.ions_per_shot = self.ions_per_shot[ion_indexes]
-        self.ions_to_tof_map = self.ions_to_tof_map[ion_indexes]
+        # remove the rejected shots from packages
+        if self.data_pkg is not None:
+            for shot_rej in shots_rejected:
+                # calculate index of package
+                pkg_ind = shot_rej // self._pkg_size
+                # need to subtract number of filtered packages up to here!
+                pkg_rej_until = len(
+                    np.where(self._filter_max_ion_per_pkg_ind < pkg_ind)
+                )
+                pkg_ind -= pkg_rej_until
+
+                # get tofs to subtract from package and set up array with proper sizes
+                rng_tofs = self.ions_to_tof_map[shot_rej]
+                ions_to_sub = self.all_tofs[rng_tofs[0] : rng_tofs[1]]
+                array_to_sub = np.zeros_like(self.data_pkg[pkg_ind])
+                array_to_sub[ions_to_sub - self.all_tofs.min()] += 1
+
+                self.data_pkg[pkg_ind] -= array_to_sub
+                self.nof_shots_pkg[pkg_ind] -= 1
+
+        self.ions_per_shot = self.ions_per_shot[shots_indexes]
+        self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
         self.all_tofs = all_tofs_filtered
-        self.nof_shots = len(ion_indexes)
+        self.nof_shots = len(shots_indexes)
+
+        assert self.nof_shots == self.nof_shots_pkg.sum()  # a simple, quick test
 
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
+
+        .. note:: Only run more than once if filtering out more. Otherwise, you need
+        to reset the dataset first.
 
         Now we are going to directly use all the integrals to get the sum of the counts,
         which we will then feed to the rejection routine. Maybe this can detect blasts.
@@ -268,6 +301,8 @@ class CRDFileProcessor:
 
     def filter_pkg_peirce_delta(self, ratios: List[Tuple[str, str]]) -> None:
         """Filter out packages based on Peirce criterion for delta values.
+
+        # fixme: this routine needs to be deleted!
 
         For the given ratios, calculate the isotope ratio for each package, then
         calculate the delta values using Solar System abundances. Based on these values,
@@ -433,6 +468,8 @@ class CRDFileProcessor:
                 f"Number of shots per package must be between 1 and "
                 f"{self.nof_shots}, but is {shots}."
             )
+
+        self._pkg_size = shots
 
         self.data_pkg, self.nof_shots_pkg = processor_utils.create_packages(
             shots, self.ions_to_tof_map, self.all_tofs
