@@ -1,3 +1,4 @@
+========================
 RIMS Evaluation Software
 ========================
 
@@ -11,6 +12,7 @@ RIMS Evaluation Software
     :target: https://github.com/psf/black
     :alt: Code style: black
 
+------------
 Introduction
 ------------
 
@@ -21,15 +23,17 @@ All code is available on
 
 More to come, so check back :)
 
+--------
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+    :caption: Contents:
 
-   usage
-   filters
-   gui
-   license
-   dev
-   api/index
+    usage
+    filters
+    gui
+    license
+    dev
+    api/index

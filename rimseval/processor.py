@@ -271,8 +271,8 @@ class CRDFileProcessor:
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
 
-        .. note:: Only run more than once if filtering out more. Otherwise, you need
-            to reset the dataset first.
+        .. warning:: Running this more than once might lead to weird results. You have
+            been warned!
 
         Now we are going to directly use all the integrals to get the sum of the counts,
         which we will then feed to the rejection routine. Maybe this can detect blasts.
