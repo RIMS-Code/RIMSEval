@@ -30,6 +30,7 @@ class LST2CRD:
         These are only FASTComTec instruments. The name of each entry is equal to
         the identifier that can be found in a datafile (lst).
         The entries of the enum are as following:
+
         - binwidth in ps
         """
 
@@ -41,9 +42,10 @@ class LST2CRD:
 
         Various formats that are implemented when dealing with ASCII data.
         The value is composed of a tuple of 2 entries.
-          - 0: entry: width of the binary number (binary_width)
-          - 1: Tuple of tuples with start, stop on where to read
-               0: sweep - 1: time - 2: channel
+
+         - 0: entry: width of the binary number (binary_width)
+         - 1: Tuple of tuples with start, stop on where to read
+           0: sweep - 1: time - 2: channel
         """
 
         ASC_1A = (48, ((0, 16), (16, 44), (45, 48)))
@@ -53,6 +55,7 @@ class LST2CRD:
         """Available formats (time_patch) for binary data.
 
         Various binary data formats are incorporated. Value is compmosed of 2 entries:
+
           - 0: Data length in bytes
           - 1: Encoding of the binary value to read with struct.unpack()
           - 2: Tuple, Where in the decoded list are: 0: sweep - 1: time - 2: channel
@@ -161,10 +164,12 @@ class LST2CRD:
         """Read a list file specified in `self.file_name`.
 
         This routine sets the following parameters of the class:
+
         - self._file_data
         - self._tag_data (if a tag was selected)
 
         This routine sets the following information parameters in self._file_info:
+
         - "bin_width": Sets the binwidth in ps, depending on the instrument
         - "calfact": Calibration factor, to scale range to bins
         - "data_type": Sets the data type, 'ascii' for ASCII or 'dat' for binary, str
@@ -274,7 +279,7 @@ class LST2CRD:
     def write_crd(self) -> None:
         """Write CRD file(s) from the data that are in the class.
 
-        Note: A file must have been read first. Also, this routine doesn't actually
+        .. note:: A file must have been read first. Also, this routine doesn't actually
             write the crd file itself, but it handles the tags, etc., and then
             sources the actual writing task out.
 

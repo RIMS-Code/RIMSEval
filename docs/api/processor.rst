@@ -1,12 +1,14 @@
 .. currentmodule:: rimseval.processor
 
-==================================
-RIMS Evaluation CRD File Processor
-==================================
+================================
+RIMSEval Processor and Utilities
+================================
 
-:class: `CRDFileProcessor`
---------------------------
+------------------------------------------
+:class:`CRDFileProcessor`: Processor class
+------------------------------------------
 
 .. autoclass:: CRDFileProcessor
     :members:
     :undoc-members:
+

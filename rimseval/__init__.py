@@ -7,7 +7,7 @@ from . import utilities
 from .processor import CRDFileProcessor
 
 # Package information
-__version__ = "0.0.0"
+__version__ = "2.0.0"
 
 __title__ = "rimseval"
 __description__ = (
@@ -16,8 +16,7 @@ __description__ = (
     "FastComTec lst files to crd."
 )
 
-# Todo
-__uri__ = "Todo Docs Link"
+__uri__ = "https://rimseval.readthedocs.io"
 __author__ = "Reto Trappitsch"
 
 __license__ = "MIT"

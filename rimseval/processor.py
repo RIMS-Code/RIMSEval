@@ -166,7 +166,7 @@ class CRDFileProcessor:
         """Filter out packages with too many ions.
 
         .. note:: Only run more than once if filtering out more. Otherwise, you need
-        to reset the dataset first.
+            to reset the dataset first.
 
         :param max_ions: Maximum number of ions per package.
 
@@ -199,7 +199,7 @@ class CRDFileProcessor:
         """Filter out shots that have more than the max_ions defined.
 
         .. note:: Only run more than once if filtering out more. Otherwise, you need
-        to reset the dataset first.
+            to reset the dataset first.
 
         :param max_ions: Maximum number of ions allowed in a shot.
 
@@ -272,7 +272,7 @@ class CRDFileProcessor:
         """Filter out packages based on Peirce criterion for total count rate.
 
         .. note:: Only run more than once if filtering out more. Otherwise, you need
-        to reset the dataset first.
+            to reset the dataset first.
 
         Now we are going to directly use all the integrals to get the sum of the counts,
         which we will then feed to the rejection routine. Maybe this can detect blasts.
@@ -480,8 +480,8 @@ class CRDFileProcessor:
 
         The full spectrum is transfered to ToF and ion counts. The spectrum is then
         saved to:
-            - ToF array is written to `self.tof`
-            - Data array is written to `self.data`
+        - ToF array is written to `self.tof`
+        - Data array is written to `self.data`
 
         :warnings: Time of Flight and data have different shape
         """

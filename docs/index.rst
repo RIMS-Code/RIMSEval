@@ -27,5 +27,9 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   usage
+   filters
+   gui
    license
+   dev
    api/index

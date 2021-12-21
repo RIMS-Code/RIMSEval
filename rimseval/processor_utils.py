@@ -171,10 +171,9 @@ def mass_to_tof(
 
     Returns the ToF with the defined functional description for a mass calibration.
     Two parameters are required. The equation, with parameters defined as below,
-     is as following:
+    is as following:
 
-    ..math::
-        t = \sqrt{m} const + t0
+    .. math:: t = \\sqrt{m} \\cdot \\mathrm{const} + t_{0}
 
     :param m: mass
     :param tm0: parameter 1
@@ -238,10 +237,9 @@ def tof_to_mass(
 
     Returns the mass with the defined functional description for a mass calibration.
     Two parameters are required. The equation, with parameters defined as below,
-     is as following:
+    is as following:
 
-    ..math::
-        m = \left( \frac{tm - tm0}{const} \right)^{2}
+    .. math:: m = \\left(\\frac{tm - tm_{0}}{\\mathrm{const}}\\right)^{2}
 
     :param tm: time or channel
     :param tm0: parameter 1

@@ -11,3 +11,8 @@ Some words on API reference.
     :maxdepth: 2
 
     processor
+    processor_utils
+    interfacer
+    data_io
+    guis
+    utilities
