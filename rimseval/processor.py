@@ -523,7 +523,7 @@ class CRDFileProcessor:
         Select part of the shot range. These ranges will be 1 indexed! Always start
         with the full data range.
 
-        :rng: Shot range, either as a tuple (from, to) or as a tuple of multiple
+        :param rng: Shot range, either as a tuple (from, to) or as a tuple of multiple
             ((from1, to1), (from2, to2), ...).
 
         :raises ValueError: Ranges are not defined from, to where from < to
