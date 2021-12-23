@@ -247,6 +247,7 @@ def remove_shots_from_filtered_packages(
     return shots_indexes, shots_rejected
 
 
+@njit
 def remove_shots_from_packages(
     pkg_size: int,
     shots_rejected: np.array,
