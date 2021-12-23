@@ -9,6 +9,12 @@ Many of the mathematically heavy routines
 are outsourced here for JITing with
 `numba <https://numba.pydata.org/>`_.
 
+----------------------
+:func:`channel_to_tof`
+----------------------
+
+.. autofunction:: channel_to_tof
+
 -----------------------
 :func:`create_packages`
 -----------------------
@@ -32,6 +38,12 @@ are outsourced here for JITing with
 -------------------------
 
 .. autofunction:: integrals_summing
+
+-------------------------------------
+:func:`mask_filter_max_ions_per_time`
+-------------------------------------
+
+.. autofunction:: mask_filter_max_ions_per_time
 
 ------------------------
 :func:`mass_calibration`

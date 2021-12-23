@@ -89,3 +89,16 @@ def test_filter_max_ions_per_shot_pkg_filtered(crd_file):
     # assert that package data are the same as the rest
     assert crd.nof_shots == crd.nof_shots_pkg.sum()
     assert crd.data.sum() == crd.data_pkg.sum()
+
+
+def test_filter_max_ions_per_time(crd_file):
+    """Test maximum ions per shot in given time window."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    max_ions = 1  # filter the highest one out
+    time_window_us = 39 * 100 / 1e6  # 40 channels, filters third but not fifth
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.filter_max_ions_per_time(max_ions, time_window_us)
+
+    assert crd.nof_shots == len(ions_per_shot) - 1
+    assert np.sum(crd.data) == np.sum(ions_per_shot) - 4

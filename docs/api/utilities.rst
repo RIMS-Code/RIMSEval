@@ -67,3 +67,11 @@ for labels in plots, etc., will go here.
 *********************
 
 .. autofunction:: iso_to_iniabu
+
+---------
+Utilities
+---------
+
+Further utility routines that do not fit anywhere else.
+
+.. autofunction:: not_index

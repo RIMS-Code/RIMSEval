@@ -14,7 +14,7 @@ from scipy.optimize import curve_fit
 
 from .data_io.crd_reader import CRDReader
 from . import processor_utils
-from .utilities import string_transformer, peirce
+from .utilities import string_transformer, peirce, utils
 
 
 class CRDFileProcessor:
@@ -209,53 +209,33 @@ class CRDFileProcessor:
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be >=1.")
 
-        shots_indexes = np.where(self.ions_per_shot <= max_ions)[0]
         shots_rejected = np.where(self.ions_per_shot > max_ions)[0]
 
-        # reject filtered packages, i.e., remove ions from deleted packages
-        if self._filter_max_ion_per_pkg_applied:
-            (
-                shots_indexes,
-                shots_rejected,
-            ) = processor_utils.remove_shots_from_filtered_packages_ind(
-                shots_indexes,
-                shots_rejected,
-                self._filter_max_ion_per_pkg_ind,
-                self._pkg_size,
-            )
+        self._filter_individual_shots(shots_rejected)
 
-        rng_all_tofs = self.ions_to_tof_map[shots_indexes]
-        tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
+    def filter_max_ions_per_time(self, max_ions: int, time_us: float) -> None:
+        """Filter shots with >= max ions per time, i.e., due to ringing.
 
-        all_tofs_filtered = self.all_tofs[tof_indexes]
-        self.data = processor_utils.sort_data_into_spectrum(
-            all_tofs_filtered,
-            self.all_tofs.min(),
-            self.all_tofs.max(),
+        :param max_ions: Maximum number of ions that is allowed within a time window.
+        :param time_us: Width of the time window in microseconds (us)
+        """
+        us_to_chan = 1e6 / self.crd.header["binLength"]  # convert us to bins
+        time_chan = time_us * us_to_chan
+
+        shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
+
+        if shots_to_check.shape == (0,):  # nothing needs to be done
+            return None
+
+        all_tofs_filtered = self._all_tofs_filtered(shots_to_check)
+
+        shot_mask = processor_utils.mask_filter_max_ions_per_time(
+            self.ions_per_shot[shots_to_check], all_tofs_filtered, max_ions, time_chan
         )
+        shots_rejected = shots_to_check[shot_mask]
 
-        # remove the rejected shots from packages
-        if self.data_pkg is not None:
-            (
-                self.data_pkg,
-                self.nof_shots_pkg,
-            ) = processor_utils.remove_shots_from_packages(
-                self._pkg_size,
-                shots_rejected,
-                self.ions_to_tof_map,
-                self.all_tofs,
-                self.data_pkg,
-                self.nof_shots_pkg,
-                self._filter_max_ion_per_pkg_ind,
-            )
-
-        self.ions_per_shot = self.ions_per_shot[shots_indexes]
-        self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
-        self.all_tofs = all_tofs_filtered
-        self.nof_shots = len(shots_indexes)
-
-        if self.nof_shots_pkg is not None:
-            assert self.nof_shots == self.nof_shots_pkg.sum()  # a simple, quick test
+        if shots_rejected.shape != (0,):
+            self._filter_individual_shots(shots_rejected)
 
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
@@ -345,6 +325,62 @@ class CRDFileProcessor:
         # write back
         self.integrals = integrals
         self.integrals_pkg = integrals_pkg
+
+    def _filter_individual_shots(self, shots_rejected):
+        """Private routine to finish filtering for individual shots.
+
+        This will end up setting all the data. All routines that filter shots only
+        have to provide a list of rejected shots. This routine does the rest, including.
+        the handling of the data if packages exist.
+
+        ToDo: rejected shots should be stored somewhere.
+
+        :param shots_indexes: Indices of shots that should be kept.
+        :param shots_rejected: Indices of rejected shots.
+        """
+        len_indexes = len(self.ions_per_shot)
+
+        # reject filtered packages, i.e., remove ions from deleted packages
+        if self._filter_max_ion_per_pkg_applied:
+            (
+                shots_indexes,
+                shots_rejected,
+            ) = processor_utils.remove_shots_from_filtered_packages_ind(
+                shots_rejected,
+                len_indexes,
+                self._filter_max_ion_per_pkg_ind,
+                self._pkg_size,
+            )
+        else:
+            shots_indexes = utils.not_index(shots_rejected, len_indexes)
+
+        all_tofs_filtered = self._all_tofs_filtered(shots_indexes)
+
+        self.data = processor_utils.sort_data_into_spectrum(
+            all_tofs_filtered,
+            self.all_tofs.min(),
+            self.all_tofs.max(),
+        )
+
+        # remove the rejected shots from packages
+        if self.data_pkg is not None:
+            (
+                self.data_pkg,
+                self.nof_shots_pkg,
+            ) = processor_utils.remove_shots_from_packages(
+                self._pkg_size,
+                shots_rejected,
+                self.ions_to_tof_map,
+                self.all_tofs,
+                self.data_pkg,
+                self.nof_shots_pkg,
+                self._filter_max_ion_per_pkg_ind,
+            )
+
+        self.ions_per_shot = self.ions_per_shot[shots_indexes]
+        self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
+        self.all_tofs = all_tofs_filtered
+        self.nof_shots = len(shots_indexes)
 
     def integrals_calc(self) -> None:
         """Calculate integrals for data and packages (if present).
@@ -568,3 +604,18 @@ class CRDFileProcessor:
         self.ions_to_tof_map = ions_to_tof_map_filtered
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(ion_indexes)
+
+    # PRIVATE ROUTINES #
+
+    def _all_tofs_filtered(self, shots_indexes: np.array) -> np.array:
+        """Filter time of flights based on the indexes of the shots.
+
+        This function is heavily used in filters.
+
+        :param shots_indexes: Array with indexes of the shots.
+
+        :return: All time of flight bins for the given shots
+        """
+        rng_all_tofs = self.ions_to_tof_map[shots_indexes]
+        tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
+        return self.all_tofs[tof_indexes]

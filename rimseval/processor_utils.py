@@ -6,7 +6,24 @@ from numba import njit
 import numpy as np
 from scipy import optimize
 
-from rimseval.utilities import fitting
+from .utilities import fitting, utils
+
+
+def channel_to_tof(ch: int, bin_start: int, bin_length: int, delta_t: float) -> float:
+    """Transform TDC channel (bin it is in) to time of flight in us.
+
+    # fixme: remove if unused
+
+    :param ch: TDC channel that the ion is in.
+    :param bin_start: Start bin for TDC, see crd.header["binStart"]
+    :param bin_length: Bin length for TDC, see crd.header["binLength"], in ps.
+    :param delta_t: Time offset between TDC time zero and acceleration, see
+        crd.header["deltaT"], in s.
+
+    :return: Time of flight of given ion in us.
+    """
+    tof = ((bin_start + ch) * bin_length) / 1e6 + delta_t * 1e6
+    return tof
 
 
 @njit
@@ -133,6 +150,46 @@ def integrals_summing(
     return integrals, integrals_pkg
 
 
+@njit
+def mask_filter_max_ions_per_time(
+    ions_per_shot: np.array,
+    tofs: np.array,
+    max_ions: int,
+    time_chan: int,
+) -> np.array:
+    """Returns indices where more than wanted shots are in a time window.
+
+    :param ions_per_shot: How many ions are there per shot? Also defines the shape of
+        the return array.
+    :param tofs: All ToFs. Must be of length ions_per_shot.sum().
+    :param max_ions: Maximum number of ions that are allowed in channel window.
+    :param time_chan: Width of the window in channels (bins).
+
+    :return: Boolean array of shape like ions_per_shot if more are in or not.
+    """
+    return_mask = np.zeros_like(ions_per_shot)  # initialize return mask
+
+    start_ind = 0
+
+    for it, ips in enumerate(ions_per_shot):
+        end_ind = start_ind + ips
+        tofs_shot = tofs[start_ind:end_ind]
+
+        # run the filter
+        for tof in tofs_shot:
+            tofs_diff = np.abs(tofs_shot - tof)  # differences
+            ions_in_window = len(
+                np.where(tofs_diff <= time_chan)[0]
+            )  # where diff small
+            if ions_in_window > max_ions:  # comparison with max allowed
+                return_mask[it] = 1
+                break  # break this for loop: one true is enough to kick the shot
+
+        start_ind = end_ind
+
+    return np.where(return_mask == 1)[0]
+
+
 def mass_calibration(
     params: np.array, tof: np.array, return_params: bool = False
 ) -> Union[np.array, Tuple[np.array]]:
@@ -214,8 +271,8 @@ def multi_range_indexes(rng: np.array) -> np.array:
 
 @njit
 def remove_shots_from_filtered_packages_ind(
-    shots_indexes: np.array,
     shots_rejected: np.array,
+    len_indexes: int,
     filtered_pkg_ind: np.array,
     pkg_size: int,
 ) -> Tuple[np.array, np.array]:
@@ -224,13 +281,14 @@ def remove_shots_from_filtered_packages_ind(
     This routine is used to filter indexes in case a package filter has been applied,
     and now an ion / shot based filter needs to be applied.
 
-    :param shots_indexes: Array of indexes with good shots.
     :param shots_rejected: Array of indexes with rejected shots.
+    :param len_indexes: length of the indexes that the rejected shots are from.
     :param pkg_size: Size of the packages that were created.
     :param filtered_pkg_ind: Array with indexes of packages that have been filtered.
 
     :return: List of two Arrays with shots_indexes and shots_rejected, but filtered.
     """
+    shots_indexes = utils.not_index(shots_rejected, len_indexes)
     for pkg_it in filtered_pkg_ind:
         lower_lim = pkg_it * pkg_size
         upper_lim = lower_lim + pkg_size
