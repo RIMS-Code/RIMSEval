@@ -51,11 +51,23 @@ are outsourced here for JITing with
 
 .. autofunction:: multi_range_indexes
 
+-----------------------------------------------
+:func:`remove_shots_from_filtered_packages_ind`
+-----------------------------------------------
+
+.. autofunction:: remove_shots_from_filtered_packages_ind
+
+----------------------------------
+:func:`remove_shots_from_packages`
+----------------------------------
+
+.. autofunction:: remove_shots_from_packages
+
 -------------------------------
 :func:`sort_data_into_spectrum`
 -------------------------------
 
-.. autofunction:: sort_data_into_spectrum
+.. autofunction:: remove_shots_from_packages
 
 -------------------
 :func:`tof_to_mass`

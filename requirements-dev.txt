@@ -10,5 +10,5 @@ pytest>=6.0.0
 pytest-sugar
 pytest-cov
 pytest-mock
-spinx
+sphinx
 sphinx_rtd_theme

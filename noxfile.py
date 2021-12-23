@@ -3,12 +3,14 @@
 import nox
 
 
-nox.options.sessions = "lint", "safety", "tests"
+# todo: add lint and safety to mandatory tests
+# nox.options.sessions = ["lint", "safety", "tests"[
+nox.options.sessions = ["tests"]
 
 package = "rimseval"
 locations = "rimseval", "noxfile.py"
 python_default = "3.9"
-python_suite = ["3.9", "3.8", "3.7", "3.6"]
+python_suite = ["3.9", "3.8"]
 
 
 @nox.session(python=python_default)
@@ -60,11 +62,3 @@ def safety(session):
         "check",
         "--full-report",
     )
-
-
-@nox.session(python=python_suite)
-def xdoctest(session):
-    """Test docstring examples with xdoctest."""
-    args = session.posargs or ["all"]
-    session.install("xdoctest[all]", "-r", "requirements.txt")
-    session.run("python", "-m", "xdoctest", package, *args)

@@ -29,18 +29,3 @@ All code is available on
 `GitHub <https://github.com/RIMS-Code/RIMSEval>`_.
 
 More to come, so check back :)
-
---------
-Contents
---------
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Contents:
-
-    usage
-    filters
-    gui
-    license
-    dev
-    api/index

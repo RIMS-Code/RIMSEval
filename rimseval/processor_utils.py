@@ -213,7 +213,7 @@ def multi_range_indexes(rng: np.array) -> np.array:
 
 
 @njit
-def remove_shots_from_filtered_packages(
+def remove_shots_from_filtered_packages_ind(
     shots_indexes: np.array,
     shots_rejected: np.array,
     filtered_pkg_ind: np.array,

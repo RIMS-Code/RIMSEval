@@ -217,7 +217,7 @@ class CRDFileProcessor:
             (
                 shots_indexes,
                 shots_rejected,
-            ) = processor_utils.remove_shots_from_filtered_packages(
+            ) = processor_utils.remove_shots_from_filtered_packages_ind(
                 shots_indexes,
                 shots_rejected,
                 self._filter_max_ion_per_pkg_ind,
