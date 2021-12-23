@@ -41,3 +41,51 @@ def test_mass_calibration_2pts(crd_file):
     print(tms)
     np.testing.assert_almost_equal(mass_rec, mass_exp)
     assert crd.mass.ndim == crd.tof.ndim
+
+
+def test_filter_max_ions_per_shot(crd_file):
+    """Test maximum ions per shot filtering without packages."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    max_ions = max(ions_per_shot) - 1  # filter the highest one out
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.filter_max_ions_per_shot(max_ions)
+
+    ions_per_shot_filtered = ions_per_shot[np.where(ions_per_shot <= max_ions)]
+    nof_shots = len(ions_per_shot_filtered)
+    nof_ions = np.sum(ions_per_shot_filtered)
+
+    assert crd.nof_shots == nof_shots
+    assert np.sum(crd.data) == nof_ions
+
+
+def test_filter_max_ions_per_shot_pkg(crd_file):
+    """Test maximum ions per shot filtering with packages."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    max_ions = max(ions_per_shot) - 1  # filter the highest one out
+    shots_per_pkg = 2
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.packages(shots_per_pkg)
+    crd.filter_max_ions_per_shot(max_ions)
+
+    # assert that package data are the same as the rest
+    assert crd.nof_shots == crd.nof_shots_pkg.sum()
+    assert crd.data.sum() == crd.data_pkg.sum()
+
+
+def test_filter_max_ions_per_shot_pkg_filtered(crd_file):
+    """Test maximum ions per shot filtering with packages and pkg filter applied."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    shots_per_pkg = 2
+    max_ions = 1
+    max_ions_per_pkg = 4
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.packages(shots_per_pkg)
+    crd.filter_max_ions_per_pkg(max_ions_per_pkg)
+    crd.filter_max_ions_per_shot(max_ions)
+
+    # assert that package data are the same as the rest
+    assert crd.nof_shots == crd.nof_shots_pkg.sum()
+    assert crd.data.sum() == crd.data_pkg.sum()

@@ -134,6 +134,7 @@ class CRDFileProcessor:
 
     # METHODS #
 
+    # fixme make sure that the following docstring is actually correct
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 
@@ -213,23 +214,15 @@ class CRDFileProcessor:
 
         # reject filtered packages, i.e., remove ions from deleted packages
         if self._filter_max_ion_per_pkg_applied:
-            for pkg_it in self._filter_max_ion_per_pkg_ind:
-                lower_lim = pkg_it * self._pkg_size
-                upper_lim = lower_lim + self._pkg_size
-                shots_indexes = shots_indexes[
-                    np.where(
-                        np.logical_or(
-                            shots_indexes < lower_lim, shots_indexes >= upper_lim
-                        )
-                    )
-                ]
-                shots_rejected = shots_rejected[
-                    np.where(
-                        np.logical_or(
-                            shots_rejected < lower_lim, shots_rejected >= upper_lim
-                        )
-                    )
-                ]
+            (
+                shots_indexes,
+                shots_rejected,
+            ) = processor_utils.remove_shots_from_filtered_packages(
+                shots_indexes,
+                shots_rejected,
+                self._filter_max_ion_per_pkg_ind,
+                self._pkg_size,
+            )
 
         rng_all_tofs = self.ions_to_tof_map[shots_indexes]
         tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
@@ -243,30 +236,26 @@ class CRDFileProcessor:
 
         # remove the rejected shots from packages
         if self.data_pkg is not None:
-            for shot_rej in shots_rejected:
-                # calculate index of package
-                pkg_ind = shot_rej // self._pkg_size
-                # need to subtract number of filtered packages up to here!
-                pkg_rej_until = len(
-                    np.where(self._filter_max_ion_per_pkg_ind < pkg_ind)
-                )
-                pkg_ind -= pkg_rej_until
-
-                # get tofs to subtract from package and set up array with proper sizes
-                rng_tofs = self.ions_to_tof_map[shot_rej]
-                ions_to_sub = self.all_tofs[rng_tofs[0] : rng_tofs[1]]
-                array_to_sub = np.zeros_like(self.data_pkg[pkg_ind])
-                array_to_sub[ions_to_sub - self.all_tofs.min()] += 1
-
-                self.data_pkg[pkg_ind] -= array_to_sub
-                self.nof_shots_pkg[pkg_ind] -= 1
+            (
+                self.data_pkg,
+                self.nof_shots_pkg,
+            ) = processor_utils.remove_shots_from_packages(
+                self._pkg_size,
+                shots_rejected,
+                self.ions_to_tof_map,
+                self.all_tofs,
+                self.data_pkg,
+                self.nof_shots_pkg,
+                self._filter_max_ion_per_pkg_ind,
+            )
 
         self.ions_per_shot = self.ions_per_shot[shots_indexes]
         self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(shots_indexes)
 
-        assert self.nof_shots == self.nof_shots_pkg.sum()  # a simple, quick test
+        if self.nof_shots_pkg is not None:
+            assert self.nof_shots == self.nof_shots_pkg.sum()  # a simple, quick test
 
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.

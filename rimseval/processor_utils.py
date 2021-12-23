@@ -213,10 +213,93 @@ def multi_range_indexes(rng: np.array) -> np.array:
 
 
 @njit
+def remove_shots_from_filtered_packages(
+    shots_indexes: np.array,
+    shots_rejected: np.array,
+    filtered_pkg_ind: np.array,
+    pkg_size: int,
+) -> Tuple[np.array, np.array]:
+    """Remove packages that were already filtered pkg from ion filter indexes.
+
+    This routine is used to filter indexes in case a package filter has been applied,
+    and now an ion / shot based filter needs to be applied.
+
+    :param shots_indexes: Array of indexes with good shots.
+    :param shots_rejected: Array of indexes with rejected shots.
+    :param pkg_size: Size of the packages that were created.
+    :param filtered_pkg_ind: Array with indexes of packages that have been filtered.
+
+    :return: List of two Arrays with shots_indexes and shots_rejected, but filtered.
+    """
+    for pkg_it in filtered_pkg_ind:
+        lower_lim = pkg_it * pkg_size
+        upper_lim = lower_lim + pkg_size
+        shots_indexes = shots_indexes[
+            np.where(
+                np.logical_or(shots_indexes < lower_lim, shots_indexes >= upper_lim)
+            )
+        ]
+        shots_rejected = shots_rejected[
+            np.where(
+                np.logical_or(shots_rejected < lower_lim, shots_rejected >= upper_lim)
+            )
+        ]
+    return shots_indexes, shots_rejected
+
+
+def remove_shots_from_packages(
+    pkg_size: int,
+    shots_rejected: np.array,
+    ions_to_tof_map: np.array,
+    all_tofs: np.array,
+    data_pkg: np.array,
+    nof_shots_pkg: np.array,
+    pkg_filtered_ind: np.array = None,
+) -> Tuple[np.array, np.array]:
+    """Remove shots from packages.
+
+    This routine can take a list of individual ions and remove them from fully
+    packaged data. In addition, it can also take a list of packages that, with respect
+    to the raw data, have previously been removed. This is useful in order to filter
+    individual shots from packages after packages themselves have been filtered.
+
+    :param pkg_size: How many shots were grouped into a package originally?
+    :param shots_rejected: Index array of the rejected shots.
+    :param ions_to_tof_map: Mapping array where ions are in all_tof array.
+    :param all_tofs: Array containing all the ToFs.
+    :param data_pkg: Original data_pkg before filtering.
+    :param nof_shots_pkg: Original nof_shots_pkg before filtering.
+    :param pkg_filtered_ind: Indexes where the filtered packages are.
+
+    :return: Filtered data_pkg and nof_shots_pkg arrays.
+    """
+    for shot_rej in shots_rejected:
+        # calculate index of package
+        pkg_ind = shot_rej // pkg_size
+
+        if pkg_filtered_ind is not None:
+            # need to subtract number of filtered packages up to here!
+            pkg_rej_until = len(np.where(pkg_filtered_ind < pkg_ind))
+            pkg_ind -= pkg_rej_until
+
+        # get tofs to subtract from package and set up array with proper sizes
+        rng_tofs = ions_to_tof_map[shot_rej]
+        ions_to_sub = all_tofs[rng_tofs[0] : rng_tofs[1]]
+        array_to_sub = np.zeros_like(data_pkg[pkg_ind])
+        array_to_sub[ions_to_sub - all_tofs.min()] += 1
+
+        data_pkg[pkg_ind] -= array_to_sub
+        nof_shots_pkg[pkg_ind] -= 1
+
+        return data_pkg, nof_shots_pkg
+
+
+@njit
 def sort_data_into_spectrum(
     ions: np.ndarray, bin_start: int, bin_end: int
 ) -> np.ndarray:
     """Sort ion data in 1D array into an overall array and sum them up.
+
 
     :param ions: Arrival time of the ions - number of time bin
     :param bin_start: First bin of spectrum
