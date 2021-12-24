@@ -190,6 +190,47 @@ def mask_filter_max_ions_per_time(
     return np.where(return_mask == 1)[0]
 
 
+# @njit
+def mask_filter_max_ions_per_tof_window(
+    ions_per_shot: np.array,
+    tofs: np.array,
+    max_ions: int,
+    tof_window: np.array,
+) -> np.array:
+    """Returns indices where more than wanted shots are in a given ToF window.
+
+    :param ions_per_shot: How many ions are there per shot? Also defines the shape of
+        the return array.
+    :param tofs: All ToFs. Must be of length ions_per_shot.sum().
+    :param max_ions: Maximum number of ions that are allowed in channel window.
+    :param tof_window: Start and stop time of the ToF window in channel numbers.
+
+    :return: Boolean array of shape like ions_per_shot if more are in or not.
+    """
+    return_mask = np.zeros_like(ions_per_shot)  # initialize return mask
+
+    start_ind = 0
+
+    for it, ips in enumerate(ions_per_shot):
+        end_ind = start_ind + ips
+        tofs_shot = tofs[start_ind:end_ind]
+
+        if tofs_shot.shape[0] == 0:
+            continue
+
+        filtered_tofs = np.where(
+            np.logical_and(tofs_shot >= tof_window[0], tofs_shot <= tof_window[1])
+        )[0]
+        nof_tofs_win = len(filtered_tofs)
+
+        if nof_tofs_win > max_ions:
+            return_mask[it] = 1
+
+        start_ind = end_ind
+
+    return np.where(return_mask == 1)[0]
+
+
 def mass_calibration(
     params: np.array, tof: np.array, return_params: bool = False
 ) -> Union[np.array, Tuple[np.array]]:

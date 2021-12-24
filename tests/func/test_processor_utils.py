@@ -59,6 +59,22 @@ def test_mask_filter_max_ions_per_time():
     np.testing.assert_equal(exp_mask, rec_mask)
 
 
+def test_mask_filter_max_ions_per_tof_window():
+    """Filter maximum number of ions per time window."""
+    ions_per_shot = np.array([4, 0, 4, 5, 4])
+    tofs = np.array(
+        [1, 2, 3, 4] + [] + [1, 3, 5, 10] + [10, 15, 20, 25, 30] + [9, 10, 11, 15]
+    )  # looks weird, but easier to stich together by hand
+    max_ions = 2
+    time_window_chan = np.array([1, 5])
+
+    exp_mask = np.array([0, 2])  # where conditions are met
+    rec_mask = pu.mask_filter_max_ions_per_tof_window(
+        ions_per_shot, tofs, max_ions, time_window_chan
+    )
+    np.testing.assert_equal(exp_mask, rec_mask)
+
+
 def test_multi_range_indexes():
     """Create multi-range indexes for view on data."""
     ranges = np.array([[0, 2], [3, 6], [0, 0], [15, 22]])

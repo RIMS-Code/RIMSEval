@@ -59,6 +59,7 @@ class CRDFileProcessor:
         self._params_integrals = None  # integral definitions
         self._params_bg_corr = None  # bg_correction
         self._peak_fwhm = 0.0646  # peak fwhm in us
+        self._us_to_chan = None  # how to change microseconds to channel / bin number
 
         # file info
         self.nof_shots = self.crd.nof_shots
@@ -131,6 +132,18 @@ class CRDFileProcessor:
     @peak_fwhm.setter
     def peak_fwhm(self, value: float) -> None:
         self._peak_fwhm = value
+
+    @property
+    def us_to_chan(self) -> float:
+        """Conversion factor for microseconds to channel / bin number.
+
+        :return: Conversion factor
+        """
+        return self._us_to_chan
+
+    @us_to_chan.setter
+    def us_to_chan(self, value: float) -> None:
+        self._us_to_chan = value
 
     # METHODS #
 
@@ -219,8 +232,7 @@ class CRDFileProcessor:
         :param max_ions: Maximum number of ions that is allowed within a time window.
         :param time_us: Width of the time window in microseconds (us)
         """
-        us_to_chan = 1e6 / self.crd.header["binLength"]  # convert us to bins
-        time_chan = time_us * us_to_chan
+        time_chan = time_us * self.us_to_chan
 
         shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
 
@@ -231,6 +243,44 @@ class CRDFileProcessor:
 
         shot_mask = processor_utils.mask_filter_max_ions_per_time(
             self.ions_per_shot[shots_to_check], all_tofs_filtered, max_ions, time_chan
+        )
+        shots_rejected = shots_to_check[shot_mask]
+
+        if shots_rejected.shape != (0,):
+            self._filter_individual_shots(shots_rejected)
+
+    def filter_max_ions_per_tof_window(
+        self, max_ions: int, tof_window: np.array
+    ) -> None:
+        """
+
+        :param max_ions: Maximum number of ions in the time window.
+        :param tof_window: The time of flight window that the ions would have to be in.
+            Array of start and stop time of flight (2 entries).
+
+        :raises ValueError: Length of `tof_window` is wrong.
+        """
+        if len(tof_window) != 2:
+            raise ValueError(
+                "ToF window must be specified with two entries: the start "
+                "and the stop time of the window."
+            )
+
+        # convert to int to avoid weird float issues
+        channel_window = np.array(tof_window * self.us_to_chan, dtype=int)
+
+        shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
+
+        if shots_to_check.shape == (0,):  # nothing needs to be done
+            return None
+
+        all_tofs_filtered = self._all_tofs_filtered(shots_to_check)
+
+        shot_mask = processor_utils.mask_filter_max_ions_per_tof_window(
+            self.ions_per_shot[shots_to_check],
+            all_tofs_filtered,
+            max_ions,
+            channel_window,
         )
         shots_rejected = shots_to_check[shot_mask]
 
@@ -526,6 +576,9 @@ class CRDFileProcessor:
         self.data = processor_utils.sort_data_into_spectrum(
             self.all_tofs, self.all_tofs.min(), self.all_tofs.max()
         )
+
+        # set constants
+        self.us_to_chan = 1e6 / self.crd.header["binLength"]  # convert us to bins
 
         if self.tof.shape != self.data.shape:
             # fixme remove print

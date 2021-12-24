@@ -45,6 +45,12 @@ are outsourced here for JITing with
 
 .. autofunction:: mask_filter_max_ions_per_time
 
+-------------------------------------------
+:func:`mask_filter_max_ions_per_tof_window`
+-------------------------------------------
+
+.. autofunction:: mask_filter_max_ions_per_tof_window
+
 ------------------------
 :func:`mass_calibration`
 ------------------------
