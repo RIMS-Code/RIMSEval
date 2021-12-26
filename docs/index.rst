@@ -40,6 +40,7 @@ Contents
 
     usage
     filters
+    spectra_eval
     gui
     license
     dev

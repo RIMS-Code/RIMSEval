@@ -190,7 +190,7 @@ def mask_filter_max_ions_per_time(
     return np.where(return_mask == 1)[0]
 
 
-# @njit
+@njit
 def mask_filter_max_ions_per_tof_window(
     ions_per_shot: np.array,
     tofs: np.array,

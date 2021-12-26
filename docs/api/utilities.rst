@@ -68,6 +68,10 @@ for labels in plots, etc., will go here.
 
 .. autofunction:: iso_to_iniabu
 
+
+
+.. py:currentmodule:: rimseval.utilities.utils
+
 ---------
 Utilities
 ---------
