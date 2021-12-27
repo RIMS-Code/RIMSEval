@@ -1,0 +1,28 @@
+# Mass Calibration: ToF_us, Mass_amu
+# Integral Calibration: Peak_name, Peak_mass_amu, Lower_limit_amu, Upper_limit_amu
+# Status background calibration:
+0
+# Background Calibration: Peak, Peak_mass_amu, Left_BG_from_amu, Left_BG_to_amu, Right_BG_from_amu, Right_BG_to_amu
+# recalculation settings, in order top to bottom
+1
+7
+1
+1000
+0
+1000
+1
+75
+0
+50
+200
+0
+0
+5
+8
+0
+1
+115000
+0
+3
+9
+# EOF
