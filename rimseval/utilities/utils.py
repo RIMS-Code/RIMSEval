@@ -5,7 +5,7 @@ import numpy as np
 
 
 @njit
-def not_index(ind: np.array, length: int) -> np.array:
+def not_index(ind: np.array, length: int) -> np.array:  # pragma: nocov
     """Reverse an index.
 
     After filtering ions, e.g., using `np.where`, and keeping the indices of an array,

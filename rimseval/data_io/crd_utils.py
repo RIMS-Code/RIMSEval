@@ -62,7 +62,7 @@ class CRDHeader(Enum):
 
 
 @njit
-def shot_to_tof_mapper(ions_per_shot: np.array) -> np.array:
+def shot_to_tof_mapper(ions_per_shot: np.array) -> np.array:  # pragma: nocover
     """Mapper for ions_to_shot to all_tofs.
 
     Takes ions_per_shot array and creates a mapper that describes which ranges in the

@@ -88,7 +88,7 @@ def get_sweep_time_ascii(
 @njit
 def transfer_lst_to_crd_data(
     data_in: np.ndarray, max_sweep: int, ion_range: int
-) -> Tuple[np.ndarray, np.ndarray, bool]:
+) -> Tuple[np.ndarray, np.ndarray, bool]:  # pragma: nocover
     """Transfer lst file specific data to the crd format.
 
     :param data: Array: One ion per line, two entries: sweep first (shot), then time
