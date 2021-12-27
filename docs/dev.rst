@@ -31,6 +31,22 @@ Required dependencies if you prefer not testing with ``nox``
 can be found in the ``requirements-dev.txt`` file.
 
 -------------
+Test Coverage
+-------------
+
+Coveralls and pytest-cov is used to automatically determine the test coverage.
+
+.. note:: If you are using PyCharm, you should set up your testing environment
+    such that it contains in the `Additional Arguments` section the flag
+    ``--no-cov``.
+    Otherwise, coverage reporting in PyCharm will not work.
+
+.. warning:: Code that contains the ``@njit`` or any numba JIT decorator
+    is currently excluded from coverage using the ``# pragma: nocover``.
+    Make sure you include useful tests for these routines nevertheless!
+    However, due to existing issues, these jited methods would not show up as covered.
+
+-------------
 Documentation
 -------------
 

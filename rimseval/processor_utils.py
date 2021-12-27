@@ -31,7 +31,7 @@ def create_packages(
     shots: int,
     tofs_mapper: np.ndarray,
     all_tofs: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray]:  # pragma: nocover
     """Create packages from data.
 
     :params shots: Number of shots per package
@@ -67,7 +67,7 @@ def create_packages(
 @njit
 def dead_time_correction(
     data: np.ndarray, nof_shots: np.ndarray, dbins: int
-) -> np.ndarray:
+) -> np.ndarray:  # pragma: nocover
     """Calculate dead time for a given spectrum.
 
     :param data: Data array, histogram in bins. 2D array (even for 1D data!)
@@ -120,7 +120,7 @@ def gaussian_fit_get_max(xdata: np.ndarray, ydata: np.ndarray) -> float:
 @njit
 def integrals_summing(
     data: np.ndarray, windows: Tuple[np.ndarray], data_pkg: np.ndarray = None
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray]:  # pragma: nocover
     """Sum up the integrals within the defined windows and return them.
 
     :param data: Data to be summed over.
@@ -156,7 +156,7 @@ def mask_filter_max_ions_per_time(
     tofs: np.array,
     max_ions: int,
     time_chan: int,
-) -> np.array:
+) -> np.array:  # pragma: nocover
     """Returns indices where more than wanted shots are in a time window.
 
     :param ions_per_shot: How many ions are there per shot? Also defines the shape of
@@ -196,7 +196,7 @@ def mask_filter_max_ions_per_tof_window(
     tofs: np.array,
     max_ions: int,
     tof_window: np.array,
-) -> np.array:
+) -> np.array:  # pragma: nocover
     """Returns indices where more than wanted shots are in a given ToF window.
 
     :param ions_per_shot: How many ions are there per shot? Also defines the shape of
@@ -316,7 +316,7 @@ def remove_shots_from_filtered_packages_ind(
     len_indexes: int,
     filtered_pkg_ind: np.array,
     pkg_size: int,
-) -> Tuple[np.array, np.array]:
+) -> Tuple[np.array, np.array]:  # pragma: nocover
     """Remove packages that were already filtered pkg from ion filter indexes.
 
     This routine is used to filter indexes in case a package filter has been applied,
@@ -355,7 +355,7 @@ def remove_shots_from_packages(
     data_pkg: np.array,
     nof_shots_pkg: np.array,
     pkg_filtered_ind: np.array = None,
-) -> Tuple[np.array, np.array]:
+) -> Tuple[np.array, np.array]:  # pragma: nocover
     """Remove shots from packages.
 
     This routine can take a list of individual ions and remove them from fully
@@ -397,7 +397,7 @@ def remove_shots_from_packages(
 @njit
 def sort_data_into_spectrum(
     ions: np.ndarray, bin_start: int, bin_end: int
-) -> np.ndarray:
+) -> np.ndarray:  # pragma: nocover
     """Sort ion data in 1D array into an overall array and sum them up.
 
 
