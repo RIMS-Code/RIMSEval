@@ -1,4 +1,4 @@
-"""Function test for processor class methods."""
+"""Function test for processor class methods, focusing on each function."""
 
 from pathlib import Path
 
@@ -18,29 +18,40 @@ def test_data_dimension_after_dead_time_correction(crd_file):
     assert crd.tof.ndim == crd.data.ndim
 
 
-def test_mass_calibration_2pts(crd_file):
-    """Perform mass calibration with two points."""
-    _, _, _, fname = crd_file
-    params = (13, 42)
-    tms = (42.0, 95.0)
 
-    mass_cal = np.zeros((len(tms), 2))
-    for it, tm in enumerate(tms):
-        mass_cal[it][0] = tm
-        mass_cal[it][1] = pu.tof_to_mass(tm, params[0], params[1])
 
-    # set variables
+
+def test_filter_max_ions_per_pkg(crd_file):
+    """Filter the packages by maximum ion."""
+    _, ions_per_shot, _, fname = crd_file
+    max_ions = ions_per_shot.max() - 1  # filter one or so packages out
+    sum_ions = 0
+    for ion in ions_per_shot:
+        if ion <= max_ions:
+            sum_ions += ion
+
     crd = CRDFileProcessor(Path(fname))
     crd.spectrum_full()
+    crd.packages(1)
+    crd.filter_max_ions_per_pkg(max_ions)
+    assert crd.data_pkg.sum() == sum_ions
 
-    crd.def_mcal = mass_cal
-    mass_exp = pu.tof_to_mass(crd.tof, params[0], params[1])
 
-    crd.mass_calibration()
-    mass_rec = crd.mass
-    print(tms)
-    np.testing.assert_almost_equal(mass_rec, mass_exp)
-    assert crd.mass.ndim == crd.tof.ndim
+def test_filter_max_ions_per_shot(crd_file):
+    """Filter the shots by maximum ions per shot."""
+    _, ions_per_shot, _, fname = crd_file
+    max_ions = ions_per_shot.min() + 1  # filter most out
+    filtered_data = ions_per_shot[np.where(ions_per_shot <= max_ions)]
+    sum_ions_exp = np.sum(filtered_data)
+    nof_shots_exp = len(filtered_data)
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.filter_max_ions_per_shot(max_ions)
+
+    assert crd.nof_shots == nof_shots_exp
+    assert crd.data.sum() == sum_ions_exp
+    np.testing.assert_equal(crd.ions_per_shot, filtered_data)
 
 
 def test_filter_max_ions_per_shot(crd_file):
@@ -122,3 +133,44 @@ def test_filter_max_ions_per_tof_window(crd_file):
 
     assert crd.nof_shots == len(ions_per_shot) - 1
     assert np.sum(crd.data) == np.sum(ions_per_shot) - 2
+
+def test_mass_calibration_2pts(crd_file):
+    """Perform mass calibration with two points."""
+    _, _, _, fname = crd_file
+    params = (13, 42)
+    tms = (42.0, 95.0)
+
+    mass_cal = np.zeros((len(tms), 2))
+    for it, tm in enumerate(tms):
+        mass_cal[it][0] = tm
+        mass_cal[it][1] = pu.tof_to_mass(tm, params[0], params[1])
+
+    # set variables
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+
+    crd.def_mcal = mass_cal
+    mass_exp = pu.tof_to_mass(crd.tof, params[0], params[1])
+
+    crd.mass_calibration()
+    mass_rec = crd.mass
+    print(tms)
+    np.testing.assert_almost_equal(mass_rec, mass_exp)
+    assert crd.mass.ndim == crd.tof.ndim
+
+def test_packages(crd_file):
+    """Simple test to ensure packages are made in two ways correctly."""
+    _, ions_per_shot, _, fname = crd_file
+    nof_shots = len(ions_per_shot)
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.packages(nof_shots // 2)
+
+    assert crd.data_pkg.sum() == crd.data.sum()
+    np.testing.assert_equal(crd.data_pkg.sum(axis=0), crd.data)
+    assert crd.nof_shots_pkg.sum() == crd.nof_shots
+    # now redo w/ a lower number of shots per pkg
+    crd.packages(nof_shots // 4)
+    assert crd.data_pkg.sum() == crd.data.sum()
+    np.testing.assert_equal(crd.data_pkg.sum(axis=0), crd.data)
+    assert crd.nof_shots_pkg.sum() == crd.nof_shots

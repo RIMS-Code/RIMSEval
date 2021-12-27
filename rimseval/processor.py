@@ -484,20 +484,35 @@ class CRDFileProcessor:
         self.all_tofs = all_tofs_filtered
         self.nof_shots = len(shots_indexes)
 
-    def integrals_calc(self) -> None:
+    def integrals_calc(self, bg_corr=True) -> None:
         """Calculate integrals for data and packages (if present).
 
         The integrals to be set per peak are going to be set as an ndarray.
         Each row will contain one entry in the first column and its associated
         uncertainty in the second.
 
-        # ToDo Will require special handling once background correction incorporated.
+        :param bgcorr: If false, will never do background correction. Otherwise
+            (default), background correction will be applied if available. This is a
+            toggle to switch usage while leaving backgrounds defined.
 
         :return: None
 
         :raise ValueError: No integrals were set.
         :raise ValueError: No mass calibration has been applied.
         """
+
+        def integral_windows(limits_tmp: np.array) -> List:
+            """Creates windows list for given limits.
+
+            :return: List with all the windows that need to be calculated.
+            """
+            windows_tmp = []
+            for low_lim, upp_lim in limits:
+                windows_tmp.append(
+                    np.where(np.logical_and(self.mass >= low_lim, self.mass <= upp_lim))
+                )
+            return windows_tmp
+
         if self._params_integrals is None:
             raise ValueError("No integrals were set.")
         if self.mass is None:
@@ -505,15 +520,37 @@ class CRDFileProcessor:
 
         names, limits = self.def_integrals
 
-        windows = []  # integrals defined in mass windows
-        for lower, upper in limits:
-            windows.append(
-                np.where(np.logical_and(self.mass >= lower, self.mass <= upper))
-            )
+        windows = integral_windows(limits)
 
         self.integrals, self.integrals_pkg = processor_utils.integrals_summing(
             self.data, tuple(windows), self.data_pkg
         )
+
+        # background correction
+        if bg_corr and self._params_backgrounds is not None:
+            names_bg, limits_bg = self.def_backgrounds
+
+            windows_bgs = integral_windows(limits_bg)
+
+            bgs, bgs_pkg = processor_utils.integrals_summing(
+                self.data, tuple(windows_bgs), self.data_pkg
+            )
+
+            # determine channel lengths
+            peak_ch_length = np.array([len(it) for it in windows])
+            bgs_ch_length = np.array([len(it) for it in windows_bgs])
+
+            # call the processor and do the background correction
+            self.integrals, self.integrals_pkg = processor_utils.integrals_bg_corr(
+                self.integrals,
+                np.array(names),
+                peak_ch_length,
+                bgs,
+                np.array(names_bg),
+                bgs_ch_length,
+                self.integrals_pkg,
+                bgs_pkg,
+            )
 
     def mass_calibration(self) -> None:
         """Perform a mass calibration on the data.

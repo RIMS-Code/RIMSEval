@@ -34,6 +34,12 @@ are outsourced here for JITing with
 .. autofunction:: gaussian_fit_get_max
 
 -------------------------
+:func:`integrals_bg_corr`
+-------------------------
+
+.. autofunction:: integrals_bg_corr
+
+-------------------------
 :func:`integrals_summing`
 -------------------------
 

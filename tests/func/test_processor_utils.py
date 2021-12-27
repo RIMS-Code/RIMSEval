@@ -43,6 +43,118 @@ def test_create_packages():
     np.testing.assert_equal(pkg_data_rec, pkg_data_exp)
 
 
+def test_integrals_bg_corr():
+    """Background correction for defined integrals."""
+    integrals = np.array([[10, np.sqrt(10)], [40, np.sqrt(40)]])
+    int_names = np.array(["28Si", "29Si"])
+    int_ch = np.array([30, 40])
+    bgs = np.array([[1, np.sqrt(1)], [2, np.sqrt(2)], [3, np.sqrt(3)]])
+    bgs_names = np.array(["28Si", "28Si", "29Si"])
+    bgs_ch = np.array([20, 10, 50])
+
+    # manual calculations for expected values
+    bgs_cnt = bgs[:, 0]
+    bgs_norm = np.array(
+        [(bgs_cnt[0] / bgs_ch[0] + bgs_cnt[1] / bgs_ch[1]) / 2, bgs_cnt[2] / bgs_ch[2]]
+    )
+    bgs_norm_unc = np.array(
+        [
+            (np.sqrt(bgs_cnt[0]) / bgs_ch[0] + np.sqrt(bgs_cnt[1]) / bgs_ch[1]) / 2,
+            np.sqrt(bgs_cnt[2]) / bgs_ch[2],
+        ]
+    )
+    integrals_corr = integrals[:, 0] - int_ch * bgs_norm
+    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc ** 2)
+
+    integrals_exp = np.array(
+        [
+            [integrals_corr[it], integrals_corr_unc[it]]
+            for it in range(len(integrals_corr))
+        ]
+    )
+
+    integrals_rec, integrals_pkg_rec = pu.integrals_bg_corr(
+        integrals, int_names, int_ch, bgs, bgs_names, bgs_ch
+    )
+    np.testing.assert_equal(integrals_rec, integrals_exp)
+    assert integrals_pkg_rec is None
+
+
+def test_integrals_bg_corr_pkg():
+    """Background correction for defined integrals with packages."""
+    integrals = np.array([[10, np.sqrt(10)], [40, np.sqrt(40)]])
+    integrals_pkg = np.array([integrals])
+    int_names = np.array(["28Si", "29Si"])
+    int_ch = np.array([30, 40])
+    bgs = np.array([[1, np.sqrt(1)], [2, np.sqrt(2)], [3, np.sqrt(3)]])
+    bgs_pkg = np.array([bgs])
+    bgs_names = np.array(["28Si", "28Si", "29Si"])
+    bgs_ch = np.array([20, 10, 50])
+
+    # manual calculations for expected values
+    bgs_cnt = bgs[:, 0]
+    bgs_norm = np.array(
+        [(bgs_cnt[0] / bgs_ch[0] + bgs_cnt[1] / bgs_ch[1]) / 2, bgs_cnt[2] / bgs_ch[2]]
+    )
+    bgs_norm_unc = np.array(
+        [
+            (np.sqrt(bgs_cnt[0]) / bgs_ch[0] + np.sqrt(bgs_cnt[1]) / bgs_ch[1]) / 2,
+            np.sqrt(bgs_cnt[2]) / bgs_ch[2],
+        ]
+    )
+    integrals_corr = integrals[:, 0] - int_ch * bgs_norm
+    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc ** 2)
+
+    integrals_exp = np.array(
+        [
+            [integrals_corr[it], integrals_corr_unc[it]]
+            for it in range(len(integrals_corr))
+        ]
+    )
+
+    # no packages
+    integrals_rec, integrals_pkg_rec = pu.integrals_bg_corr(
+        integrals, int_names, int_ch, bgs, bgs_names, bgs_ch
+    )
+    np.testing.assert_equal(integrals_rec, integrals_exp)
+    assert integrals_pkg_rec is None
+
+    # packages
+    integrals_rec, integrals_pkg_rec = pu.integrals_bg_corr(
+        integrals, int_names, int_ch, bgs, bgs_names, bgs_ch, integrals_pkg, bgs_pkg
+    )
+    np.testing.assert_equal(integrals_rec, integrals_exp)
+    np.testing.assert_equal(integrals_pkg_rec[0], integrals_exp)
+    assert len(integrals_pkg_rec) == 1
+
+
+def test_integrals_summing():
+    """Sum integrals for given data."""
+    data = np.arange(100) * 2  # *2 such that index not equal to value
+    window = (np.arange(10), np.arange(5) + 50)  # two windows
+
+    integral_values = [np.sum(data[0:10]), np.sum(data[50:55])]
+    integrals_exp = np.array([[it, np.sqrt(it)] for it in integral_values])
+
+    integrals_rec, integrals_pkg_rec = pu.integrals_summing(data, window)
+    np.testing.assert_equal(integrals_rec, integrals_exp)
+    assert integrals_pkg_rec is None
+
+
+def test_integrals_summing_pkg():
+    """Sum integrals for given data and packages."""
+    data = np.arange(100) * 2  # *2 such that index not equal to value
+    data_pkg = np.array([data])
+    window = (np.arange(10), np.arange(5) + 50)  # two windows
+
+    integral_values = [np.sum(data[0:10]), np.sum(data[50:55])]
+    integrals_exp = np.array([[it, np.sqrt(it)] for it in integral_values])
+
+    integrals_rec, integrals_pkg_rec = pu.integrals_summing(data, window, data_pkg)
+    np.testing.assert_equal(integrals_rec, integrals_exp)
+    np.testing.assert_equal(integrals_pkg_rec[0], integrals_exp)
+
+
 def test_mask_filter_max_ions_per_time():
     """Filter maximum number of ions per time window."""
     ions_per_shot = np.array([4, 0, 4, 5, 4])
