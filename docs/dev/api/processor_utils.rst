@@ -91,7 +91,7 @@ are outsourced here for JITing with
 :func:`sort_data_into_spectrum`
 -------------------------------
 
-.. autofunction:: remove_shots_from_packages
+.. autofunction:: sort_data_into_spectrum
 
 -------------------
 :func:`tof_to_mass`

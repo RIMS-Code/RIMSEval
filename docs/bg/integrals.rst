@@ -1,6 +1,6 @@
-===================================
-Spectra Evaluation and Calculations
-===================================
+=========
+Integrals
+=========
 
 This page explains the strategy and mathematical derivations
 for spectra processing.
@@ -13,7 +13,7 @@ Background correction
 
 Below figure shows a peak in green and two backgrounds left and right surrounding the peak.
 
-.. image:: figures/bg_corr.png
+.. image:: ../figures/bg_corr.png
   :width: 400
   :alt: Background correction for an arbitrary peak.
 

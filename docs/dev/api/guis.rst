@@ -8,7 +8,7 @@ when working on the command line.
 Here,
 we solely use ``matloplib`` and Qt frontends.
 This is **not** the description of the main GUI,
-which can be found in :doc:`../gui`.
+which can be found in :doc:`../../gui/gui`.
 
 
 

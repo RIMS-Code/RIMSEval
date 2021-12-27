@@ -19,16 +19,17 @@ RIMS Evaluation Software
     :target: https://github.com/psf/black
     :alt: Code style: black
 
-------------
-Introduction
-------------
+--------
+Welcome!
+--------
 
 The goal of this project is to give the user
 an API as well as a GUI interface to evaluate RIMS spectra.
 All code is available on
 `GitHub <https://github.com/RIMS-Code/RIMSEval>`_.
 
-More to come, so check back :)
+Please check the sections below for help on installation,
+usage, etc.
 
 --------
 Contents
@@ -36,12 +37,37 @@ Contents
 
 .. toctree::
     :maxdepth: 2
-    :caption: Contents:
 
-    usage
-    filters
-    spectra_eval
-    gui
     license
-    dev
-    api/index
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Package Users
+
+    pkg/install
+    pkg/usage
+    pkg/filters
+
+.. toctree::
+    :maxdepth: 2
+    :caption: GUI Users
+
+    gui/install
+    gui/gui
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Scientific Background
+
+    bg/integrals
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Macro Development
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Developers
+
+    dev/dev
+    dev/api/index
