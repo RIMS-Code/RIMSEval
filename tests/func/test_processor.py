@@ -1,4 +1,4 @@
-"""Function test for processor."""
+"""Function test for processor class methods."""
 
 from pathlib import Path
 

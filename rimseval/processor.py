@@ -57,7 +57,7 @@ class CRDFileProcessor:
         # parameters for calibration and evaluation
         self._params_mcal = None  # mass calibration
         self._params_integrals = None  # integral definitions
-        self._params_bg_corr = None  # bg_correction
+        self._params_backgrounds = None  # bg_correction
         self._peak_fwhm = 0.0646  # peak fwhm in us
         self._us_to_chan = None  # how to change microseconds to channel / bin number
 
@@ -66,6 +66,45 @@ class CRDFileProcessor:
         self.nof_shots_pkg = None
 
     # PROPERTIES #
+
+    @property
+    def def_backgrounds(self) -> Tuple[List[str], np.ndarray]:
+        """Background definitions for integrals.
+
+        The definitions consist of a tuple of a list and a np.ndarray.
+        The list contains first the names of the integrals.
+        The np.ndarray then contains in each row the lower and upper limit in amu of
+        the peak that needs to be integrated.
+
+        .. note:: The format for defining backgrounds is the same as the format for
+            defining integrals, except that peaks can occur multiple times for
+            multiple backgrounds.
+
+        :return: Background definitions.
+
+        :raise ValueError: Data Shape is wrong
+
+        Example:
+            >>> data = CRDFileProcessor("my_data.crd")
+            >>> peak_names = ["54Fe", "54Fe"]
+            >>> peak_limits = np.array([[53.4, 53.6], [54.4, 54.6]])
+            >>> data.def_integrals = (peak_names, peak_limits)
+        """
+        return self._params_backgrounds
+
+    @def_backgrounds.setter
+    def def_backgrounds(self, value):
+        if not value:  # empty list is passed
+            self._params_backgrounds = None
+        else:
+            if len(value) != 2:
+                raise ValueError("Data tuple must be of length 2.")
+            if len(value[0]) != len(value[1]):
+                raise ValueError("Name and data array must have the same length.")
+            if value[1].shape[1] != 2:
+                raise ValueError("The data array must have 2 entries for every line.")
+
+            self._params_backgrounds = value
 
     @property
     def def_mcal(self) -> np.ndarray:
@@ -98,7 +137,7 @@ class CRDFileProcessor:
     def def_integrals(self) -> Tuple[List[str], np.ndarray]:
         """Integral definitions.
 
-        The definitions consist of a tuple of a list and an np.ndarray.
+        The definitions consist of a tuple of a list and a np.ndarray.
         The list contains first the names of the integrals.
         The np.ndarray then contains in each row the lower and upper limit in amu of
         the peak that needs to be integrated.
@@ -106,6 +145,13 @@ class CRDFileProcessor:
         :return: Integral definitions.
 
         :raise ValueError: Data Shape is wrong
+        :raise ValueError: More than one definition exist for a given peak.
+
+        Example:
+            >>> data = CRDFileProcessor("my_data.crd")
+            >>> peak_names = ["54Fe", "64Ni"]
+            >>> peak_limits = np.array([[53.8, 54.2], [63.5, 64.5]])
+            >>> data.def_integrals = (peak_names, peak_limits)
         """
         return self._params_integrals
 
@@ -114,10 +160,16 @@ class CRDFileProcessor:
         if not value:  # empty list is passed
             self._params_integrals = None
         else:
+            if len(value) != 2:
+                raise ValueError("Data tuple must be of length 2.")
             if len(value[0]) != len(value[1]):
                 raise ValueError("Name and data array must have the same length.")
             if value[1].shape[1] != 2:
                 raise ValueError("The data array must have 2 entries for every line.")
+            if len(value[0]) != len(set(value[0])):
+                raise ValueError(
+                    "The peak names for integral definitions must be unique."
+                )
 
             self._params_integrals = value
 
