@@ -20,22 +20,43 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param crd: Instance of the CRDFileProcessor, since we need to set properties
     :param fname: Filename to mass calibration file. If `None`, try the same file name
         as for the CRD file, but with `.cal` as an extension.
+
+    :raise IOError: Calibration file does not exist.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".cal")
 
+    if not fname.exists():
+        raise IOError(f"The requested calibration file {fname} does not exist.")
+
     cal = LIONEvalCal(fname)
 
-    crd.def_mcal = cal.mass_cal
+    if cal.mass_cal is not None:
+        crd.def_mcal = cal.mass_cal
+
+    names_int = None
     if cal.integrals:
-        names = []
-        areas = np.empty((len(cal.integrals), 2))
+        names_int = []
+        areas_int = np.zeros((len(cal.integrals), 2))
         for it, line in enumerate(cal.integrals):
-            names.append(line[0])
-            areas[it][0] = line[1] - line[2]
-            areas[it][1] = line[1] + line[3]
-        crd.def_integrals = (names, areas)
-    # fixme: add background correction stuff once implemented
+            names_int.append(line[0])
+            areas_int[it][0] = line[1] - line[2]
+            areas_int[it][1] = line[1] + line[3]
+        crd.def_integrals = (names_int, areas_int)
+
+    if cal.bg_corr and cal.integrals:  # w/o integrals, don't load bgs!
+        names_bg = []
+        areas_bg = []
+        for it, line in enumerate(cal.bg_corr):
+            name = line[0]
+            if name in names_int:  # must be the case for new program
+                names_bg.append(name)
+                areas_bg.append([line[2], line[3]])
+                names_bg.append(name)
+                areas_bg.append([line[4], line[5]])
+
+        areas_bg = np.array(areas_bg)
+        crd.def_backgrounds = (names_bg, areas_bg)
 
 
 def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
@@ -48,7 +69,10 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     if fname is None:
         fname = crd.fname.with_suffix(".json")
 
-    with fname.open("r") as fin:
+    if not fname.exists():
+        raise IOError(f"The requested calibration file {fname} does not exist.")
+
+    with fname.open("r", encoding="utf-8") as fin:
         json_object = json.load(fin)
 
     def entry_loader(key: str, json_obj: Any) -> Any:
@@ -62,11 +86,18 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     crd.def_mcal = np.array(entry_loader("mcal", json_object))
 
     # integrals
-    names = entry_loader("integral_names", json_object)
+    names_int = entry_loader("integral_names", json_object)
     integrals = np.array(entry_loader("integrals", json_object))
 
-    if names is not None and integrals is not None:
-        crd.def_integrals = names, integrals
+    if names_int is not None and integrals is not None:
+        crd.def_integrals = names_int, integrals
+
+    # backgrounds
+    names_bgs = entry_loader("background_names", json_object)
+    backgrounds = np.array(entry_loader("backgrounds", json_object))
+
+    if names_bgs is not None and backgrounds is not None:
+        crd.def_backgrounds = names_bgs, backgrounds
 
 
 def save_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
@@ -89,11 +120,16 @@ def save_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
 
     # integrals
     if crd.def_integrals is not None:
-        names, integrals = crd.def_integrals
-        cal_to_write["integral_names"] = names
+        names_int, integrals = crd.def_integrals
+        cal_to_write["integral_names"] = names_int
         cal_to_write["integrals"] = integrals.tolist()
+
+    # backgrounds
+    if crd.def_backgrounds is not None:
+        names_bg, backgrounds = crd.def_backgrounds
+        cal_to_write["background_names"] = names_bg
+        cal_to_write["backgrounds"] = backgrounds.tolist()
 
     json_object = json.dumps(cal_to_write, indent=4)
 
-    with fname.open("w") as fout:
-        fname.write_text(json_object)
+    fname.write_text(json_object, encoding="utf-8")
