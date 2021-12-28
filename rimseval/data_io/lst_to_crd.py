@@ -2,11 +2,11 @@
 
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 import struct
 import warnings
 
 import numpy as np
-from pathlib import Path
 
 from . import crd_utils
 from . import lst_utils
@@ -95,7 +95,7 @@ class LST2CRD:
         :return: Channel number of data
 
         :raises TypeError: Channel number is not an integer.
-        """
+        """  # noqa: DAR402
         return self._channel_data
 
     @channel_data.setter
@@ -111,7 +111,7 @@ class LST2CRD:
         :return: Channel number of tag
 
         :raises TypeError: Channel number is not an integer.
-        """
+        """  # noqa: DAR402
         return self._channel_tag
 
     @channel_tag.setter
@@ -127,7 +127,7 @@ class LST2CRD:
         :return: The currently chosen data format.
 
         :raises TypeError: Data format is not a DataFormat enum.
-        """
+        """  # noqa: DAR402
         return self._data_format
 
     @data_format.setter
@@ -144,10 +144,9 @@ class LST2CRD:
         """Get / set the file name for the file to be read / written.
 
         :return: The path and file name to the selected object.
-        :rtype: `pathlib.Path`
 
         :raises TypeError: Path is not a `pathlib.Path` object.
-        """
+        """  # noqa: DAR402
         return self._file_name
 
     @file_name.setter
@@ -330,8 +329,8 @@ class LST2CRD:
         The "data_type" and "time_patch" values must be present in the dictionary.
         Writes the information to itself, to the `_data_format` variable.
 
-        :raises KeyError: Values are not in dictionary.
-        :raises ValueError: Needs to be binary or ASCII data
+        :raises NotImplementedError: Binary data are currently not supported.
+        :raises ValueError: Needs to be binary or ASCII data.
         """
         data_type = self._file_info["data_type"]
         time_patch = self._file_info["time_patch"]
@@ -395,7 +394,7 @@ class LST2CRD:
             ion_cnt = 0
             for shot in data_shots:
                 fout.write(struct.pack("<I", shot))
-                for it in range(shot):
+                for _ in range(shot):
                     fout.write(struct.pack("<I", data_ions[ion_cnt]))
                     ion_cnt += 1
 

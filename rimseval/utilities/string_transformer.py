@@ -8,6 +8,8 @@ def iso_to_iniabu(iso: str) -> str:
     """Transform an isotope name to current iniabu default.
 
     :param iso: Isotope name as a string, e.g., 46Ti or Ti46.
+
+    :return: Transformed isotope name.
     """
     zz_first = True  # e.g., 46Ti
     try:

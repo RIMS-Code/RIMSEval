@@ -14,7 +14,7 @@ from scipy import special
 
 
 def peirce_criterion(n_tot: int, n: int, m: int = 1) -> float:
-    """Peirce's criterion
+    """Peirce's criterion.
 
     Returns the threshold error deviation for outlier identification
     using Peirce's criterion based on Gould's methodology.
@@ -63,7 +63,7 @@ def peirce_criterion(n_tot: int, n: int, m: int = 1) -> float:
 def reject_outliers(
     data: np.ndarray, m: int = 1
 ) -> Tuple[float, float, np.ndarray, np.ndarray]:
-    """Applies Peirce's criterion to reject outliers.
+    """Apply Peirce's criterion to reject outliers.
 
     Algorithm implmeneted as given by Ross (2003).
 

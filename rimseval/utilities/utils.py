@@ -15,6 +15,8 @@ def not_index(ind: np.array, length: int) -> np.array:  # pragma: nocov
     :param ind: Array of all the indexes.
     :param length: Length of the original index to take out of.
 
+    :return: The reversed index.
+
     :raises ValueError: Max index is larger than the total length, which should not be.
 
     Example:

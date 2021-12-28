@@ -69,6 +69,8 @@ def shot_to_tof_mapper(ions_per_shot: np.array) -> np.array:  # pragma: nocover
     all_tofs array a given shot refers to.
 
     :param ions_per_shot: Ion per shots array.
+
+    :return: Mappeing array shots to ToF.
     """
     mapper = np.zeros((ions_per_shot.shape[0], 2), dtype=np.int32)
     curr_ind = 0

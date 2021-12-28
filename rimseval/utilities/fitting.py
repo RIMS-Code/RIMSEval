@@ -12,6 +12,8 @@ def gaussian(
 
     :param xdat: X value
     :param coeffs: Coefficients, [mu, sigma, height]
+
+    :return: Value of the Gaussian.
     """
     return coeffs[2] * np.exp(-(((xdat - coeffs[0]) / coeffs[1]) ** 2))
 
@@ -24,5 +26,7 @@ def residuals_gaussian(
     :param coeffs: Coefficients for model
     :param ydat: Y data to compare with
     :param xdat: X data for model fit
+
+    :return: Residual of the Gaussian.
     """
     return ydat - gaussian(xdat, coeffs)

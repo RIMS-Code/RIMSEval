@@ -1,6 +1,6 @@
 """This file contains utilities for processing list files."""
 
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple
 
 from numba import njit
 import numpy as np
@@ -24,8 +24,6 @@ def ascii_to_ndarray(
     :param tag: Channel the tag is in, or None if no tag
 
     :return: Data, Tag Data
-
-    :raises TypeError: Wrong data format encountered.
     """
     # prepare the data and list
     data_arr = np.empty((len(data_list), 2), dtype=np.uint32)
@@ -46,7 +44,7 @@ def ascii_to_ndarray(
     tag_counter = 0
 
     # transform to bin number with correct length
-    for it, data in enumerate(data_list):
+    for data in data_list:
         if data != "":
             bin_tmp = f"{int(data, 16):{binary_width}b}".replace(" ", "0")
             # parse data
@@ -91,16 +89,12 @@ def transfer_lst_to_crd_data(
 ) -> Tuple[np.ndarray, np.ndarray, bool]:  # pragma: nocover
     """Transfer lst file specific data to the crd format.
 
-    :param data: Array: One ion per line, two entries: sweep first (shot), then time
-    :type data: ndarray
+    :param data_in: Array: One ion per line, two entries: sweep first (shot), then time
     :param max_sweep: the maximum sweep that can be represented by data resolution
-    :type max_sweep: int
     :param ion_range: Valid range of the data in multiples of 100ps bins
-    :type ion_range: int
 
     :return: Array of how many ions are in each shot, Array of all arrival times of
         these ions, and a bool if there are any ions out of range
-    :rtype: ndarray, ndarray, bool
     """
     data = data_in.copy()
 

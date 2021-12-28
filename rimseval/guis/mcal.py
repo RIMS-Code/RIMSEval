@@ -1,25 +1,25 @@
 """Some Interactive stuff using matplotlib with the PyQt5 backend."""
 
 from functools import partial
-from typing import List, Tuple, Union
 import sys
+from typing import List, Tuple, Union
 
-import rimseval.processor_utils
-from PyQt5 import QtCore, QtWidgets, QtGui
-import matplotlib as mpl
 from iniabu import ini
+import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg,
     NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
 import numpy as np
+from PyQt5 import QtCore, QtWidgets
 
 from rimseval.processor import CRDFileProcessor
+import rimseval.processor_utils
 from rimseval.processor_utils import gaussian_fit_get_max
 from rimseval.utilities import string_transformer
 
-mpl.use("Qt5Agg")
+mpl.use("qtagg")
 
 
 class MplCanvasRightClick(FigureCanvasQTAgg):
@@ -31,7 +31,13 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
 
     right_click_position = QtCore.pyqtSignal(float, float)
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, width=5, height=4, dpi=100) -> None:
+        """Initialize MPL canvas with right click capability.
+
+        :param width: Width of figure.
+        :param height: Height of figure.
+        :param dpi: Resolution of figure.
+        """
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
 
@@ -40,10 +46,12 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
         self.mpl_connect("button_press_event", self.emit_mouse_position)
 
     def emit_mouse_position(self, event):
-        """Emits a signal on a right mouse click event.
+        """Emit a signal on a right mouse click event.
 
         Here, bring up a box to ask for the mass, then send it, along with the time
         the mass is at, to the parent class receiver.
+
+        :param event: PyQt event.
         """
         if event.button == 3:  # right click as an mpl MouseEvent
             if event.xdata is not None and event.ydata is not None:  # click in canvas
@@ -51,6 +59,8 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
 
 
 class CreateMassCalibration(QtWidgets.QMainWindow):
+    """QMainWindow to create a mass calibration."""
+
     def __init__(self, crd: CRDFileProcessor, logy=True, mcal: np.array = None) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
 
@@ -126,6 +136,11 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         )
 
     def append_to_mcal(self, tof: float, mass: float) -> None:
+        """Append a given value to the mass calibration.
+
+        :param tof: Time of flight.
+        :param mass: Mass.
+        """
         self._mcal.append([tof, mass])
         self.check_mcal_length()
 
@@ -164,6 +179,8 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         If not drawn from iniabu, I assume the user wants even masses!
 
         :param tof: Time of Flight (us)
+
+        :return: Guessed mass.
         """
         ind_tof = np.argmin(np.abs(self.crd.tof - tof))
         mass = self._mass[ind_tof]
@@ -326,7 +343,9 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.check_mcal_length()
 
 
-def create_mass_cal_app(crd: CRDFileProcessor, mcal=None, logy=True):
+def create_mass_cal_app(
+    crd: CRDFileProcessor, mcal: np.ndarray = None, logy: bool = True
+) -> None:
     """Create a PyQt5 app for the mass cal window.
 
     :param crd: CRD file to calibrate for.
@@ -346,6 +365,8 @@ def find_closest_iso(mass: float, key: List = None) -> Tuple[str, float]:
 
     :param mass: Mass of the isotope to look for.
     :param key: An element or isotope key that is valid for iniabu.
+
+    :return: Closest isotpoe, name and mass as tuple.
     """
     if key is None:
         key = list(ini.ele_dict.keys())

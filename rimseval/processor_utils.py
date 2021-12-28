@@ -1,6 +1,6 @@
 """Utilities for CRD processors. Mostly methods that can be jitted."""
 
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 from numba import njit
 import numpy as np
@@ -34,9 +34,9 @@ def create_packages(
 ) -> Tuple[np.ndarray, np.ndarray]:  # pragma: nocover
     """Create packages from data.
 
-    :params shots: Number of shots per package
-    :params tofs_mapper: mapper for ions_per_shot to tofs
-    :params all_tofs: all arrival times / bins of ions
+    :param shots: Number of shots per package
+    :param tofs_mapper: mapper for ions_per_shot to tofs
+    :param all_tofs: all arrival times / bins of ions
 
     :return: Data array where each row is a full spectrum, each line a package and a
         shot array on how many shots are there per pkg
@@ -73,6 +73,8 @@ def dead_time_correction(
     :param data: Data array, histogram in bins. 2D array (even for 1D data!)
     :param nof_shots: Number of shots, 1D array of data
     :param dbins: Number of dead bins after original bin (total - 1).
+
+    :return: Dead time corrected data array.
     """
     dbins += 1  # to get total bins
 
@@ -147,7 +149,8 @@ def integrals_bg_corr(
     :param bgs_ch: Number of channels for background width.
     :param int_pkg: Packaged integrals, if exist: otherwise provide ``None``
     :param bgs_pkg: Packaged backgrounds, if exist: otherwise provide ``None``
-    :return:
+
+    :return: Corrected data and data_packages.
     """
     integrals_corr = np.zeros_like(integrals)
     if int_pkg is None:
@@ -213,7 +216,7 @@ def integrals_summing(
     integrals_pkg = None
     if data_pkg is not None:
         integrals_pkg = np.zeros((data_pkg.shape[0], len(windows), 2))
-        for ht, data_one in enumerate(data_pkg):
+        for ht in range(len(data_pkg)):
             for it, window in enumerate(windows):
                 integrals_pkg[ht][it][0] = data_pkg[ht][window].sum()
                 integrals_pkg[ht][it][1] = np.sqrt(integrals_pkg[ht][it][0])
@@ -235,7 +238,7 @@ def mask_filter_max_ions_per_time(
     max_ions: int,
     time_chan: int,
 ) -> np.array:  # pragma: nocover
-    """Returns indices where more than wanted shots are in a time window.
+    """Return indices where more than wanted shots are in a time window.
 
     :param ions_per_shot: How many ions are there per shot? Also defines the shape of
         the return array.
@@ -275,7 +278,7 @@ def mask_filter_max_ions_per_tof_window(
     max_ions: int,
     tof_window: np.array,
 ) -> np.array:  # pragma: nocover
-    """Returns indices where more than wanted shots are in a given ToF window.
+    """Return indices where more than wanted shots are in a given ToF window.
 
     :param ions_per_shot: How many ions are there per shot? Also defines the shape of
         the return array.
@@ -317,6 +320,8 @@ def mass_calibration(
     :param params: Parameters for mass calibration.
     :param tof: Array with all the ToFs that need a mass equivalent.
     :param return_params: Return parameters as well? Defaults to False
+
+    :return: Mass for given ToF.
     """
     # function to return mass with a given functional form
     calc_mass = tof_to_mass
@@ -343,13 +348,13 @@ def mass_calibration(
 def mass_to_tof(
     m: Union[np.ndarray, float], tm0: float, const: float
 ) -> Union[np.ndarray, float]:
-    """Functional prescription to turn mass into ToF.
+    r"""Functional prescription to turn mass into ToF.
 
     Returns the ToF with the defined functional description for a mass calibration.
     Two parameters are required. The equation, with parameters defined as below,
     is as following:
 
-    .. math:: t = \\sqrt{m} \\cdot \\mathrm{const} + t_{0}
+    .. math:: t = \sqrt{m} \cdot \mathrm{const} + t_{0}
 
     :param m: mass
     :param tm0: parameter 1
@@ -478,7 +483,6 @@ def sort_data_into_spectrum(
 ) -> np.ndarray:  # pragma: nocover
     """Sort ion data in 1D array into an overall array and sum them up.
 
-
     :param ions: Arrival time of the ions - number of time bin
     :param bin_start: First bin of spectrum
     :param bin_end: Last bin of spectrum
@@ -494,13 +498,13 @@ def sort_data_into_spectrum(
 def tof_to_mass(
     tm: Union[np.ndarray, float], tm0: float, const: float
 ) -> Union[np.ndarray, float]:
-    """Functional prescription to turn ToF into mass.
+    r"""Functional prescription to turn ToF into mass.
 
     Returns the mass with the defined functional description for a mass calibration.
     Two parameters are required. The equation, with parameters defined as below,
     is as following:
 
-    .. math:: m = \\left(\\frac{tm - tm_{0}}{\\mathrm{const}}\\right)^{2}
+    .. math:: m = \left(\frac{tm - tm_{0}}{\mathrm{const}}\right)^{2}
 
     :param tm: time or channel
     :param tm0: parameter 1

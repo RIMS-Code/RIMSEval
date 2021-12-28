@@ -4,17 +4,15 @@ Note: Interfacing with external files is done in the `interfacer.py` library.
 """
 
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple
 import warnings
 
 from iniabu import ini
-from numba import jit, njit
 import numpy as np
-from scipy.optimize import curve_fit
 
-from .data_io.crd_reader import CRDReader
 from . import processor_utils
-from .utilities import string_transformer, peirce, utils
+from .data_io.crd_reader import CRDReader
+from .utilities import peirce, string_transformer, utils
 
 
 class CRDFileProcessor:
@@ -236,8 +234,8 @@ class CRDFileProcessor:
 
         :param max_ions: Maximum number of ions per package.
 
-        :raise ValueError: Invalid range for number of ions.
-        :raise IOError: No package data available.
+        :raises ValueError: Invalid range for number of ions.
+        :raises IOError: No package data available.
         """
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be larger than 1.")
@@ -269,7 +267,7 @@ class CRDFileProcessor:
 
         :param max_ions: Maximum number of ions allowed in a shot.
 
-        :raise ValueError: Invalid range for number of ions.
+        :raises ValueError: Invalid range for number of ions.
         """
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be >=1.")
@@ -289,7 +287,7 @@ class CRDFileProcessor:
         shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
 
         if shots_to_check.shape == (0,):  # nothing needs to be done
-            return None
+            return
 
         all_tofs_filtered = self._all_tofs_filtered(shots_to_check)
 
@@ -304,7 +302,7 @@ class CRDFileProcessor:
     def filter_max_ions_per_tof_window(
         self, max_ions: int, tof_window: np.array
     ) -> None:
-        """
+        """Filer out maximum number of ions in a given ToF time window.
 
         :param max_ions: Maximum number of ions in the time window.
         :param tof_window: The time of flight window that the ions would have to be in.
@@ -324,7 +322,7 @@ class CRDFileProcessor:
         shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
 
         if shots_to_check.shape == (0,):  # nothing needs to be done
-            return None
+            return
 
         all_tofs_filtered = self._all_tofs_filtered(shots_to_check)
 
@@ -428,7 +426,7 @@ class CRDFileProcessor:
         self.integrals = integrals
         self.integrals_pkg = integrals_pkg
 
-    def _filter_individual_shots(self, shots_rejected):
+    def _filter_individual_shots(self, shots_rejected: np.ndarray):
         """Private routine to finish filtering for individual shots.
 
         This will end up setting all the data. All routines that filter shots only
@@ -437,7 +435,6 @@ class CRDFileProcessor:
 
         ToDo: rejected shots should be stored somewhere.
 
-        :param shots_indexes: Indices of shots that should be kept.
         :param shots_rejected: Indices of rejected shots.
         """
         len_indexes = len(self.ions_per_shot)
@@ -491,18 +488,18 @@ class CRDFileProcessor:
         Each row will contain one entry in the first column and its associated
         uncertainty in the second.
 
-        :param bgcorr: If false, will never do background correction. Otherwise
+        :param bg_corr: If false, will never do background correction. Otherwise
             (default), background correction will be applied if available. This is a
             toggle to switch usage while leaving backgrounds defined.
 
-        :return: None
-
-        :raise ValueError: No integrals were set.
-        :raise ValueError: No mass calibration has been applied.
+        :raises ValueError: No integrals were set.
+        :raises ValueError: No mass calibration has been applied.
         """
 
         def integral_windows(limits_tmp: np.array) -> List:
-            """Creates windows list for given limits.
+            """Create windows list for given limits.
+
+            :param limits_tmp: Window limits.
 
             :return: List with all the windows that need to be calculated.
             """
@@ -553,7 +550,7 @@ class CRDFileProcessor:
             )
 
     def mass_calibration(self) -> None:
-        """Perform a mass calibration on the data.
+        r"""Perform a mass calibration on the data.
 
         Let m be the mass and t the respective time of flight. We can then write:
 
@@ -571,9 +568,7 @@ class CRDFileProcessor:
         With two values or more for :math:`m` and :math:`t`, we can then make a
         linear approximation for the mass calibration :math:`m(t)`.
 
-        :return: None
-
-        :raise ValueError: No mass calibration set.
+        :raises ValueError: No mass calibration set.
         """
         if self._params_mcal is None:
             raise ValueError("No mass calibration was set.")
@@ -581,7 +576,7 @@ class CRDFileProcessor:
         self.mass = processor_utils.mass_calibration(self.def_mcal, self.tof)
 
     def optimize_mcal(self, offset: float = None) -> None:
-        """Takes an existing mass calibration and finds maxima within a FWHM.
+        """Take an existing mass calibration and finds maxima within a FWHM.
 
         This will act on small corrections for drifts in peaks.
 
@@ -625,7 +620,7 @@ class CRDFileProcessor:
 
         :param shots: Number of shots per package. The last package will have the rest.
 
-        :raise ValueError: Number of shots out of range
+        :raises ValueError: Number of shots out of range
         """
         if shots < 1 or shots >= self.nof_shots:
             raise ValueError(

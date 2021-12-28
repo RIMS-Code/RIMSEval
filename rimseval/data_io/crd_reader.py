@@ -127,7 +127,7 @@ class CRDReader:
             curr_ions_in_shot = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
             ions_per_shot[shot_ind] = curr_ions_in_shot
             # now write out the times
-            for it in range(curr_ions_in_shot):
+            for _ in range(curr_ions_in_shot):
                 try:
                     bin_ind += 4
                     curr_time_bin = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
@@ -170,7 +170,7 @@ class CRDReader:
             curr_ions_in_shot = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
             ions_per_shot.append(curr_ions_in_shot)
             # now append the times
-            for it in range(curr_ions_in_shot):
+            for _ in range(curr_ions_in_shot):
                 bin_ind += 4
                 curr_time_bin = struct.unpack("<I", data[bin_ind : bin_ind + 4])[0]
                 all_tofs.append(curr_time_bin)
@@ -199,11 +199,11 @@ class CRDReader:
             crd_version = f"v{self.header['majVer']}p{self.header['minVer']}"
             try:
                 hdr_description = crd_utils.CRDHeader[crd_version].value
-            except KeyError:
+            except KeyError as exc:
                 raise KeyError(
                     f"The header version of this CRD file is {crd_version}, "
                     f"which is not available."
-                )
+                ) from exc
 
             for (name, size, fmt) in hdr_description:
                 self.header[name] = struct.unpack(fmt, f_in.read(size))[0]

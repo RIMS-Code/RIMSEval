@@ -6,8 +6,8 @@ from typing import Any
 
 import numpy as np
 
-from rimseval.processor import CRDFileProcessor
 from rimseval.compatibility.lion_eval import LIONEvalCal
+from rimseval.processor import CRDFileProcessor
 
 
 def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
@@ -21,7 +21,7 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param fname: Filename to mass calibration file. If `None`, try the same file name
         as for the CRD file, but with `.cal` as an extension.
 
-    :raise IOError: Calibration file does not exist.
+    :raises IOError: Calibration file does not exist.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".cal")
@@ -47,7 +47,7 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
     if cal.bg_corr and cal.integrals:  # w/o integrals, don't load bgs!
         names_bg = []
         areas_bg = []
-        for it, line in enumerate(cal.bg_corr):
+        for line in cal.bg_corr:
             name = line[0]
             if name in names_int:  # must be the case for new program
                 names_bg.append(name)
@@ -65,6 +65,8 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param crd: CRD Processor class to load into
     :param fname: Filename and path. If `None`, try file with same name as CRD file but
         `.json` suffix.
+
+    :raises IOError: Calibration file does not exist.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".json")
@@ -76,7 +78,7 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
         json_object = json.load(fin)
 
     def entry_loader(key: str, json_obj: Any) -> Any:
-        """Returns the value of a json_object dictionary if existent, otherwise None."""
+        """Return the value of a json_object dictionary if existent, otherwise None."""
         if key in json_obj.keys():
             return json_obj[key]
         else:
