@@ -75,7 +75,7 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.logy = logy
 
         # create a matpotlib canvas
-        sc = MplCanvasRightClick(self, width=9, height=6, dpi=100)
+        sc = MplCanvasRightClick(width=9, height=6, dpi=100)
         sc.right_click_position.connect(self.right_click_event)
         self.sc = sc
 
@@ -343,16 +343,14 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.check_mcal_length()
 
 
-def create_mass_cal_app(
-    crd: CRDFileProcessor, mcal: np.ndarray = None, logy: bool = True
-) -> None:
+def create_mass_cal_app(crd: CRDFileProcessor, logy: bool = True) -> None:
     """Create a PyQt5 app for the mass cal window.
 
     :param crd: CRD file to calibrate for.
-    :param mcal: starting calibration to load.
     :param logy: Should the y axis be logarithmic? Defaults to True.
     """
     app = QtWidgets.QApplication(sys.argv)
+    mcal = crd.def_mcal
     window = CreateMassCalibration(crd, mcal=mcal, logy=logy)
     window.show()
     app.exec_()
