@@ -8,12 +8,11 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar,
 )
-import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from rimseval.processor import CRDFileProcessor
 
-mpl.use("qtagg")
+mpl.use("Qt5Agg")
 
 
 class PlotSpectrum(QtWidgets.QMainWindow):
@@ -35,21 +34,29 @@ class PlotSpectrum(QtWidgets.QMainWindow):
         sc = MplCanvasRightClick(width=9, height=6, dpi=100)
         self.sc = sc
 
-        toolbar = NavigationToolbar(sc, self)
+        toolbar = MyMplNavigationToolbar(sc, self)
         self.status_bar = QtWidgets.QStatusBar()
         self.setStatusBar(self.status_bar)
 
         # layouts to populate
         self.bottom_layout = QtWidgets.QHBoxLayout()
-        self.top_layout = QtWidgets.QHBoxLayout()
+        self.right_layout = QtWidgets.QVBoxLayout()
+
+        self.right_layout.addStretch()  # layout must contain something to work...
+
+        # toolbar and canvas
+        layout_plot = QtWidgets.QVBoxLayout()
+        layout_plot.addWidget(toolbar)
+        layout_plot.addWidget(sc)
+
+        # layout top
+        layout_top = QtWidgets.QHBoxLayout()
+        layout_top.addLayout(layout_plot)
+        layout_top.addLayout(self.right_layout)
 
         # main layout
         layout = QtWidgets.QVBoxLayout()
-        layout.addLayout(self.top_layout)
-
-        # toolbar and canvas
-        layout.addWidget(toolbar)
-        layout.addWidget(sc)
+        layout.addLayout(layout_top)
 
         # add a logy toggle button
         self.button_logy_toggle = QtWidgets.QPushButton("LogY")
@@ -89,6 +96,8 @@ class PlotSpectrum(QtWidgets.QMainWindow):
         """Plot mass spectrum."""
         if self.crd.mass is not None:
             self._plot_data("mass")
+
+    # PRIVATE METHODS #
 
     def _plot_data(self, case: str) -> None:
         """Plot the data on the canvas.
@@ -158,3 +167,20 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
                     self.mouse_right_press_position.emit(event.xdata, event.ydata)
                 elif case == "released":
                     self.mouse_right_release_position.emit(event.xdata, event.ydata)
+
+
+class MyMplNavigationToolbar(NavigationToolbar):
+    """My own reimplementation of the navigation toolbar.
+
+    Features:
+    - untoggle zoom button after zoom is finished.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize toolbar."""
+        super(MyMplNavigationToolbar, self).__init__(*args, **kwargs)
+
+    def release_zoom(self, event):
+        """Run a normal zoom release event and then untoggle button."""
+        super().release_zoom(event)
+        self.zoom()  # untoggle zoom button

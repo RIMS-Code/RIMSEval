@@ -12,8 +12,8 @@ from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 
 
-class DefineIntegrals(PlotSpectrum):
-    """QMainWindow to create a mass calibration."""
+class DefineAnyTemplate(PlotSpectrum):
+    """Template to define integrals and backgrounds."""
 
     def __init__(self, crd: CRDFileProcessor, logy=True) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
@@ -21,8 +21,7 @@ class DefineIntegrals(PlotSpectrum):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         """
-        super(DefineIntegrals, self).__init__(crd, logy)
-        self.setWindowTitle("Define integrals")
+        super(DefineAnyTemplate, self).__init__(crd, logy)
 
         # create a matpotlib canvas
         self.sc.mouse_right_press_position.connect(self.mouse_right_press)
@@ -53,32 +52,39 @@ class DefineIntegrals(PlotSpectrum):
             self.int_names, int_values = crd_int
             self.int_values = list(int_values)
 
-        # help in statusbar
-        self.status_bar.showMessage(
-            "Right click-and-drag horizontally over peak you want to define integral "
-            "for."
-        )
+        self.button_header = None
 
         # plot data
         self.plot_ms()
 
-        # setup layout and mark integrals
-        self.peaks_changed()
-
     def apply(self):
         """Apply the mass calibration and return it."""
-        self.crd.def_integrals = self.int_names, np.array(self.int_values)
-        self.close()
+        raise NotImplementedError
 
-    def delete_peak(self, name: str):
+    def button_action(self, name: str):
         """Delete a peak from consideration names and values list.
 
         :param name: Name of the peak.
         """
-        index_to_pop = self.int_names.index(name)
-        self.int_names.pop(index_to_pop)
-        self.int_values.pop(index_to_pop)
-        self.peaks_changed()
+        raise NotImplementedError
+
+    def create_buttons(self):
+        """Create the buttons in the right menubar."""
+        # clear layout
+        for it in reversed(range(self.right_layout.count())):
+            widgetToRemove = self.right_layout.itemAt(it).widget()
+            self.right_layout.removeWidget(widgetToRemove)
+
+        # add text to layout
+        if self.button_header is not None:
+            self.right_layout.addWidget(QtWidgets.QLabel(self.button_header))
+
+        # create buttons with functions to delete values
+        for name in self.int_names:
+            button = QtWidgets.QPushButton(name)
+            button.pressed.connect(lambda val=name: self.button_action(val))
+            self.right_layout.addWidget(button)
+        self.right_layout.addStretch()
 
     def mouse_right_press(self, xpos: float, *args, **kwargs) -> None:
         """The right mouse button was pressed.
@@ -93,29 +99,11 @@ class DefineIntegrals(PlotSpectrum):
         :param xpos: Position on x axis.
         """
         peak = np.sort(np.array([self._last_xpos, xpos], dtype=float))
-        self.user_peak_name_input(peak)
+        self.user_input(peak)
 
     def peaks_changed(self):
         """Go through the list of peaks, make buttons and shade areas."""
-        # clear layout
-        for it in reversed(range(self.top_layout.count())):
-            widgetToRemove = self.top_layout.itemAt(it).widget()
-            self.top_layout.removeWidget(widgetToRemove)
-
-        # sort the integrals
-        self.sort_integrals()
-
-        # add text to layout
-        self.top_layout.addWidget(QtWidgets.QLabel("Click to delete:"))
-
-        # create buttons with functions to delete values
-        for name in self.int_names:
-            button = QtWidgets.QPushButton(name)
-            button.pressed.connect(lambda val=name: self.delete_peak(val))
-            self.top_layout.addWidget(button)
-        self.top_layout.addStretch()
-
-        self.shade_peaks()
+        raise NotImplementedError
 
     def shade_peaks(self):
         """Shade the peaks with given integrals."""
@@ -132,6 +120,7 @@ class DefineIntegrals(PlotSpectrum):
             indexes = np.where(
                 np.logical_and(self.crd.mass > peak_pos[0], self.crd.mass < peak_pos[1])
             )
+
             self.sc.axes.fill_between(
                 self.crd.mass[indexes],
                 self.crd.data[indexes],
@@ -146,12 +135,66 @@ class DefineIntegrals(PlotSpectrum):
             self.int_names = [i for i, j in sorted_zip]
             self.int_values = [j for i, j in sorted_zip]
 
-    def user_peak_name_input(self, peak_pos: np.array, name: str = "") -> None:
+    def user_input(self, peak_pos: np.array, name: str = "") -> None:
         """Query user for position.
 
         :param peak_pos: Sorted array, left and right position of peak.
         """
-        user_input = QtWidgets.QInputDialog.getText(
+        raise NotImplementedError
+
+
+class DefineIntegrals(DefineAnyTemplate):
+    """QMainWindow to create a mass calibration."""
+
+    def __init__(self, crd: CRDFileProcessor, logy=True) -> None:
+        """Get a PyQt5 window to define the mass calibration for the given data.
+
+        :param crd: The CRD file processor to work with.
+        :param logy: Display the y axis logarithmically? Bottom set to 0.7
+        """
+        super(DefineIntegrals, self).__init__(crd, logy)
+
+        self.setWindowTitle("Define integrals")
+
+        self.status_bar.showMessage("Right click and drag over peak to define.")
+
+        self.button_header = "Click to delete:"
+        self.sort_integrals()
+        self.create_buttons()
+        self.shade_peaks()
+
+    def apply(self):
+        """Apply the mass calibration and return it."""
+        self.crd.def_integrals = self.int_names, np.array(self.int_values)
+        self.close()
+
+    def button_action(self, name: str):
+        """Delete a peak from consideration names and values list.
+
+        :param name: Name of the peak.
+        """
+        index_to_pop = self.int_names.index(name)
+        self.int_names.pop(index_to_pop)
+        self.int_values.pop(index_to_pop)
+        self.peaks_changed()
+
+    def peaks_changed(self):
+        """Go through the list of peaks, make buttons and shade areas."""
+        # sort the integrals
+        self.sort_integrals()
+
+        # buttons
+        self.create_buttons()
+
+        # shade
+        self.shade_peaks()
+
+    def user_input(self, peak_pos: np.array, name: str = "") -> None:
+        """Query user for position.
+
+        :param peak_pos: Sorted array, left and right position of peak.
+        """
+        user_in = QtWidgets.QInputDialog.getText(
             self,
             "Name",
             f"Please name the integral from {round(peak_pos[0], 2)} to "
@@ -159,8 +202,8 @@ class DefineIntegrals(PlotSpectrum):
             text=name,
         )
 
-        if user_input[1]:
-            name = user_input[0]
+        if user_in[1]:
+            name = user_in[0]
             if name == "":
                 QtWidgets.QMessageBox.warning(
                     self,
@@ -181,7 +224,7 @@ class DefineIntegrals(PlotSpectrum):
         else:
             return
 
-        self.user_peak_name_input(peak_pos, name)
+        self.user_input(peak_pos, name)
 
 
 def define_integrals_app(crd: CRDFileProcessor, logy: bool = True) -> None:
