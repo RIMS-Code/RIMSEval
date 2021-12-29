@@ -1,64 +1,21 @@
-"""Some Interactive stuff using matplotlib with the PyQt5 backend."""
+"""Interactive mass calibration using matplotlib's qtagg backend."""
 
 from functools import partial
 import sys
 from typing import List, Tuple, Union
 
 from iniabu import ini
-import matplotlib as mpl
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg,
-    NavigationToolbar2QT as NavigationToolbar,
-)
-from matplotlib.figure import Figure
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 
+from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils
 from rimseval.processor_utils import gaussian_fit_get_max
 from rimseval.utilities import string_transformer
 
-mpl.use("qtagg")
 
-
-class MplCanvasRightClick(FigureCanvasQTAgg):
-    """MPL Canvas reimplementation to catch right click.
-
-    On right click, emits the coordinates of the position in axes coordinates as
-    a signal of two floats (x_position, y_position).
-    """
-
-    right_click_position = QtCore.pyqtSignal(float, float)
-
-    def __init__(self, width=5, height=4, dpi=100) -> None:
-        """Initialize MPL canvas with right click capability.
-
-        :param width: Width of figure.
-        :param height: Height of figure.
-        :param dpi: Resolution of figure.
-        """
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-
-        super(MplCanvasRightClick, self).__init__(fig)
-
-        self.mpl_connect("button_press_event", self.emit_mouse_position)
-
-    def emit_mouse_position(self, event):
-        """Emit a signal on a right mouse click event.
-
-        Here, bring up a box to ask for the mass, then send it, along with the time
-        the mass is at, to the parent class receiver.
-
-        :param event: PyQt event.
-        """
-        if event.button == 3:  # right click as an mpl MouseEvent
-            if event.xdata is not None and event.ydata is not None:  # click in canvas
-                self.right_click_position.emit(event.xdata, event.ydata)
-
-
-class CreateMassCalibration(QtWidgets.QMainWindow):
+class CreateMassCalibration(PlotSpectrum):
     """QMainWindow to create a mass calibration."""
 
     def __init__(self, crd: CRDFileProcessor, logy=True, mcal: np.array = None) -> None:
@@ -68,33 +25,13 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param mcal: Existing mass calibration.
         """
-        super(CreateMassCalibration, self).__init__()
+        super(CreateMassCalibration, self).__init__(crd, logy)
         self.setWindowTitle("Create mass calibration")
 
-        self.crd = crd
-        self.logy = logy
-
         # create a matpotlib canvas
-        sc = MplCanvasRightClick(width=9, height=6, dpi=100)
-        sc.right_click_position.connect(self.right_click_event)
-        self.sc = sc
+        self.sc.mouse_right_press_position.connect(self.right_click_event)
 
-        toolbar = NavigationToolbar(sc, self)
-        self.status_bar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.status_bar)
-
-        # layout
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(toolbar)
-        layout.addWidget(sc)
-
-        widget = QtWidgets.QWidget()
-        widget.setLayout(layout)
-
-        # buttons and stuff
-        bottom_layout = QtWidgets.QHBoxLayout()
-        bottom_layout.addStretch()
-
+        # buttons in bottom layout
         self.undo_button = QtWidgets.QPushButton("Undo")
         self.undo_button.setToolTip("Undo last peak calibration, see status bar.")
         self.undo_button.clicked.connect(lambda: self.undo_last_mcal())
@@ -107,13 +44,11 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
         self.apply_button.setToolTip("Apply mass calibration.")
         self.apply_button.clicked.connect(lambda: self.apply())
 
-        bottom_layout.addWidget(self.undo_button)
-        bottom_layout.addWidget(cancel_button)
-        bottom_layout.addWidget(self.apply_button)
-
-        layout.addLayout(bottom_layout)
-
-        self.setCentralWidget(widget)
+        # set layout of bottom part
+        self.bottom_layout.addStretch()
+        self.bottom_layout.addWidget(self.undo_button)
+        self.bottom_layout.addWidget(cancel_button)
+        self.bottom_layout.addWidget(self.apply_button)
 
         # some variables for guessing
         self._last_element = None
@@ -127,13 +62,13 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
             self._mcal = mcal.tolist()
         self.check_mcal_length()
 
-        # plot some data
-        self.plot_data()
-
         # help in statusbar
         self.status_bar.showMessage(
             "Please right-click on a peak to begin mass calibration."
         )
+
+        # plot data
+        self.plot_tof()
 
     def append_to_mcal(self, tof: float, mass: float) -> None:
         """Append a given value to the mass calibration.
@@ -193,16 +128,6 @@ class CreateMassCalibration(QtWidgets.QMainWindow):
                 return find_closest_iso(mass)[0]
         else:  # guess mass from values
             return str(int(np.round(mass, 0)))
-
-    def plot_data(self):
-        """Plot the data on the canvas."""
-        self.sc.axes.plot(self.crd.tof, self.crd.data)
-        self.sc.axes.fill_between(self.crd.tof, self.crd.data)
-        self.sc.axes.set_xlabel("Time of Flight (us)")
-        self.sc.axes.set_ylabel("Counts")
-        if self.logy:
-            self.sc.axes.semilogy()
-            self.sc.axes.set_ylim(bottom=0.7)
 
     def query_mass(self, tof: float) -> Union[float, None]:
         """Query mass from user.
