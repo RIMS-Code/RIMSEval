@@ -112,7 +112,7 @@ class PlotSpectrum(QtWidgets.QMainWindow):
             xax = self.crd.mass
             xlabel = "Mass (amu)"
 
-        self.sc.axes.fill_between(xax, self.crd.data, color="k", linewidth=0.25)
+        self.sc.axes.fill_between(xax, self.crd.data, color="k", linewidth=0.3)
         self.sc.axes.set_xlabel(xlabel)
         self.sc.axes.set_ylabel("Counts")
         if self.logy:
