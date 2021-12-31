@@ -16,7 +16,7 @@ mpl.use("Qt5Agg")
 
 
 class PlotSpectrum(QtWidgets.QMainWindow):
-    """QMainWindow to create a mass calibration."""
+    """QMainWindow to plot a ToF or mass spectrum."""
 
     def __init__(self, crd: CRDFileProcessor, logy: bool = True) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
