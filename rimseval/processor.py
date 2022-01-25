@@ -240,7 +240,7 @@ class CRDFileProcessor:
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be larger than 1.")
         if self.data_pkg is None:
-            raise IOError("There is no packaged data. Please create packages first.")
+            raise OSError("There is no packaged data. Please create packages first.")
 
         # update helper variables
         self._filter_max_ion_per_pkg_applied = True

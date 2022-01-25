@@ -11,4 +11,3 @@ RIMSEval Processor and Utilities
 .. autoclass:: CRDFileProcessor
     :members:
     :undoc-members:
-

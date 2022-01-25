@@ -8,7 +8,7 @@ sys.path.append("../")
 
 project = "RIMSEval"
 author = "Reto Trappitsch"
-copyright = "2021, {}".format(author)
+copyright = f"2021, {author}"
 version = "2.0.0"
 release = version
 

@@ -25,7 +25,7 @@ class CreateMassCalibration(PlotSpectrum):
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param mcal: Existing mass calibration.
         """
-        super(CreateMassCalibration, self).__init__(crd, logy)
+        super().__init__(crd, logy)
         self.setWindowTitle("Create mass calibration")
 
         # create a matpotlib canvas

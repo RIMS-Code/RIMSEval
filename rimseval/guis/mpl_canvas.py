@@ -24,7 +24,7 @@ class PlotSpectrum(QtWidgets.QMainWindow):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         """
-        super(PlotSpectrum, self).__init__()
+        super().__init__()
         self.setWindowTitle("Mass Spectrum")
 
         self.crd = crd
@@ -140,7 +140,7 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
 
-        super(MplCanvasRightClick, self).__init__(fig)
+        super().__init__(fig)
 
         self.mpl_connect(
             "button_press_event",
@@ -178,7 +178,7 @@ class MyMplNavigationToolbar(NavigationToolbar):
 
     def __init__(self, *args, **kwargs):
         """Initialize toolbar."""
-        super(MyMplNavigationToolbar, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def release_zoom(self, event):
         """Run a normal zoom release event and then untoggle button."""

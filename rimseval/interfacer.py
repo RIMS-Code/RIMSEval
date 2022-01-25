@@ -27,7 +27,7 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
         fname = crd.fname.with_suffix(".cal")
 
     if not fname.exists():
-        raise IOError(f"The requested calibration file {fname} does not exist.")
+        raise OSError(f"The requested calibration file {fname} does not exist.")
 
     cal = LIONEvalCal(fname)
 
@@ -72,7 +72,7 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
         fname = crd.fname.with_suffix(".json")
 
     if not fname.exists():
-        raise IOError(f"The requested calibration file {fname} does not exist.")
+        raise OSError(f"The requested calibration file {fname} does not exist.")
 
     with fname.open("r", encoding="utf-8") as fin:
         json_object = json.load(fin)

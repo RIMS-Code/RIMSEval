@@ -212,7 +212,7 @@ class CRDReader:
             rest = f_in.read()
 
         if len(rest) % 4 != 0:
-            raise IOError(
+            raise OSError(
                 "Data length does not agree with CRD format and seems to be corrupt."
             )
 

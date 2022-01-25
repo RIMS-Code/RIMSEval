@@ -5,26 +5,26 @@
 2.58498190229	49.0
 3.00247316477	50.0
 # Integral Calibration: Peak_name, Peak_mass_amu, Lower_limit_amu, Upper_limit_amu
-46Ti	46	0.1	0.2	
-47Ti	47	0.1	0.2	
-48Ti	48	0.1	0.2	
-49Ti	49	0.1	0.2	
-50Ti	50	0.1	0.2	
-84Sr	84	0.25	.4	
-86Sr	86	.25	.4	
-87Sr	87	.25	.4	
-88Sr	88	.25	.4	
+46Ti	46	0.1	0.2
+47Ti	47	0.1	0.2
+48Ti	48	0.1	0.2
+49Ti	49	0.1	0.2
+50Ti	50	0.1	0.2
+84Sr	84	0.25	.4
+86Sr	86	.25	.4
+87Sr	87	.25	.4
+88Sr	88	.25	.4
 # Status background calibration:
 1
 # Background Calibration: Peak, Peak_mass_amu, Left_BG_from_amu, Left_BG_to_amu, Right_BG_from_amu, Right_BG_to_amu
-46Ti	46	45.6	45.9	46.2	46.4	
-47Ti	47	46.6	46.9	47.2	47.4	
-48Ti	48	47.6	47.9	48.2	48.4	
-49Ti	49	48.6	48.9	49.2	49.4	
-50Ti	50	49.6	49.9	50.2	50.4	
-84Sr	84	83.4	83.75	84.4	84.6	
-86Sr	86	85.4	85.75	86.4	86.6	
-87Sr	87	86.4	86.75	87.4	87.6	
+46Ti	46	45.6	45.9	46.2	46.4
+47Ti	47	46.6	46.9	47.2	47.4
+48Ti	48	47.6	47.9	48.2	48.4
+49Ti	49	48.6	48.9	49.2	49.4
+50Ti	50	49.6	49.9	50.2	50.4
+84Sr	84	83.4	83.75	84.4	84.6
+86Sr	86	85.4	85.75	86.4	86.6
+87Sr	87	86.4	86.75	87.4	87.6
 88Sr	88	87.4	87.75	88.4	88.6
 238U    238 237.2   237.6   238.4   238.6
 # recalculation settings, in order top to bottom

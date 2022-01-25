@@ -21,7 +21,7 @@ class DefineAnyTemplate(PlotSpectrum):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         """
-        super(DefineAnyTemplate, self).__init__(crd, logy)
+        super().__init__(crd, logy)
 
         # create a matpotlib canvas
         self.sc.mouse_right_press_position.connect(self.mouse_right_press)
@@ -180,7 +180,7 @@ class DefineBackgrounds(DefineAnyTemplate):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         """
-        super(DefineBackgrounds, self).__init__(crd, logy)
+        super().__init__(crd, logy)
 
         self.setWindowTitle("Define integrals")
 
@@ -325,7 +325,7 @@ class DefineIntegrals(DefineAnyTemplate):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         """
-        super(DefineIntegrals, self).__init__(crd, logy)
+        super().__init__(crd, logy)
 
         self.setWindowTitle("Define integrals")
 
@@ -433,7 +433,7 @@ class PeakDialog(QtWidgets.QDialog):
 
         :return: Accept (1) or Reject (0). Also emits a signal with button name.
         """
-        super(PeakDialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if not peak_names:  # quit if no names were given
             self.reject()

@@ -18,9 +18,6 @@ def test_data_dimension_after_dead_time_correction(crd_file):
     assert crd.tof.ndim == crd.data.ndim
 
 
-
-
-
 def test_filter_max_ions_per_pkg(crd_file):
     """Filter the packages by maximum ion."""
     _, ions_per_shot, _, fname = crd_file
@@ -134,6 +131,7 @@ def test_filter_max_ions_per_tof_window(crd_file):
     assert crd.nof_shots == len(ions_per_shot) - 1
     assert np.sum(crd.data) == np.sum(ions_per_shot) - 2
 
+
 def test_mass_calibration_2pts(crd_file):
     """Perform mass calibration with two points."""
     _, _, _, fname = crd_file
@@ -157,6 +155,7 @@ def test_mass_calibration_2pts(crd_file):
     print(tms)
     np.testing.assert_almost_equal(mass_rec, mass_exp)
     assert crd.mass.ndim == crd.tof.ndim
+
 
 def test_packages(crd_file):
     """Simple test to ensure packages are made in two ways correctly."""

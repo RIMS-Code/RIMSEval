@@ -235,7 +235,7 @@ class LST2CRD:
                 self._file_info["data_type"] = data_type
                 break
         if data_type is None:
-            raise IOError("Could not find a data type in the list file!")
+            raise OSError("Could not find a data type in the list file!")
 
         # find the time patch
         for head in header:
@@ -289,7 +289,7 @@ class LST2CRD:
             raise ValueError("No data has been read in yet.")
 
         if self._data_signal.shape[0] == 0:
-            raise IOError(
+            raise OSError(
                 "There are no counts present in this file. Please double "
                 "check that you are using the correct channel for the signal."
             )
