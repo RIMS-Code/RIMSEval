@@ -13,14 +13,6 @@ python_default = "3.9"
 python_suite = ["3.9", "3.8"]
 
 
-@nox.session(python=python_default)
-def black(session):
-    """Autoformat all python files with black."""
-    args = session.posargs or locations
-    session.install("black")
-    session.run("black", *args)
-
-
 # @nox.session(python=python_default)
 # def build(session):
 #     """Pack rimstiming for release on PyPi."""
