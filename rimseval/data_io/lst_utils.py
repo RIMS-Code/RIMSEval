@@ -64,6 +64,25 @@ def ascii_to_ndarray(
     data_arr = data_arr[:ion_counter]
     if tag is not None:
         data_arr_tag = data_arr_tag[:tag_counter]
+
+        # todo split the data_arr and data_arr_tag
+        tmp_untagged = np.empty_like(data_arr)
+        tmp_tagged = np.empty_like(data_arr)
+
+        cnt_untagged = 0
+        cnt_tagged = 0
+
+        for dat in data_arr:
+            if dat[0] in data_arr_tag:  # tagged data
+                tmp_tagged[cnt_tagged] = dat
+                cnt_tagged += 1
+            else:  # untagged data
+                tmp_untagged[cnt_untagged] = dat
+                cnt_untagged += 1
+
+        data_arr = tmp_untagged[:cnt_untagged]
+        data_arr_tag = tmp_tagged[:cnt_tagged]
+
     return data_arr, data_arr_tag
 
 
