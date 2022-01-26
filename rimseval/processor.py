@@ -7,12 +7,11 @@ from pathlib import Path
 from typing import List, Tuple
 import warnings
 
-from iniabu import ini
 import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import peirce, string_transformer, utils
+from .utilities import ini, peirce, string_transformer, utils
 
 
 class CRDFileProcessor:

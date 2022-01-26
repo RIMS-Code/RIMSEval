@@ -1,12 +1,16 @@
 """Initialization of the rimseval package."""
 
+import iniabu
+
 from . import data_io
 from . import guis
 from . import interfacer
 from . import utilities
 from .processor import CRDFileProcessor
 
-__all__ = ["CRDFileProcessor", "data_io", "guis", "interfacer", "utilities"]
+ini = iniabu.IniAbu(database="nist")
+
+__all__ = ["ini", "CRDFileProcessor", "data_io", "guis", "interfacer", "utilities"]
 
 # Package information
 __version__ = "2.0.0"

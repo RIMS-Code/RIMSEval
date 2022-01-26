@@ -4,7 +4,6 @@ from functools import partial
 import sys
 from typing import List, Tuple, Union
 
-from iniabu import ini
 import numpy as np
 from PyQt5 import QtWidgets
 
@@ -12,7 +11,7 @@ from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils
 from rimseval.processor_utils import gaussian_fit_get_max
-from rimseval.utilities import string_transformer
+from rimseval.utilities import ini, string_transformer
 
 
 class CreateMassCalibration(PlotSpectrum):

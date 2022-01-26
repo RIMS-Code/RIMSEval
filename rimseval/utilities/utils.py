@@ -1,7 +1,10 @@
 """This file contains utilities that do not fit anywhere else."""
 
+import iniabu
 from numba import njit
 import numpy as np
+
+ini = iniabu.IniAbu(database="nist")  # select correct iniabu database for this program
 
 
 @njit
