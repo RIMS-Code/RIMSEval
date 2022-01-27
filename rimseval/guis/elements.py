@@ -3,8 +3,8 @@
 from typing import Tuple
 import sys
 
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import (
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
     QGridLayout,
@@ -53,13 +53,13 @@ class PeriodicTable(QMainWindow):
 
         # labels for lanthanides and actinides
         lbl_star = QLabel("*")
-        lbl_star.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_star.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         lbl_2star = QLabel("**")
-        lbl_2star.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_2star.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         lbl_lanthanides = QLabel("*")
-        lbl_lanthanides.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_lanthanides.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         lbl_actinides = QLabel("**")
-        lbl_actinides.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_actinides.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         self.main_layout.addWidget(lbl_star, 5, 2)
         self.main_layout.addWidget(lbl_2star, 6, 2)
@@ -109,7 +109,8 @@ class ElementInfo(QDialog):
         self.element_and_ms()  # element must be drawn before mass spectrum
         self.element_data()
 
-    def copy_to_clipboard(self, text: str) -> None:
+    @staticmethod
+    def copy_to_clipboard(text: str) -> None:
         """Copies given text to clipboard."""
         app.clipboard().setText(text)
 
@@ -139,9 +140,8 @@ class ElementInfo(QDialog):
         height = 100
         canvas = QtGui.QPixmap(width, height)
         canvas.fill(QtGui.QColor("#c3d0ff"))
-        drawing.setPixmap(canvas)
 
-        painter = QtGui.QPainter(drawing.pixmap())
+        painter = QtGui.QPainter(canvas)
         pen = QtGui.QPen()
 
         # draw mass lines
@@ -178,6 +178,7 @@ class ElementInfo(QDialog):
         abus_str = "\t".join([str(tmp) for tmp in abus]) + "\n"
         drawing.clicked.connect(lambda val=abus_str: self.copy_to_clipboard(val))
 
+        drawing.setPixmap(canvas)
         self.left_layout.addWidget(drawing)
 
     def element_data(self) -> None:
@@ -216,13 +217,13 @@ class ElementInfo(QDialog):
 
             mass_label = QLabelClickable(f"{mass:.2f}")
             mass_label.setToolTip("Click to copy to clipboard")
-            mass_label.setAlignment(QtCore.Qt.AlignRight)
+            mass_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
             mass_label.clicked.connect(
                 lambda val=f"{mass}\n": self.copy_to_clipboard(val)
             )
             abu_label = QLabelClickable(f"{abu:.5f}")
             abu_label.setToolTip("Click to copy to clipboard")
-            abu_label.setAlignment(QtCore.Qt.AlignRight)
+            abu_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
             abu_label.clicked.connect(
                 lambda val=f"{abu}\n": self.copy_to_clipboard(val)
             )

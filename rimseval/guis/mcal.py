@@ -5,7 +5,7 @@ import sys
 from typing import List, Tuple, Union
 
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
@@ -18,7 +18,7 @@ class CreateMassCalibration(PlotSpectrum):
     """QMainWindow to create a mass calibration."""
 
     def __init__(self, crd: CRDFileProcessor, logy=True, mcal: np.array = None) -> None:
-        """Get a PyQt5 window to define the mass calibration for the given data.
+        """Get a PyQt6 window to define the mass calibration for the given data.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
@@ -277,7 +277,7 @@ def create_mass_cal_app(crd: CRDFileProcessor, logy: bool = True) -> None:
     mcal = crd.def_mcal
     window = CreateMassCalibration(crd, mcal=mcal, logy=logy)
     window.show()
-    app.exec_()
+    app.exec()
 
 
 def find_closest_iso(mass: float, key: List = None) -> Tuple[str, float]:

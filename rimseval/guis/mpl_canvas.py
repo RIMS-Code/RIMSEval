@@ -8,11 +8,11 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar,
 )
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from rimseval.processor import CRDFileProcessor
 
-mpl.use("Qt5Agg")
+mpl.use("QtAgg")
 
 
 class PlotSpectrum(QtWidgets.QMainWindow):

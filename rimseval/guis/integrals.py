@@ -5,7 +5,7 @@ from typing import Tuple, List, Union
 
 import matplotlib.colors as mcolors
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 
 from .mpl_canvas import PlotSpectrum
@@ -94,12 +94,18 @@ class DefineAnyTemplate(PlotSpectrum):
         else:
             return
 
+    def clear_layout(self, layout) -> None:
+        """Clear a given layout of all widgets, etc."""
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget() is not None:
+                child.widget().deleteLater()
+            elif child.layout() is not None:
+                self.clear_layout(child.layout())
+
     def create_buttons(self):
         """Create the buttons in the right menubar."""
-        # clear layout
-        for it in reversed(range(self.right_layout.count())):
-            widgetToRemove = self.right_layout.itemAt(it).widget()
-            self.right_layout.removeWidget(widgetToRemove)
+        self.clear_layout(self.right_layout)
 
         # add text to layout
         if self.button_header is not None:
@@ -477,7 +483,7 @@ def define_backgrounds_app(crd: CRDFileProcessor, logy: bool = True) -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = DefineBackgrounds(crd, logy=logy)
     window.show()
-    app.exec_()
+    app.exec()
 
 
 def define_integrals_app(crd: CRDFileProcessor, logy: bool = True) -> None:
@@ -489,7 +495,7 @@ def define_integrals_app(crd: CRDFileProcessor, logy: bool = True) -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = DefineIntegrals(crd, logy=logy)
     window.show()
-    app.exec_()
+    app.exec()
 
 
 def tableau_color(it: int = 0) -> str:

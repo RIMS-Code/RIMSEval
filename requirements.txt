@@ -2,5 +2,5 @@ iniabu>=1.0.1
 matplotlib
 numba
 numpy
-PyQt5
+PyQt6
 scipy
