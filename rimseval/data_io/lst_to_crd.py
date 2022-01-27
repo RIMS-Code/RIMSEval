@@ -83,8 +83,8 @@ class LST2CRD:
         # initialize values for future use
         self._file_info = {}  # dictionary with parsed header info
         self._data_format = None  # format of the data. auto set on reading
-        self._data_signal = None  # data for signal
-        self._data_tag = None  # data for tag
+        self._data_signal = None  # data for signal (total)
+        self._tags = None  # array for tagged shots
 
     # PROPERTIES #
 
@@ -264,13 +264,13 @@ class LST2CRD:
         self.set_data_format()
 
         if data_type.lower() == "asc":
-            data_sig, data_tag = lst_utils.ascii_to_ndarray(
+            data_sig, tags = lst_utils.ascii_to_ndarray(
                 data_ascii, self._data_format, self.channel_data, self.channel_tag
             )
         else:
             raise NotImplementedError("Binary data is currently not supported.")
         self._data_signal = data_sig
-        self._data_tag = data_tag
+        self._tags = tags
 
         # set number of ions
         self._file_info["no_ions"] = len(data_sig)
@@ -299,29 +299,60 @@ class LST2CRD:
             2, self.data_format.value[1][0][1] - self.data_format.value[1][0][0]
         )
 
-        # get the data
-        data_shots, data_ions, ions_out_of_range = lst_utils.transfer_lst_to_crd_data(
-            self._data_signal, max_sweeps, self._file_info["ion_range"]
-        )
+        ions_out_of_range_warning = False
+        if self._channel_tag is not None:  # we have tagged data
+            # prepare the data
+            untagged_data, tagged_data = lst_utils.separate_signal_with_tag(
+                self._data_signal, self._tags
+            )
+            (
+                untagged_shots,
+                untagged_ions,
+                untagged_ions_out_of_range,
+            ) = lst_utils.transfer_lst_to_crd_data(
+                untagged_data, max_sweeps, self._file_info["ion_range"]
+            )
+            (
+                tagged_shots,
+                tagged_ions,
+                tagged_ions_out_of_range,
+            ) = lst_utils.transfer_lst_to_crd_data(
+                tagged_data, max_sweeps, self._file_info["ion_range"]
+            )
 
-        if ions_out_of_range:
+            # raise warning later?
+            if untagged_ions_out_of_range or tagged_ions_out_of_range:
+                ions_out_of_range_warning = True
+
+            # write crd
+            fname_untagged = self.file_name.with_suffix(".untagged.crd")
+            self._write_crd(fname_untagged, untagged_shots, untagged_ions)
+            fname_tagged = self.file_name.with_suffix(".tagged.crd")
+            self._write_crd(fname_tagged, tagged_shots, tagged_ions)
+
+        else:  # untagged
+            # prepare the data
+            (
+                data_shots,
+                data_ions,
+                ions_out_of_range,
+            ) = lst_utils.transfer_lst_to_crd_data(
+                self._data_signal, max_sweeps, self._file_info["ion_range"]
+            )
+
+            # raise warning later?
+            if ions_out_of_range:
+                ions_out_of_range_warning = True
+
+            # write crd
+            fname = self.file_name.with_suffix(".crd")
+            self._write_crd(fname, data_shots, data_ions)
+
+        if ions_out_of_range_warning:
             warnings.warn(
                 "The lst file contained ions that were outside the allowed "
                 "range. These ions were not written to the crd file."
             )
-
-        if self._channel_tag is not None:  # we have tagged data
-            # todo: split data if a tag is present
-            pass
-
-        # Write main data
-        fname = self.file_name.with_suffix(".crd")
-        self._write_crd(fname, data_shots, data_ions)
-
-        # Write the tagged data, if required
-        if self._channel_tag is not None:
-            # todo: write tag data
-            pass
 
     def set_data_format(self):
         """Set the data format according to what is saved in file_info dictionary.

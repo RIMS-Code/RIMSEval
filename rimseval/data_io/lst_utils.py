@@ -13,8 +13,6 @@ def ascii_to_ndarray(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Turn ASCII LST data to a numpy array.
 
-    Fixme: Might want to break this into two routines, with and without tag
-
     Takes the whole data block and returns the data in a properly formatted numpy array.
     For speed, using numba JITing.
 
@@ -64,24 +62,6 @@ def ascii_to_ndarray(
     data_arr = data_arr[:ion_counter]
     if tag is not None:
         data_arr_tag = data_arr_tag[:tag_counter]
-
-        # todo split the data_arr and data_arr_tag
-        tmp_untagged = np.empty_like(data_arr)
-        tmp_tagged = np.empty_like(data_arr)
-
-        cnt_untagged = 0
-        cnt_tagged = 0
-
-        for dat in data_arr:
-            if dat[0] in data_arr_tag:  # tagged data
-                tmp_tagged[cnt_tagged] = dat
-                cnt_tagged += 1
-            else:  # untagged data
-                tmp_untagged[cnt_untagged] = dat
-                cnt_untagged += 1
-
-        data_arr = tmp_untagged[:cnt_untagged]
-        data_arr_tag = tmp_tagged[:cnt_tagged]
 
     return data_arr, data_arr_tag
 
@@ -156,3 +136,34 @@ def transfer_lst_to_crd_data(
             ions_out_of_range = True
 
     return shots, ions, ions_out_of_range
+
+
+@njit
+def separate_signal_with_tag(
+    data_arr: np.ndarray, tag_arr: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:  # pragma: nocover
+    """Separate a dataset into a tagged and an untagged data set.
+
+    :param data_arr: Array with all the data, shot, bins.
+    :param tag_arr: 1d array with shots that are tagged.
+
+    :return: Tagged and untagged data (split) in same format as ``data_arr``
+    """
+    tmp_untagged = np.empty_like(data_arr)
+    tmp_tagged = np.empty_like(data_arr)
+
+    cnt_untagged = 0
+    cnt_tagged = 0
+
+    for dat in data_arr:
+        if dat[0] in tag_arr:  # tagged data
+            tmp_tagged[cnt_tagged] = dat
+            cnt_tagged += 1
+        else:  # untagged data
+            tmp_untagged[cnt_untagged] = dat
+            cnt_untagged += 1
+
+    data_untagged = tmp_untagged[:cnt_untagged]
+    data_tagged = tmp_tagged[:cnt_tagged]
+
+    return data_untagged, data_tagged

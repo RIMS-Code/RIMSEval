@@ -46,13 +46,6 @@ def test_ascii_to_ndarray_ascii_1a_tag(init_lst_proc):
     np.testing.assert_equal(ret_tag, expected_tag)
 
 
-# def test_dat_to_ndarray():
-#     """Bla"""
-#     fname = pathlib.Path("../../../temp/lst_files/mcs8a_binary_short_2M_signal_dg.lst")
-#     utl.dat_to_ndarray(fname, None, None)
-#     assert True
-
-
 def test_get_sweep_time_ascii():
     """Transfer binary number to base 10 int based on boundaries."""
     bin_str = "1000101101"
@@ -66,6 +59,20 @@ def test_get_sweep_time_ascii():
     )
     assert sweep_ret == sweep_exp
     assert time_ret == time_exp
+
+
+def test_separate_signal_with_tag():
+    """Separate a signal into tagged and untagged data."""
+    signal_all = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
+    tag_location = np.array([2], dtype=np.uint32)
+
+    untagged_exp = np.array([[1, 59207], [3, 59207]], dtype=np.uint32)
+    tagged_exp = np.array([[2, 59207]], dtype=np.uint32)
+
+    untagged_rec, tagged_rec = utl.separate_signal_with_tag(signal_all, tag_location)
+
+    np.testing.assert_equal(untagged_rec, untagged_exp)
+    np.testing.assert_equal(tagged_rec, tagged_exp)
 
 
 def test_transfer_lst_to_crd_data():
