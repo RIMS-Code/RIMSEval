@@ -35,10 +35,15 @@ def test_mcs6a_short_10k_tagged(tmpdir, lst_crd_path):
     conv = LST2CRD(file_name=lst_fpath, channel_data=4, channel_tag=3)
     conv.read_list_file()
     conv.write_crd()
-    # compare crd
-    # assert (
-    #         Path(tmpdir.strpath).joinpath(crd_fname).read_bytes()
-    #         == lst_crd_path.joinpath(crd_fname).read_bytes()
+    # compare crds
+    assert (
+        Path(tmpdir.strpath).joinpath(crd_fname_tagged).read_bytes()
+        == lst_crd_path.joinpath(crd_fname_tagged).read_bytes()
+    )
+    assert (
+        Path(tmpdir.strpath).joinpath(crd_fname_untagged).read_bytes()
+        == lst_crd_path.joinpath(crd_fname_untagged).read_bytes()
+    )
 
 
 def test_mcs8a_short_10k(tmpdir, lst_crd_path):
