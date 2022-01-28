@@ -13,7 +13,7 @@ ini = iniabu.IniAbu(database="nist")
 __all__ = ["ini", "CRDFileProcessor", "data_io", "guis", "interfacer", "utilities"]
 
 # Package information
-__version__ = "2.0.0"
+__version__ = "2.0.0.dev0"
 
 __title__ = "rimseval"
 __description__ = (
