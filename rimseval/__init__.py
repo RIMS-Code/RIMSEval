@@ -7,10 +7,19 @@ from . import guis
 from . import interfacer
 from . import utilities
 from .processor import CRDFileProcessor
+from .multi_proc import MultiFileProcessor
 
 ini = iniabu.IniAbu(database="nist")
 
-__all__ = ["ini", "CRDFileProcessor", "data_io", "guis", "interfacer", "utilities"]
+__all__ = [
+    "ini",
+    "CRDFileProcessor",
+    "data_io",
+    "guis",
+    "interfacer",
+    "MultiFileProcessor",
+    "utilities",
+]
 
 # Package information
 __version__ = "2.0.0.dev0"
