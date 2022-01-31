@@ -4,7 +4,7 @@ Note: Interfacing with external files is done in the `interfacer.py` library.
 """
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, List, Tuple, Union
 import warnings
 
 import numpy as np
@@ -41,6 +41,9 @@ class CRDFileProcessor:
         self.mass = None
         self.data = None
         self.data_pkg = None
+
+        # dictionary for what was run already - to be saved out
+        self.applied_filters = {}
 
         # variables for filtered packages
         self._filter_max_ion_per_pkg_applied = False  # was max ions per pkg run?
@@ -196,18 +199,64 @@ class CRDFileProcessor:
 
     # METHODS #
 
+    def calculate_applied_filters(self):
+        """Check for which filters are available and then recalculate all from start."""
+        self.spectrum_full()  # reset all filters
+
+        def get_arguments(key: str):
+            """Get arguments from the dictionary or None.
+
+            :param key: Key in dictionary ``self.applied_filters``
+            """
+            try:
+                return self.applied_filters[key]
+            except KeyError:
+                return None
+
+        if vals := get_arguments("spectrum_part"):
+            if vals[0]:
+                self.spectrum_part(vals[1])
+
+        if vals := get_arguments("max_ions_per_shot"):
+            if vals[0]:
+                self.filter_max_ions_per_shot(vals[1])
+
+        if vals := get_arguments("max_ions_per_time"):
+            if vals[0]:
+                self.filter_max_ions_per_time(vals[1], vals[2])
+
+        if vals := get_arguments("max_ions_per_tof_window"):
+            if vals[0]:
+                self.filter_max_ions_per_tof_window(vals[1], np.array(vals[2]))
+
+        if vals := get_arguments("packages"):
+            if vals[0]:
+                self.packages(vals[1])
+
+        if vals := get_arguments("max_ions_per_pkg"):
+            if vals[0]:
+                self.filter_max_ions_per_pkg(vals[1])
+
+        if get_arguments("pkg_peirce_rejection"):
+            self.filter_pkg_peirce_countrate()
+
+        if vals := get_arguments("dead_time_corr"):
+            if vals[0]:
+                self.dead_time_correction(vals[1])
+
     # fixme make sure that the following docstring is actually correct
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 
         If packages were set, the dead time correction is performed on each package
         individually as well.
-
         :param dbins: Number of dead bins after original bin (total - 1).
 
         :warning.warn: There are no shots left in the package. No deadtime
             correction can be applied.
         """
+        self.applied_filters["dead_time_corr"] = [True, dbins]
+
         if self.nof_shots == 0:
             warnings.warn("No data available; maybe all shots were filtered out?")
             return
@@ -241,6 +290,9 @@ class CRDFileProcessor:
         if self.data_pkg is None:
             raise OSError("There is no packaged data. Please create packages first.")
 
+        # update filter dictionary
+        self.applied_filters["max_ions_per_pkg"] = [True, max_ions]
+
         # update helper variables
         self._filter_max_ion_per_pkg_applied = True
 
@@ -271,6 +323,8 @@ class CRDFileProcessor:
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be >=1.")
 
+        self.applied_filters["max_ions_per_shot"] = [True, max_ions]
+
         shots_rejected = np.where(self.ions_per_shot > max_ions)[0]
 
         self._filter_individual_shots(shots_rejected)
@@ -281,7 +335,9 @@ class CRDFileProcessor:
         :param max_ions: Maximum number of ions that is allowed within a time window.
         :param time_us: Width of the time window in microseconds (us)
         """
-        time_chan = time_us * self.us_to_chan
+        self.applied_filters["max_ions_per_time"] = [True, max_ions, time_us]
+
+        time_chan = int(time_us * self.us_to_chan)
 
         shots_to_check = np.where(self.ions_per_shot > max_ions)[0]
 
@@ -299,7 +355,7 @@ class CRDFileProcessor:
             self._filter_individual_shots(shots_rejected)
 
     def filter_max_ions_per_tof_window(
-        self, max_ions: int, tof_window: np.array
+        self, max_ions: int, tof_window: np.ndarray
     ) -> None:
         """Filer out maximum number of ions in a given ToF time window.
 
@@ -314,6 +370,15 @@ class CRDFileProcessor:
                 "ToF window must be specified with two entries: the start "
                 "and the stop time of the window."
             )
+
+        if not isinstance(tof_window, np.ndarray):
+            tof_window = np.array(tof_window)
+
+        self.applied_filters["max_ions_per_tof_window"] = [
+            True,
+            max_ions,
+            tof_window.tolist(),
+        ]
 
         # convert to int to avoid weird float issues
         channel_window = np.array(tof_window * self.us_to_chan, dtype=int)
@@ -345,6 +410,9 @@ class CRDFileProcessor:
         Now we are going to directly use all the integrals to get the sum of the counts,
         which we will then feed to the rejection routine. Maybe this can detect blasts.
         """
+
+        self.applied_filters["pkg_peirce_rejection"] = True
+
         sum_integrals = self.integrals_pkg[:, :, 0].sum(axis=1)
         _, _, _, rejected_indexes = peirce.reject_outliers(sum_integrals)
 
@@ -627,6 +695,8 @@ class CRDFileProcessor:
                 f"{self.nof_shots}, but is {shots}."
             )
 
+        self.applied_filters["packages"] = [True, shots]
+
         self._pkg_size = shots
 
         self.data_pkg, self.nof_shots_pkg = processor_utils.create_packages(
@@ -676,9 +746,7 @@ class CRDFileProcessor:
             )
             self.tof = np.arange(len(self.data)) * bin_length / 1e6
 
-    def spectrum_part(
-        self, rng: Tuple[Tuple[int, int], Tuple[Tuple[int, int]]]
-    ) -> None:
+    def spectrum_part(self, rng: Union[Tuple[Any], List[Any]]) -> None:
         """Create ToF for a part of the spectra.
 
         Select part of the shot range. These ranges will be 1 indexed! Always start
@@ -690,6 +758,8 @@ class CRDFileProcessor:
         :raises ValueError: Ranges are not defined from, to where from < to
         :raises ValueError: Tuples are not mutually exclusive.
         """
+        self.applied_filters["spectrum_part"] = [True, rng]
+
         # reset current settings
         self.ions_to_tof_map = self.crd.ions_to_tof_map
         self.all_tofs = self.crd.all_tofs

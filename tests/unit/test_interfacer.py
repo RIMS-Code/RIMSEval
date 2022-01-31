@@ -52,7 +52,7 @@ def test_calfile_load_io_error(crd_file):
     assert err_msg == f"The requested calibration file {fname} does not exist."
 
 
-def test_calfile_save_reapply_full_file(legacy_files_path, crd_file, tmpdir):
+def test_calfile_save_reapply_cals(legacy_files_path, crd_file, tmpdir):
     """Save a calibration, apply to a second file, and assure they are identical."""
     _, _, _, fname = crd_file
 
@@ -77,6 +77,37 @@ def test_calfile_save_reapply_full_file(legacy_files_path, crd_file, tmpdir):
 
     assert crd_1.def_backgrounds[0] == crd_2.def_backgrounds[0]
     np.testing.assert_equal(crd_1.def_backgrounds[1], crd_2.def_backgrounds[1])
+
+
+def test_calfile_save_reapply_filters(legacy_files_path, crd_file, tmpdir):
+    """Save a calibration, apply to a second file, and assure they are identical."""
+    _, _, _, fname = crd_file
+
+    # first CRD file that we are going to open
+    crd_1 = CRDFileProcessor(Path(fname))
+
+    # set some filters
+    app_filters_exp = {
+        "dead_time_corr": [True, 8],
+        "max_ions_per_pkg": [True, 101],
+        "max_ions_per_shot": [False, 1],
+        "max_ions_per_time": [True, 11, 100.25],
+        "max_ions_per_tof_window": [False, 11, [10.125, 20.125]],
+        "pkg_peirce_rejection": True,
+        "packages": [False, 1001],
+        "spectrum_part": [True, [[2, 2], [6, 10]]],
+    }
+    crd_1.applied_filters = app_filters_exp
+
+    settings_file = tmpdir.join("settings.json")  # temporary settings file
+    interfacer.save_cal_file(crd_1, settings_file)
+
+    # now open a second one and apply the same settings file
+    crd_2 = CRDFileProcessor(Path(fname))
+    interfacer.load_cal_file(crd_2, settings_file)
+
+    # ensure they are equal
+    assert crd_1.applied_filters == crd_2.applied_filters
 
 
 def test_calfile_save_reapply_mcal_only(legacy_files_path, crd_file, tmpdir):

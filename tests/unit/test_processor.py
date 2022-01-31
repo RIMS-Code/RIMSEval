@@ -139,3 +139,7 @@ def test_integrals_pkg_with_filtering(crd_file):
     crd_integrals_sum[:, 1] = np.sqrt(crd_integrals_sum[:, 1])
 
     np.testing.assert_almost_equal(crd.integrals, crd_integrals_sum)
+
+
+def test_calculation_with_filters(crd_data):
+    """Test that reapplying filters results in the correct data."""

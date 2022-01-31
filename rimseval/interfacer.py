@@ -85,7 +85,9 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
             return None
 
     # mass cal
-    crd.def_mcal = np.array(entry_loader("mcal", json_object))
+    mcal = entry_loader("mcal", json_object)
+    if mcal is not None:
+        crd.def_mcal = np.array(mcal)
 
     # integrals
     names_int = entry_loader("integral_names", json_object)
@@ -100,6 +102,11 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
 
     if names_bgs is not None and backgrounds is not None:
         crd.def_backgrounds = names_bgs, backgrounds
+
+    # applied filters
+    applied_filters = entry_loader("applied_filters", json_object)
+    if applied_filters is not None:
+        crd.applied_filters = applied_filters
 
 
 def save_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
@@ -131,6 +138,10 @@ def save_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
         names_bg, backgrounds = crd.def_backgrounds
         cal_to_write["background_names"] = names_bg
         cal_to_write["backgrounds"] = backgrounds.tolist()
+
+    # filters
+    if crd.applied_filters != {}:
+        cal_to_write["applied_filters"] = crd.applied_filters
 
     json_object = json.dumps(cal_to_write, indent=4)
 
