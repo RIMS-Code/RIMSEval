@@ -7,7 +7,7 @@ from typing import List, Tuple, Union
 import numpy as np
 from PyQt6 import QtWidgets
 
-from .mpl_canvas import PlotSpectrum
+from rimseval.guis.mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils
 from rimseval.processor_utils import gaussian_fit_get_max
