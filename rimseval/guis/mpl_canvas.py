@@ -16,8 +16,6 @@ except ImportError:
 
 from rimseval.processor import CRDFileProcessor
 
-matplotlib.use("qtagg")
-
 
 class PlotSpectrum(QtWidgets.QMainWindow):
     """QMainWindow to plot a ToF or mass spectrum."""
