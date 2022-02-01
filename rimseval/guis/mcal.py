@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 import numpy as np
 from PyQt6 import QtWidgets
 
+
 from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils
@@ -17,15 +18,19 @@ from rimseval.utilities import ini, string_transformer
 class CreateMassCalibration(PlotSpectrum):
     """QMainWindow to create a mass calibration."""
 
-    def __init__(self, crd: CRDFileProcessor, logy=True, mcal: np.array = None) -> None:
+    def __init__(
+        self, crd: CRDFileProcessor, logy=True, mcal: np.array = None, theme=None
+    ) -> None:
         """Get a PyQt6 window to define the mass calibration for the given data.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param mcal: Existing mass calibration.
+        :param theme: Theme to load, requirems ``pyqtdarktheme`` to be installed
         """
-        super().__init__(crd, logy)
+        super().__init__(crd, logy=logy, theme=theme)
         self.setWindowTitle("Create mass calibration")
+        self.theme = theme
 
         # create a matpotlib canvas
         self.sc.mouse_right_press_position.connect(self.right_click_event)
@@ -251,7 +256,10 @@ class CreateMassCalibration(PlotSpectrum):
                     ),
                 )
                 self._mass_axis.set_xlabel("Mass (amu)")
-                self._mass_axis.set_color("tab:red")
+                if self.theme == "dark":
+                    self._mass_axis.set_color("tab:orange")
+                else:
+                    self._mass_axis.set_color("tab:red")
                 self.sc.draw()
         elif self._mass_axis is not None:
             self._mass_axis.set_visible(False)
@@ -267,15 +275,16 @@ class CreateMassCalibration(PlotSpectrum):
         self.check_mcal_length()
 
 
-def create_mass_cal_app(crd: CRDFileProcessor, logy: bool = True) -> None:
+def create_mass_cal_app(crd: CRDFileProcessor, logy: bool = True, theme=None) -> None:
     """Create a PyQt5 app for the mass cal window.
 
     :param crd: CRD file to calibrate for.
     :param logy: Should the y axis be logarithmic? Defaults to True.
+    :param theme: Theme of GUI, requires ``pyqtdarktheme`` to be installed
     """
     app = QtWidgets.QApplication(sys.argv)
     mcal = crd.def_mcal
-    window = CreateMassCalibration(crd, mcal=mcal, logy=logy)
+    window = CreateMassCalibration(crd, mcal=mcal, logy=logy, theme=theme)
     window.show()
     app.exec()
 

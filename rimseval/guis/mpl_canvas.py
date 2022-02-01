@@ -1,31 +1,42 @@
 """Matplotlib Canvas implementation to handle various mouse events."""
 
-import matplotlib as mpl
-from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg,
-)
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import (
-    NavigationToolbar2QT as NavigationToolbar,
-)
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
+import matplotlib.pyplot as plt
 from PyQt6 import QtCore, QtWidgets
+
+try:
+    import qdarktheme
+except ImportError:
+    qdarktheme = None
 
 from rimseval.processor import CRDFileProcessor
 
-mpl.use("QtAgg")
+# mpl.use("QtAgg")
 
 
 class PlotSpectrum(QtWidgets.QMainWindow):
     """QMainWindow to plot a ToF or mass spectrum."""
 
-    def __init__(self, crd: CRDFileProcessor, logy: bool = True) -> None:
+    def __init__(
+        self, crd: CRDFileProcessor, logy: bool = True, theme: str = None
+    ) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
+        :param parent: Parent application, defaults to None
+        :param theme: Theme, if applicable ("dark" or "light", default None)
         """
         super().__init__()
         self.setWindowTitle("Mass Spectrum")
+
+        self.theme = theme
+        if theme is not None and qdarktheme is not None:
+            self.setStyleSheet(qdarktheme.load_stylesheet(theme))
+
+        if theme == "dark":
+            plt.style.use("dark_background")
 
         self.crd = crd
         self.logy = logy
@@ -112,7 +123,9 @@ class PlotSpectrum(QtWidgets.QMainWindow):
             xax = self.crd.mass
             xlabel = "Mass (amu)"
 
-        self.sc.axes.fill_between(xax, self.crd.data, color="k", linewidth=0.3)
+        color = "w" if self.theme == "dark" else "k"
+
+        self.sc.axes.fill_between(xax, self.crd.data, color=color, linewidth=0.3)
         self.sc.axes.set_xlabel(xlabel)
         self.sc.axes.set_ylabel("Counts")
         if self.logy:
@@ -169,7 +182,7 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
                     self.mouse_right_release_position.emit(event.xdata, event.ydata)
 
 
-class MyMplNavigationToolbar(NavigationToolbar):
+class MyMplNavigationToolbar(NavigationToolbar2QT):
     """My own reimplementation of the navigation toolbar.
 
     Features:
