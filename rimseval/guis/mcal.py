@@ -240,7 +240,7 @@ class CreateMassCalibration(PlotSpectrum):
             else:
                 if self._mass_axis is not None:
                     self._mass_axis.set_visible(False)
-                self._mass_axis = self.sc.axes.secondary_xaxis(
+                self._mass_axis = self.axes.secondary_xaxis(
                     "top",
                     functions=(
                         partial(

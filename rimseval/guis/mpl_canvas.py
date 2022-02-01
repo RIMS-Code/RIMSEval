@@ -1,7 +1,11 @@
 """Matplotlib Canvas implementation to handle various mouse events."""
 
+import matplotlib
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar,
+)
 import matplotlib.pyplot as plt
 from PyQt6 import QtCore, QtWidgets
 
@@ -12,7 +16,7 @@ except ImportError:
 
 from rimseval.processor import CRDFileProcessor
 
-# mpl.use("QtAgg")
+matplotlib.use("qtagg")
 
 
 class PlotSpectrum(QtWidgets.QMainWindow):
@@ -42,7 +46,9 @@ class PlotSpectrum(QtWidgets.QMainWindow):
         self.logy = logy
 
         # create a matpotlib canvas using my own canvas
-        sc = MplCanvasRightClick(width=9, height=6, dpi=100)
+        self.fig = Figure(figsize=(9, 6), dpi=100)
+        sc = MplCanvasRightClick(self.fig)
+        self.axes = self.fig.add_subplot(111)
         self.sc = sc
 
         toolbar = MyMplNavigationToolbar(sc, self)
@@ -88,14 +94,12 @@ class PlotSpectrum(QtWidgets.QMainWindow):
         self.logy = not self.logy
         self.button_logy_toggle.setDown(self.logy)
 
-        print(self.logy, self.sc.axes.get_yscale())
-
         if self.logy:
-            self.sc.axes.set_yscale("log")
-            self.sc.axes.set_ylim(bottom=0.7)
+            self.axes.set_yscale("log")
+            self.axes.set_ylim(bottom=0.7)
         else:
-            self.sc.axes.set_yscale("linear")
-            self.sc.axes.set_ylim(bottom=0)
+            self.axes.set_yscale("linear")
+            self.axes.set_ylim(bottom=0)
 
         self.sc.draw()
 
@@ -125,15 +129,17 @@ class PlotSpectrum(QtWidgets.QMainWindow):
 
         color = "w" if self.theme == "dark" else "k"
 
-        self.sc.axes.fill_between(xax, self.crd.data, color=color, linewidth=0.3)
-        self.sc.axes.set_xlabel(xlabel)
-        self.sc.axes.set_ylabel("Counts")
+        self.axes.fill_between(xax, self.crd.data, color=color, linewidth=0.3)
+        self.axes.set_xlabel(xlabel)
+        self.axes.set_ylabel("Counts")
         if self.logy:
-            self.sc.axes.set_yscale("log")
-            self.sc.axes.set_ylim(bottom=0.7)
+            self.axes.set_yscale("log")
+            self.axes.set_ylim(bottom=0.7)
+
+        self.sc.draw()
 
 
-class MplCanvasRightClick(FigureCanvasQTAgg):
+class MplCanvasRightClick(FigureCanvas):
     """MPL Canvas reimplementation to catch right click.
 
     On right click, emits the coordinates of the position in axes coordinates as
@@ -143,17 +149,12 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
     mouse_right_press_position = QtCore.pyqtSignal(float, float)
     mouse_right_release_position = QtCore.pyqtSignal(float, float)
 
-    def __init__(self, width=5, height=4, dpi=100) -> None:
+    def __init__(self, figure: Figure) -> None:
         """Initialize MPL canvas with right click capability.
 
-        :param width: Width of figure.
-        :param height: Height of figure.
-        :param dpi: Resolution of figure.
+        :param figure: Matplotlib Figure
         """
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-
-        super().__init__(fig)
+        super().__init__(figure)
 
         self.mpl_connect(
             "button_press_event",
@@ -182,7 +183,7 @@ class MplCanvasRightClick(FigureCanvasQTAgg):
                     self.mouse_right_release_position.emit(event.xdata, event.ydata)
 
 
-class MyMplNavigationToolbar(NavigationToolbar2QT):
+class MyMplNavigationToolbar(NavigationToolbar):
     """My own reimplementation of the navigation toolbar.
 
     Features:

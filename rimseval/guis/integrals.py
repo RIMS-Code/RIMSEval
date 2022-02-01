@@ -142,12 +142,12 @@ class DefineAnyTemplate(PlotSpectrum):
     def shade_peaks(self):
         """Shade the peaks with given integrals."""
         # clear plot but keep axes limits (in case zoomed)
-        xax_lims = self.sc.axes.get_xlim()
-        yax_lims = self.sc.axes.get_ylim()
-        self.sc.axes.clear()
+        xax_lims = self.axes.get_xlim()
+        yax_lims = self.axes.get_ylim()
+        self.axes.clear()
         self.plot_ms()
-        self.sc.axes.set_xlim(xax_lims)
-        self.sc.axes.set_ylim(yax_lims)
+        self.axes.set_xlim(xax_lims)
+        self.axes.set_ylim(yax_lims)
 
         # shade peaks
         for it, peak_pos in enumerate(self.int_values):
@@ -155,7 +155,7 @@ class DefineAnyTemplate(PlotSpectrum):
                 np.logical_and(self.crd.mass > peak_pos[0], self.crd.mass < peak_pos[1])
             )
 
-            self.sc.axes.fill_between(
+            self.axes.fill_between(
                 self.crd.mass[indexes],
                 self.crd.data[indexes],
                 color=tableau_color(it),
@@ -256,7 +256,7 @@ class DefineBackgrounds(DefineAnyTemplate):
             int_name_index = self.int_names.index(self.bg_names[it])
             col = tableau_color(int_name_index)
 
-            self.sc.axes.axvspan(
+            self.axes.axvspan(
                 peak_pos[0], peak_pos[1], linewidth=0, color=col, alpha=0.25
             )
 
