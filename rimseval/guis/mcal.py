@@ -26,7 +26,7 @@ class CreateMassCalibration(PlotSpectrum):
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param mcal: Existing mass calibration.
-        :param theme: Theme to load, requirems ``pyqtdarktheme`` to be installed
+        :param theme: Theme to load, requires ``pyqtdarktheme`` to be installed
         """
         super().__init__(crd, logy=logy, theme=theme)
         self.setWindowTitle("Create mass calibration")

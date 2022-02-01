@@ -15,13 +15,14 @@ from rimseval.processor import CRDFileProcessor
 class DefineAnyTemplate(PlotSpectrum):
     """Template to define integrals and backgrounds."""
 
-    def __init__(self, crd: CRDFileProcessor, logy=True) -> None:
+    def __init__(self, crd: CRDFileProcessor, logy=True, theme: str = None) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
+        :param theme: Theme to load, requires ``pyqtdarktheme`` to be installed
         """
-        super().__init__(crd, logy)
+        super().__init__(crd, logy=logy, theme=theme)
 
         # create a matpotlib canvas
         self.sc.mouse_right_press_position.connect(self.mouse_right_press)
@@ -180,13 +181,14 @@ class DefineAnyTemplate(PlotSpectrum):
 class DefineBackgrounds(DefineAnyTemplate):
     """QMainWindow to define backgrounds."""
 
-    def __init__(self, crd: CRDFileProcessor, logy=True) -> None:
+    def __init__(self, crd: CRDFileProcessor, logy=True, theme: str = None) -> None:
         """Get a PyQt5 window to define backgrounds for the given integrals.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
+        :param theme: Theme to load, requires ``pyqtdarktheme`` to be installed
         """
-        super().__init__(crd, logy)
+        super().__init__(crd, logy=logy, theme=theme)
 
         self.setWindowTitle("Define integrals")
 
@@ -325,13 +327,14 @@ class DefineBackgrounds(DefineAnyTemplate):
 class DefineIntegrals(DefineAnyTemplate):
     """QMainWindow to define integrals."""
 
-    def __init__(self, crd: CRDFileProcessor, logy=True) -> None:
+    def __init__(self, crd: CRDFileProcessor, logy=True, theme: str = None) -> None:
         """Get a PyQt5 window to define integrals in the given mass spectrum.
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
+        :param theme: Theme to load, requires ``pyqtdarktheme`` to be installed
         """
-        super().__init__(crd, logy)
+        super().__init__(crd, logy=logy, theme=theme)
 
         self.setWindowTitle("Define integrals")
 
