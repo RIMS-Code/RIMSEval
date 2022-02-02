@@ -279,7 +279,7 @@ class DefineBackgrounds(DefineAnyTemplate):
             peak_names=self.int_names, desc="Select a peak for this background:"
         )
         dlg.peak_selected_signal.connect(set_selected_peak_name)
-        dlg.exec_()
+        dlg.exec()
 
         if dlg == 0:
             return
