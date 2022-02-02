@@ -298,7 +298,7 @@ class DefineBackgrounds(DefineAnyTemplate):
                     f"The selected background overlaps with a peak other than {name}. "
                     f"Is this what you wanted?",
                 )
-                if question == QtWidgets.QMessageBox.No:
+                if question == QtWidgets.QMessageBox.StandardButton.No:
                     return
 
             # peak itself is included in overlap, cut it out
