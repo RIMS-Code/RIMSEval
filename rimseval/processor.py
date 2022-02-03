@@ -11,7 +11,7 @@ import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import ini, peirce, string_transformer, utils
+from .utilities import ini, peirce, utils
 
 
 class CRDFileProcessor:

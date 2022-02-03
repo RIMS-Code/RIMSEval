@@ -12,7 +12,7 @@ from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils
 from rimseval.processor_utils import gaussian_fit_get_max
-from rimseval.utilities import ini, string_transformer
+from rimseval.utilities import ini
 
 
 class CreateMassCalibration(PlotSpectrum):
@@ -183,8 +183,6 @@ class CreateMassCalibration(PlotSpectrum):
             try:  # user input is a mass
                 mass = float(iso)
             except ValueError:
-                if "-" not in iso:
-                    iso = string_transformer.iso_to_iniabu(iso)
                 try:
                     mass = ini.iso[iso].mass
                     self._last_element = ini.iso[iso].name.split("-")[0]
