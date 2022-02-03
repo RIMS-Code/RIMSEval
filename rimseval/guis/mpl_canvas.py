@@ -1,6 +1,5 @@
 """Matplotlib Canvas implementation to handle various mouse events."""
 
-import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
