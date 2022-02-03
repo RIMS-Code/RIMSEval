@@ -51,16 +51,18 @@ def test_filter_max_ions_per_shot(crd_file):
     np.testing.assert_equal(crd.ions_per_shot, filtered_data)
 
 
-def test_filter_max_ions_per_shot(crd_file):
-    """Test maximum ions per shot filtering without packages."""
+def test_filter_max_ions_per_shot_double(crd_file):
+    """Test filterting max ions per shot twice (no pkgs)."""
     header, ions_per_shot, all_tofs, fname = crd_file
-    max_ions = max(ions_per_shot) - 1  # filter the highest one out
+    max_ions1 = max(ions_per_shot) - 1  # filter the highest one out
+    max_ions2 = min(ions_per_shot) + 1
 
     crd = CRDFileProcessor(Path(fname))
     crd.spectrum_full()
-    crd.filter_max_ions_per_shot(max_ions)
+    crd.filter_max_ions_per_shot(max_ions1)
+    crd.filter_max_ions_per_shot(max_ions2)
 
-    ions_per_shot_filtered = ions_per_shot[np.where(ions_per_shot <= max_ions)]
+    ions_per_shot_filtered = ions_per_shot[np.where(ions_per_shot <= max_ions2)]
     nof_shots = len(ions_per_shot_filtered)
     nof_ions = np.sum(ions_per_shot_filtered)
 

@@ -46,6 +46,7 @@ class CRDFileProcessor:
         self.applied_filters = {}
 
         # variables for filtered packages
+        # fixme: replace with applied filters stuff
         self._filter_max_ion_per_pkg_applied = False  # was max ions per pkg run?
         self._pkg_size = None  # max ions filtered with
         self._filter_max_ion_per_pkg_ind = None  # indices of pkgs that were trashed
@@ -545,7 +546,6 @@ class CRDFileProcessor:
 
         self.ions_per_shot = self.ions_per_shot[shots_indexes]
         self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
-        self.all_tofs = all_tofs_filtered
         self.nof_shots = len(shots_indexes)
 
     def integrals_calc(self, bg_corr=True) -> None:
