@@ -142,4 +142,43 @@ def test_integrals_pkg_with_filtering(crd_file):
 
 
 def test_calculation_with_filters(crd_data):
-    """Test that reapplying filters results in the correct data."""
+    """Test that reapplying all filters results in the correct data.
+
+    Ensured that all filters do something on this file!
+
+    :param crd_data: Fixture to return the data path to the CRD files.
+    """
+    fname = crd_data.joinpath("ti_standard_01.crd")
+    crd = CRDFileProcessor(fname)
+    crd.spectrum_full()
+    crd.def_mcal = np.array([[1.41150472, 45.95262772], [1.84462075, 46.95175879]])
+    crd.mass_calibration()
+
+    crd.def_integrals = (
+        ["46Ti", "47Ti", "48Ti", "49Ti", "50Ti"],
+        np.array(
+            [
+                [45.81992524, 46.11577284],
+                [46.83425987, 47.11601949],
+                [47.82041853, 48.10217815],
+                [48.83475316, 49.08833681],
+                [49.8349998, 50.0604075],
+            ]
+        ),
+    )
+    crd.spectrum_part([1, 116000])
+    crd.filter_max_ions_per_shot(280)
+    crd.filter_max_ions_per_time(170, 10)
+    crd.filter_max_ions_per_tof_window(20, np.array([2, 2.4]))
+    crd.packages(1000)
+    crd.filter_max_ions_per_pkg(500)
+    crd.dead_time_correction(7)
+    crd.integrals_calc()  # default conditions
+
+    crd2 = CRDFileProcessor(fname)
+    crd2.applied_filters = crd.applied_filters
+    crd2.calculate_applied_filters()
+
+    np.testing.assert_equal(crd.data, crd2.data)
+    np.testing.assert_equal(crd.data_pkg, crd2.data_pkg)
+    np.testing.assert_equal(crd.tof, crd2.tof)

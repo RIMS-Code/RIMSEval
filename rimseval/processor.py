@@ -405,6 +405,8 @@ class CRDFileProcessor:
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
 
+        # fixme this needs more thinking and testing!
+
         .. warning:: Running this more than once might lead to weird results. You have
             been warned!
 
