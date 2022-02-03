@@ -238,8 +238,9 @@ class CRDFileProcessor:
             if vals[0]:
                 self.filter_max_ions_per_pkg(vals[1])
 
-        if get_arguments("pkg_peirce_rejection"):
-            self.filter_pkg_peirce_countrate()
+        # fixme: after pierce criterion is done!
+        # if get_arguments("pkg_peirce_rejection"):
+        #     self.filter_pkg_peirce_countrate()
 
         if vals := get_arguments("dead_time_corr"):
             if vals[0]:
