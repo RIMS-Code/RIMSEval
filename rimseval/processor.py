@@ -46,7 +46,6 @@ class CRDFileProcessor:
         self.applied_filters = {}
 
         # variables for filtered packages
-        # fixme: replace with applied filters stuff
         self._filter_max_ion_per_pkg_applied = False  # was max ions per pkg run?
         self._pkg_size = None  # max ions filtered with
         self._filter_max_ion_per_pkg_ind = None  # indices of pkgs that were trashed
@@ -214,6 +213,17 @@ class CRDFileProcessor:
             except KeyError:
                 return None
 
+        # reset packages if not toggled
+        if vals := get_arguments("packages"):
+            if not vals[0]:
+                self.data_pkg = None
+                self._filter_max_ion_per_pkg_applied = False
+                self._pkg_size = None
+                self._filter_max_ion_per_pkg_ind = None
+                self.integrals_pkg = None
+                self.nof_shots_pkg = None
+
+        # run through calculations
         if vals := get_arguments("spectrum_part"):
             if vals[0]:
                 self.spectrum_part(vals[1])
@@ -664,8 +674,10 @@ class CRDFileProcessor:
         delta_t = self.crd.header["deltaT"]
 
         # reset the data
+        self.ions_per_shot = self.crd.ions_per_shot
         self.ions_to_tof_map = self.crd.ions_to_tof_map
         self.all_tofs = self.crd.all_tofs
+        self.nof_shots = self.crd.nof_shots
 
         # set up ToF
         self.tof = (
@@ -679,12 +691,6 @@ class CRDFileProcessor:
         self.us_to_chan = 1e6 / self.crd.header["binLength"]  # convert us to bins
 
         if self.tof.shape != self.data.shape:
-            # fixme remove print
-            print(f"Header binStart: {bin_start}, binEnd: {bin_end}")
-            print(
-                f"File binStart: {self.crd.all_tofs.min()}, "
-                f"binEnd {self.crd.all_tofs.max()}"
-            )
             warnings.warn(
                 "Bin ranges in CRD file were of bad length. Creating ToF "
                 "array without CRD header input."

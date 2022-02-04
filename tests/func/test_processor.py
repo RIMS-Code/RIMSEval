@@ -175,3 +175,27 @@ def test_packages(crd_file):
     assert crd.data_pkg.sum() == crd.data.sum()
     np.testing.assert_equal(crd.data_pkg.sum(axis=0), crd.data)
     assert crd.nof_shots_pkg.sum() == crd.nof_shots
+
+
+def test_spectrum_part(crd_file):
+    """Cut spectrum by two shots."""
+    _, ions_per_shot, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.spectrum_part([1, len(ions_per_shot) - 2])
+
+    assert crd.nof_shots == len(ions_per_shot) - 2
+
+
+def test_spectrum_part_undo(crd_file):
+    """Cut spectrum by two shots."""
+    _, ions_per_shot, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.spectrum_part([1, len(ions_per_shot) - 2])
+    # undo the spectrum_part
+    crd.spectrum_full()
+
+    assert crd.nof_shots == len(ions_per_shot)
