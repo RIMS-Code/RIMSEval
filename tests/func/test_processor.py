@@ -188,6 +188,17 @@ def test_spectrum_part(crd_file):
     assert crd.nof_shots == len(ions_per_shot) - 2
 
 
+def test_spectrum_part_data_length(crd_file):
+    """Ensure that the data length is not cut."""
+    _, _, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.spectrum_part([1, 2])
+
+    assert len(crd.data) == len(crd.tof)
+
+
 def test_spectrum_part_undo(crd_file):
     """Cut spectrum by two shots."""
     _, ions_per_shot, _, fname = crd_file

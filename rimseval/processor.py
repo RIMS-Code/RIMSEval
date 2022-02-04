@@ -753,7 +753,7 @@ class CRDFileProcessor:
             self.data = np.zeros_like(self.data)
         else:
             self.data = processor_utils.sort_data_into_spectrum(
-                all_tofs_filtered, all_tofs_filtered.min(), all_tofs_filtered.max()
+                all_tofs_filtered, self.all_tofs.min(), self.all_tofs.max()
             )
 
         # set back values
