@@ -74,7 +74,8 @@ class PlotSpectrum(QtWidgets.QMainWindow):
 
         # add a logy toggle button
         self.button_logy_toggle = QtWidgets.QPushButton("LogY")
-        self.button_logy_toggle.setDown(logy)
+        self.button_logy_toggle.setCheckable(True)
+        self.button_logy_toggle.setChecked(logy)
         self.button_logy_toggle.clicked.connect(self.logy_toggle)
         self.bottom_layout.addWidget(self.button_logy_toggle)
 
@@ -89,7 +90,7 @@ class PlotSpectrum(QtWidgets.QMainWindow):
     def logy_toggle(self):
         """Toggle logy."""
         self.logy = not self.logy
-        self.button_logy_toggle.setDown(self.logy)
+        self.button_logy_toggle.setChecked(self.logy)
 
         if self.logy:
             self.axes.set_yscale("log")
