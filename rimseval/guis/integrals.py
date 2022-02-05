@@ -276,12 +276,11 @@ class DefineBackgrounds(DefineAnyTemplate):
             self._selected_peak_name = val
 
         dlg = PeakDialog(
-            peak_names=self.int_names, desc="Select a peak for this background:"
+            self, peak_names=self.int_names, desc="Select a peak for this background:"
         )
         dlg.peak_selected_signal.connect(set_selected_peak_name)
-        dlg.exec()
 
-        if dlg == 0:
+        if not dlg.exec():
             return
         else:
             name = self._selected_peak_name
@@ -432,17 +431,18 @@ class PeakDialog(QtWidgets.QDialog):
 
     peak_selected_signal = QtCore.pyqtSignal(str)
 
-    def __init__(self, *args, peak_names=None, desc=None, **kwargs):
+    def __init__(self, parent, peak_names=None, desc=None):
         """Initialize a peak dialog.
 
         .. note:: The parameters must be given as keyword argument.
 
+        :param parent: Parent class for dialog.
         :param peak_names: Name of the peaks to be displayed. If None, will reject.
         :param desc: Description for user.
 
         :return: Accept (1) or Reject (0). Also emits a signal with button name.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(parent)
 
         if not peak_names:  # quit if no names were given
             self.reject()
