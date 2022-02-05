@@ -5,7 +5,7 @@ import sys
 from typing import List, Tuple, Union
 
 import numpy as np
-from PyQt6 import QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 
 from .mpl_canvas import PlotSpectrum
@@ -17,6 +17,8 @@ from rimseval.utilities import ini
 
 class CreateMassCalibration(PlotSpectrum):
     """QMainWindow to create a mass calibration."""
+
+    signal_calibration_applied = QtCore.pyqtSignal()
 
     def __init__(
         self, crd: CRDFileProcessor, logy=True, mcal: np.array = None, theme=None
@@ -87,6 +89,7 @@ class CreateMassCalibration(PlotSpectrum):
         """Apply the mass calibration and return it."""
         self.crd.def_mcal = np.array(self._mcal)
         self.crd.mass_calibration()
+        self.signal_calibration_applied.emit()
         self.close()
 
     def check_mcal_length(self):

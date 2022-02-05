@@ -181,6 +181,8 @@ class DefineAnyTemplate(PlotSpectrum):
 class DefineBackgrounds(DefineAnyTemplate):
     """QMainWindow to define backgrounds."""
 
+    signal_backgrounds_defined = QtCore.pyqtSignal()
+
     def __init__(self, crd: CRDFileProcessor, logy=True, theme: str = None) -> None:
         """Get a PyQt5 window to define backgrounds for the given integrals.
 
@@ -222,6 +224,7 @@ class DefineBackgrounds(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         self.crd.def_backgrounds = self.bg_names, np.array(self.bg_values)
+        self.signal_backgrounds_defined.emit()
         self.close()
 
     def button_pressed(self, name: str):
@@ -326,6 +329,8 @@ class DefineBackgrounds(DefineAnyTemplate):
 class DefineIntegrals(DefineAnyTemplate):
     """QMainWindow to define integrals."""
 
+    signal_integrals_defined = QtCore.pyqtSignal()
+
     def __init__(self, crd: CRDFileProcessor, logy=True, theme: str = None) -> None:
         """Get a PyQt5 window to define integrals in the given mass spectrum.
 
@@ -351,6 +356,7 @@ class DefineIntegrals(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         self.crd.def_integrals = self.int_names, np.array(self.int_values)
+        self.signal_integrals_defined.emit()
         self.close()
 
     def button_pressed(self, name: str):
