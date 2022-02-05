@@ -10,8 +10,8 @@ home-page = "https://github.com/RIMS-Code/RIMSEval"
 requires = [
     "iniabu>=1.1",
     "matplotlib",
-    "numba",
-    "numpy",
+    "numba~=0.55.1",
+    "numpy~=1.21.5",
     "PyQt6",
     "scipy"
 ]
@@ -38,7 +38,8 @@ test = [
     "pytest>=6.0.0",
     "pytest-cov",
     "pytest-mock",
-    "pytest-sugar"
+    "pytest-sugar",
+    "pytest-mock"
 ]
 
 [tool.pytest.ini_options]
