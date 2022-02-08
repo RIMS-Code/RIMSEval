@@ -24,7 +24,7 @@ def test_integrals(crd_file):
     crd.integrals_calc()
 
     assert len(all_tofs) == crd.integrals[0][0]
-    assert pytest.approx(np.sqrt(len(all_tofs)) == crd.integrals[0][1])
+    assert np.sqrt(len(all_tofs)) == pytest.approx(crd.integrals[0][1])
 
 
 def test_integrals_bg_corr_behavior(crd_file):

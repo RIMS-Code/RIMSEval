@@ -17,7 +17,7 @@ def test_peirce_ross_2003_example():
 
     avg_rec, std_rec, outliers_rec, outliers_ind_rec = peirce.reject_outliers(data)
 
-    assert pytest.approx(avg_rec, avg_exp)
-    assert pytest.approx(std_rec, std_exp)
+    assert avg_rec == pytest.approx(avg_exp, abs=0.1)
+    assert std_rec == pytest.approx(std_exp, abs=0.1)
     np.testing.assert_equal(outliers_rec, outliers_exp)
     np.testing.assert_equal(outliers_ind_rec, outliers_ind)
