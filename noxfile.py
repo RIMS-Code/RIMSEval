@@ -4,7 +4,6 @@ import nox
 
 
 # todo: add lint and safety to mandatory tests
-# nox.options.sessions = ["lint", "safety", "tests"[
 nox.options.sessions = ["tests"]
 
 package = "rimseval"
