@@ -26,8 +26,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt update
-        sudo apt -y install libegl1-mesa
+        sudo apt-get update
+        sudo apt-get -y install libegl1-mesa
         python -m pip install --upgrade pip
         pip install nox
         pip install .[test]
