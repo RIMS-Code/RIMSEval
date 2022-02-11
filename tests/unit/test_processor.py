@@ -72,6 +72,26 @@ def test_integrals_bg_corr_behavior(crd_file):
     np.testing.assert_allclose(crd.integrals_pkg.sum(axis=0)[:, 0], crd.integrals[:, 0])
 
 
+def test_integrals_multiple_backgrounds(crd_file):
+    """Run bg correction with multiple backgrounds - run through only."""
+    _, ions_per_shot, all_tofs, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+
+    # set some random mass cal from 1 to 2
+    crd.def_mcal = np.array([[crd.tof.min(), 1.0], [crd.tof.max(), 2.0]])
+    crd.mass_calibration()
+
+    # now set the integrals to include everything
+    crd.def_integrals = (["all"], np.array([[0.9, 2.1]]))  # avoid floating errors
+    crd.integrals_calc()
+
+    # set the background correction
+    crd.def_backgrounds = (["all", "all"], np.array([[0.1, 0.9], [2.1, 3.0]]))
+    crd.integrals_calc(bg_corr=True)
+
+
 def test_integrals_pkg(crd_file):
     """Define an integral manually and calculate the integration for packages."""
     _, ions_per_shot, all_tofs, fname = crd_file

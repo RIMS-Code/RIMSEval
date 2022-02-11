@@ -526,7 +526,7 @@ class CRDFileProcessor:
             :return: List with all the windows that need to be calculated.
             """
             windows_tmp = []
-            for low_lim, upp_lim in limits:
+            for low_lim, upp_lim in limits_tmp:
                 windows_tmp.append(
                     np.where(np.logical_and(self.mass >= low_lim, self.mass <= upp_lim))
                 )
