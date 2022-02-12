@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import List, Union
+import warnings
 
 import numpy as np
 
@@ -23,8 +24,17 @@ class LIONEvalCal:
         self._mass_cal = None
         self._integrals = None
         self._bg_corr = None
+        self._applied_filters = None
 
         self._process_file()
+
+    @property
+    def applied_filters(self) -> dict:
+        """Return the applied filters.
+
+        :return: Applied filters as loaded from LION cal file, in new format.
+        """
+        return self._applied_filters
 
     @property
     def mass_cal(self) -> np.ndarray:
@@ -72,10 +82,14 @@ class LIONEvalCal:
         mcal_block = _extract_block(data_in, top_char="# Mass Calibration")
         integral_block = _extract_block(data_in, top_char="# Integral Calibration")
         bg_block = _extract_block(data_in, top_char="# Background Calibration")
+        settings_block = _extract_block(
+            data_in, top_char="# recalculation settings", bott_char="# EOF"
+        )
 
         self._read_and_set_mcal(mcal_block)
         self._read_and_set_integrals(integral_block)
         self._read_and_set_bg_corr(bg_block)
+        self._read_and_set_settings_calculation(settings_block)
 
     def _read_and_set_mcal(self, mcal_block: List[str]) -> None:
         """Read, parse, and set a mass calibration block."""
@@ -123,6 +137,47 @@ class LIONEvalCal:
             )
 
         self._bg_corr = bg_corr
+
+    def _read_and_set_settings_calculation(self, settings_block: List[str]) -> None:
+        """Read adn parse the parameters block."""
+        if not settings_block:
+            return None
+
+        if len(settings_block) != 21:
+            warnings.warn(
+                "Calibration file contains the wrong number of settings. "
+                "No calculation filters will be loaded."
+            )
+            return None
+
+        applied_filters = {
+            "dead_time_corr": [
+                bool(int(settings_block[0])),
+                int(settings_block[1]),
+            ],
+            "packages": [
+                bool(int(settings_block[2])),
+                int(settings_block[3]),
+            ],
+            "max_ions_per_shot": [bool(int(settings_block[4])), int(settings_block[5])],
+            "max_ions_per_pkg": [bool(int(settings_block[6])), int(settings_block[7])],
+            "max_ions_per_time": [
+                bool(int(settings_block[8])),
+                int(settings_block[9]),
+                float(settings_block[10]),
+            ],
+            "max_ions_per_tof_window": [
+                bool(int(settings_block[11])),
+                int(settings_block[12]),
+                [float(settings_block[13]), float(settings_block[14])],
+            ],
+            "spectrum_part": [
+                bool(int(settings_block[15])),
+                [int(settings_block[16]), int(settings_block[17])],
+            ],
+        }
+
+        self._applied_filters = applied_filters
 
 
 def _extract_block(data: List[str], top_char: str, bott_char: str = "#") -> List[str]:

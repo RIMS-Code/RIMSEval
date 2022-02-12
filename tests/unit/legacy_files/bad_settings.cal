@@ -1,0 +1,51 @@
+# Mass Calibration: ToF_us, Mass_amu
+1.149014654	46.0
+1.55482222818	47.0
+1.99020565513	48.0
+2.40655575856	49.0
+2.82983867035	50.0
+17.6012355191	92.0
+18.2017642218	94.0
+18.5104156191	95.0
+18.8099607273	96.0
+19.9996439414	100.0
+19.1110531375	97.0
+19.4067951205	98.0
+# Integral Calibration: Peak_name, Peak_mass_amu, Lower_limit_amu, Upper_limit_amu
+46Ti	46	0.3	0.4
+47Ti	47	0.3	0.4
+48Ti	48	0.3	0.4
+49Ti	49	0.3	0.4
+50Ti	50	0.3	0.4
+92Mo	92	0.3	0.4
+94Mo	94	0.3	0.4
+95Mo	95	0.3	0.4
+96Mo	96	0.3	0.4
+97Mo	97	0.3	0.4
+98Mo	98	0.3	0.4
+100Mo	100	0.3	0.4
+# Status background calibration:
+0
+# Background Calibration: Peak, Peak_mass_amu, Left_BG_from_amu, Left_BG_to_amu, Right_BG_from_amu, Right_BG_to_amu
+84Sr	84	82.6394849411	83.1496130569	84.6738512825	85.048764717
+48Ti	48	47.2039535206	47.5327758376	48.4813017521	48.6861833496
+# recalculation settings, in order top to bottom
+1
+7
+1
+1000
+1
+10
+1
+1000
+1
+50
+200
+1
+100
+5
+8
+1
+1
+70000
+# EOF

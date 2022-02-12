@@ -39,3 +39,35 @@ def test_lion_eval_cal_file_no_cal(legacy_files_path):
     assert cal.mass_cal is None
     assert cal.integrals is None
     assert cal.bg_corr is None
+
+
+def test_lion_eval_applied_filters(legacy_files_path):
+    """Set applied filters data from `lioneval_full_calfile`."""
+    fname = Path(legacy_files_path).joinpath("lioneval_full_calfile.cal")
+    cal = LIONEvalCal(fname)
+
+    dict_exp = {
+        "dead_time_corr": [True, 7],
+        "packages": [True, 1000],
+        "max_ions_per_shot": [True, 10],
+        "max_ions_per_pkg": [True, 1000],
+        "max_ions_per_time": [True, 50, float(200)],
+        "max_ions_per_tof_window": [True, 100, [float(5), float(8)]],
+        "spectrum_part": [True, [1, 70000]],
+    }
+
+    assert cal.applied_filters == dict_exp
+
+
+def test_lion_eval_applied_filters_no_block(legacy_files_path):
+    """No applied filters if no block given."""
+    fname = Path(legacy_files_path).joinpath("lioneval_full_calfile.cal")
+    cal = LIONEvalCal(fname)
+    assert cal._read_and_set_settings_calculation(None) is None
+
+
+def test_lion_eval_applied_filters_bad_settings(legacy_files_path):
+    """Applied filters stays ``None`` if bad calibration file."""
+    fname = Path(legacy_files_path).joinpath("bad_settings.cal")
+    cal = LIONEvalCal(fname)
+    assert cal.applied_filters is None

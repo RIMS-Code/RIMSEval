@@ -58,6 +58,9 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
         areas_bg = np.array(areas_bg)
         crd.def_backgrounds = (names_bg, areas_bg)
 
+    if cal.applied_filters is not None:
+        crd.applied_filters = cal.applied_filters
+
 
 def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     """Load a calibration file from a specific path / name.
