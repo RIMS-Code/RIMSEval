@@ -201,7 +201,7 @@ class CRDFileProcessor:
     # METHODS #
 
     def apply_individual_shots_filter(self, shots_rejected: np.ndarray):
-        """Private routine to finish filtering for individual shots.
+        """Routine to finish filtering for individual shots.
 
         This will end up setting all the data. All routines that filter shots only
         have to provide a list of rejected shots. This routine does the rest, including.
