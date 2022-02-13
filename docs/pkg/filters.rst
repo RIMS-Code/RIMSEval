@@ -9,6 +9,11 @@ Note that these are not just filters in the strict sense,
 but also further data evaluation tools, e.g., deadtime correction.
 References to the individual API classes are given as well.
 
+.. note:: If packages are defined,
+    all regular filters will remove the shots from the existing packages as well.
+    This means that you can end up with packages that contain less shots
+    than what you defined when you created them!
+
 --------------------
 Dead time correction
 --------------------
@@ -67,11 +72,9 @@ to calculate integrals.
 - :meth:`rimseval.processor.CRDFileProcessor.packages`
 - :meth:`rimseval.processor.CRDFileProcessor.spectrum_full`
 
-
 ---------------------
 Maximum ions per shot
 ---------------------
-
 
 API Documentation:
 :meth:`rimseval.processor.CRDFileProcessor.filter_max_ions_per_shot`
@@ -93,11 +96,6 @@ to calculate integrals.
     Otherwise,
     please reset the data set before running a again.
 
-If packages are defined,
-this filter will remove the shots from the existing packages as well.
-This means that you can end up with packages that contain less shots
-than what you defined when you created them!
-
 .. note:: If you filter for maximum ions in packages and maximum ions per shot,
     the preferred way of achieving this is to filter the packages first.
     Otherwise, packages will be created with shots that are not in order of each other.
@@ -108,11 +106,41 @@ than what you defined when you created them!
 
 - :meth:`rimseval.processor.CRDFileProcessor.spectrum_full`
 
+-----------------------------------
+Filter maximum ions per time window
+-----------------------------------
 
+This filter sorts out shots that contain a more than a given amount of ions
+per time span.
+The time span can be anywhere in the ToF window.
+It takes two arguments: the maximum number of ions and the time window.
+The time window of interest must be given in microseconds.
+
+**See also:**
+
+- :meth:`rimseval.processor.CRDFileProcessor.filter_max_ions_per_time`
+
+---------------------------------------------
+Filter maximum ions per time of flight window
+---------------------------------------------
+
+This filter sorts out shots that contain more than a given amount of ions
+in a defined time window.
+The shots will be filtered in the specified time window.
+Two parameters are required,
+the maximum number of ions per ToF window
+and the time window, given as ``numpy.ndarray``.
+
+**See also:**
+
+- :meth:`rimseval.processor.CRDFileProcessor.filter_max_ions_per_tof_window`
 
 ----------------------------------------------------
 Package countrate filter based on Peirce's criterion
 ----------------------------------------------------
+
+.. warning:: This filter is experimental.
+    Running this filter more than once might lead to weird results!
 
 This method filters packages based on Peirce's criterion,
 assuming that they should all contain the same number of counts.
@@ -123,15 +151,8 @@ More details on Peirce's criterion can be found on
 The algorithm implemented here is after
 `Ross (2013) <http://www.eol.ucar.edu/system/files/piercescriterion.pdf>`_.
 
-.. warning:: Running this filter more than once might lead to weird results!
 
 **See also:**
 
 - :meth:`rimseval.processor.CRDFileProcessor.packages`
 - :meth:`rimseval.processor.CRDFileProcessor.spectrum_full`
-
----------------------------------------------------------------
-Package :math:`\delta`-value filter based on Peirce's criterion
----------------------------------------------------------------
-
-**ToDo: Describe once the routine actually works properly!**
