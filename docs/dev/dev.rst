@@ -30,6 +30,18 @@ You can also set up your IDE to run any of the tests.
 Required dependencies if you prefer not testing with ``nox``
 can be found in the ``requirements-dev.txt`` file.
 
+----------
+Pre-commit
+----------
+
+Pre-commit will format code according to specs prior to committing it to GitHub.
+To install the pre-commit hooks, go to the code folder and run the following command
+(after installing pre-commit using pip or pipx):
+
+$ pre-commit install
+
+This will install the hooks that are defined in `.pre-commit-config.yaml`.
+
 -------------
 Test Coverage
 -------------
