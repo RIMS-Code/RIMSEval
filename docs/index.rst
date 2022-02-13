@@ -57,6 +57,12 @@ Contents
 
 .. toctree::
     :maxdepth: 2
+    :caption Macros
+
+    macro_dev/macros
+
+.. toctree::
+    :maxdepth: 2
     :caption: Scientific Background
 
     bg/integrals
