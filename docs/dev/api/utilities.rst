@@ -51,25 +51,6 @@ for details.
 .. autofunction:: reject_outliers
 
 
-
-.. py:currentmodule:: rimseval.utilities.string_transformer
-
-----------------------
-String transformations
-----------------------
-
-Convert strings around to interface with various conventions.
-For example, routines that will format isotopes using LaTeX
-for labels in plots, etc., will go here.
-
-*********************
-:func:`iso_to_iniabu`
-*********************
-
-.. autofunction:: iso_to_iniabu
-
-
-
 .. py:currentmodule:: rimseval.utilities.utils
 
 ---------

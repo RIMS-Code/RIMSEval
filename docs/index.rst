@@ -57,7 +57,7 @@ Contents
 
 .. toctree::
     :maxdepth: 2
-    :caption Macros
+    :caption: Macros
 
     macro_dev/macros
 
