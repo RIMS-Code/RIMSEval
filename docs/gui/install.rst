@@ -20,18 +20,21 @@ If you want to install the RIMSEval GUI on Anaconda,
 you should first set up a virtual environment.
 To setup the environment and activate it, type:
 
-.. code-block::
+.. code-block:: shell-session
+
     conda create -n rimseval python=3.9
     conda activate rimseval
 
 Then you can install all requirements by typing:
 
-.. code-block::
+.. code-block:: shell-session
+
     pip install -r requirements.txt
 
 The RIMSEval GUI can then be started by typing:
 
-.. code-block::
+.. code-block:: shell-session
+
     python RIMSEvalGUI.py
 
 ------
@@ -47,10 +50,12 @@ Instructions can, e.g., found
 After activating your new virtual environment,
 install the requirements by typing:
 
-.. code-block::
+.. code-block:: shell-session
+
     pip install -r requirements
 
 The RIMSEval GUI can then be started by typing:
 
-.. code-block::
+.. code-block:: shell-session
+
     python RIMSEvalGUI.py
