@@ -156,9 +156,3 @@ The algorithm implemented here is after
 
 - :meth:`rimseval.processor.CRDFileProcessor.packages`
 - :meth:`rimseval.processor.CRDFileProcessor.spectrum_full`
-
----------------------------------------------------------------
-Package :math:`\delta`-value filter based on Peirce's criterion
----------------------------------------------------------------
-
-**ToDo: Describe once the routine actually works properly!**
