@@ -47,6 +47,7 @@ Contents
     pkg/install
     pkg/usage
     pkg/filters
+    pkg/variables
 
 .. toctree::
     :maxdepth: 2

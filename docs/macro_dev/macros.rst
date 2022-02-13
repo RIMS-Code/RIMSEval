@@ -12,6 +12,9 @@ you can run your own macros using the ``run_macro`` routine:
 Templates for macros and example python files can be found on
 `GitHub <https://github.com/RIMS-Code/RIMSEval/tree/main/macro_templates>`_.
 
+An overview of useful variables can be found in
+:doc:`here <../pkg/variables>`.
+
 ------------
 Introduction
 ------------
