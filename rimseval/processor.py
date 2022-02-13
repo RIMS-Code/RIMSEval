@@ -669,6 +669,8 @@ class CRDFileProcessor:
         """
         pyfile = fname.with_suffix("").name
         file_path = fname.absolute().parent
+        print("fname")
+        print(fname)
 
         sys.path.append(str(file_path))
 
