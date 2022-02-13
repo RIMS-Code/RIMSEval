@@ -5,6 +5,7 @@ Note: Interfacing with external files is done in the `interfacer.py` library.
 
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+import sys
 import warnings
 
 import numpy as np
@@ -199,6 +200,60 @@ class CRDFileProcessor:
 
     # METHODS #
 
+    def apply_individual_shots_filter(self, shots_rejected: np.ndarray):
+        """Routine to finish filtering for individual shots.
+
+        This will end up setting all the data. All routines that filter shots only
+        have to provide a list of rejected shots. This routine does the rest, including.
+        the handling of the data if packages exist.
+
+        ToDo: rejected shots should be stored somewhere.
+
+        :param shots_rejected: Indices of rejected shots.
+        """
+        len_indexes = len(self.ions_per_shot)
+
+        # reject filtered packages, i.e., remove ions from deleted packages
+        if self._filter_max_ion_per_pkg_applied:
+            (
+                shots_indexes,
+                shots_rejected,
+            ) = processor_utils.remove_shots_from_filtered_packages_ind(
+                shots_rejected,
+                len_indexes,
+                self._filter_max_ion_per_pkg_ind,
+                self._pkg_size,
+            )
+        else:
+            shots_indexes = utils.not_index(shots_rejected, len_indexes)
+
+        all_tofs_filtered = self._all_tofs_filtered(shots_indexes)
+
+        self.data = processor_utils.sort_data_into_spectrum(
+            all_tofs_filtered,
+            self.all_tofs.min(),
+            self.all_tofs.max(),
+        )
+
+        # remove the rejected shots from packages
+        if self.data_pkg is not None:
+            (
+                self.data_pkg,
+                self.nof_shots_pkg,
+            ) = processor_utils.remove_shots_from_packages(
+                self._pkg_size,
+                shots_rejected,
+                self.ions_to_tof_map,
+                self.all_tofs,
+                self.data_pkg,
+                self.nof_shots_pkg,
+                self._filter_max_ion_per_pkg_ind,
+            )
+
+        self.ions_per_shot = self.ions_per_shot[shots_indexes]
+        self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
+        self.nof_shots = len(shots_indexes)
+
     def calculate_applied_filters(self):
         """Check for which filters are available and then recalculate all from start."""
         self.spectrum_full()  # reset all filters
@@ -339,7 +394,7 @@ class CRDFileProcessor:
 
         shots_rejected = np.where(self.ions_per_shot > max_ions)[0]
 
-        self._filter_individual_shots(shots_rejected)
+        self.apply_individual_shots_filter(shots_rejected)
 
     def filter_max_ions_per_time(self, max_ions: int, time_us: float) -> None:
         """Filter shots with >= max ions per time, i.e., due to ringing.
@@ -364,7 +419,7 @@ class CRDFileProcessor:
         shots_rejected = shots_to_check[shot_mask]
 
         if shots_rejected.shape != (0,):
-            self._filter_individual_shots(shots_rejected)
+            self.apply_individual_shots_filter(shots_rejected)
 
     def filter_max_ions_per_tof_window(
         self, max_ions: int, tof_window: np.ndarray
@@ -411,7 +466,7 @@ class CRDFileProcessor:
         shots_rejected = shots_to_check[shot_mask]
 
         if shots_rejected.shape != (0,):
-            self._filter_individual_shots(shots_rejected)
+            self.apply_individual_shots_filter(shots_rejected)
 
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
@@ -448,60 +503,6 @@ class CRDFileProcessor:
         # write back
         self.integrals = integrals
         self.integrals_pkg = integrals_pkg
-
-    def _filter_individual_shots(self, shots_rejected: np.ndarray):
-        """Private routine to finish filtering for individual shots.
-
-        This will end up setting all the data. All routines that filter shots only
-        have to provide a list of rejected shots. This routine does the rest, including.
-        the handling of the data if packages exist.
-
-        ToDo: rejected shots should be stored somewhere.
-
-        :param shots_rejected: Indices of rejected shots.
-        """
-        len_indexes = len(self.ions_per_shot)
-
-        # reject filtered packages, i.e., remove ions from deleted packages
-        if self._filter_max_ion_per_pkg_applied:
-            (
-                shots_indexes,
-                shots_rejected,
-            ) = processor_utils.remove_shots_from_filtered_packages_ind(
-                shots_rejected,
-                len_indexes,
-                self._filter_max_ion_per_pkg_ind,
-                self._pkg_size,
-            )
-        else:
-            shots_indexes = utils.not_index(shots_rejected, len_indexes)
-
-        all_tofs_filtered = self._all_tofs_filtered(shots_indexes)
-
-        self.data = processor_utils.sort_data_into_spectrum(
-            all_tofs_filtered,
-            self.all_tofs.min(),
-            self.all_tofs.max(),
-        )
-
-        # remove the rejected shots from packages
-        if self.data_pkg is not None:
-            (
-                self.data_pkg,
-                self.nof_shots_pkg,
-            ) = processor_utils.remove_shots_from_packages(
-                self._pkg_size,
-                shots_rejected,
-                self.ions_to_tof_map,
-                self.all_tofs,
-                self.data_pkg,
-                self.nof_shots_pkg,
-                self._filter_max_ion_per_pkg_ind,
-            )
-
-        self.ions_per_shot = self.ions_per_shot[shots_indexes]
-        self.ions_to_tof_map = self.ions_to_tof_map[shots_indexes]
-        self.nof_shots = len(shots_indexes)
 
     def integrals_calc(self, bg_corr=True) -> None:
         """Calculate integrals for data and packages (if present).
@@ -657,6 +658,27 @@ class CRDFileProcessor:
         self.data_pkg, self.nof_shots_pkg = processor_utils.create_packages(
             shots, self.ions_to_tof_map, self.all_tofs
         )
+
+    def run_macro(self, fname: Path) -> None:
+        """Run your own macro.
+
+        The macro will be imported here and then run. Details on how to write a macro
+        can be found in the documentation.
+
+        :param fname: Filename to the macro.
+        """
+        pyfile = fname.with_suffix("").name
+        file_path = fname.absolute().parent
+        print("fname")
+        print(fname)
+
+        sys.path.append(str(file_path))
+
+        exec(f"import {pyfile}") in globals(), locals()
+        macro = vars()[pyfile]
+        macro.calc(self)
+
+        sys.path.remove(str(file_path))
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.

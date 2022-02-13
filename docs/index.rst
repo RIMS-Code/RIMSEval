@@ -47,6 +47,7 @@ Contents
     pkg/install
     pkg/usage
     pkg/filters
+    pkg/variables
 
 .. toctree::
     :maxdepth: 2
@@ -54,6 +55,12 @@ Contents
 
     gui/install
     gui/gui
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Macros
+
+    macro_dev/macros
 
 .. toctree::
     :maxdepth: 2
