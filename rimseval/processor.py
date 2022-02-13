@@ -5,6 +5,7 @@ Note: Interfacing with external files is done in the `interfacer.py` library.
 
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+import sys
 import warnings
 
 import numpy as np
@@ -666,7 +667,16 @@ class CRDFileProcessor:
 
         :param fname: Filename to the macro.
         """
-        pass
+        pyfile = fname.with_suffix("").name
+        file_path = fname.absolute().parent
+
+        sys.path.append(str(file_path))
+
+        exec(f"import {pyfile}") in globals(), locals()
+        macro = vars()[pyfile]
+        macro.calc(self)
+
+        sys.path.remove(str(file_path))
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.

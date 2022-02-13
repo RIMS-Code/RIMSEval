@@ -68,6 +68,37 @@ Here is a re-implementation of the
 :meth:`rimseval.processor.CRDFileProcessor.filter_max_ions_per_shot`
 method in the form of a macro.
 
+.. code-block:: python
+
+    import numpy as np
+
+    from rimseval.processor import CRDFileProcessor
+
+
+    def calc(crd: CRDFileProcessor) -> None:
+        """Macro to filter out all shots with more than 3 ions.
+
+        :param crd: CRD file processor that will be passed to the macro.
+        """
+        # maximum ions per shot to be filtered out
+        max_ions = 3
+
+        # create a numpy mask that selects the filters we want to filter
+        shots_rejected = np.where(crd.ions_per_shot > max_ions)[0]
+
+        # pass the rejected shots array to the routine that will filter everything
+        crd.apply_individual_shots_filter(shots_rejected)
+
+As discussed above, the macro must be in the given template form.
+We define here a ``shots_rejected`` array (a ``numpy.ndarray``),
+which lists the shots that we want to reject.
+Finally,
+we pass the array of rejected shots to the in-built function
+that processes the shots further and handles everything down the line.
+This is the ``crd.apply_individual_shots_filter()`` routine.
+More detailed documentation on this routine can be found in
+:meth:`rimseval.processor.CRDFileProcessor.apply_individual_shots_filter`.
+
 ----------------------------------------
 Example: Filter maximum ions per package
 ----------------------------------------
