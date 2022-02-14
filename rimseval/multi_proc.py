@@ -42,14 +42,42 @@ class MultiFileProcessor:
 
     # METHODS #
 
-    def apply_to_all(self, id: Union[int, CRDFileProcessor]):
-        """Take the configuration for the ID file and apply it to all files."""
-        if isinstance(id, int):
-            crd_main = self.files[id]
-        else:
-            crd_main = id
+    def apply_to_all(self, id: int, opt_mcal: bool = False, bg_corr: bool = False):
+        """Take the configuration for the ID file and apply it to all files.
 
-        # todo: grab the config from main file and apply to the others
+        :param id: Index where the main CRD file is in the list
+        :param opt_mcal: Optimize mass calibration if True (default: False)
+        :param bc_corr: Perform background correction?
+        """
+        crd_main = self.files[id]
+
+        mcal = crd_main.def_mcal
+        integrals = crd_main.def_integrals
+        backgrounds = crd_main.def_backgrounds
+        applied_filters = crd_main.applied_filters
+
+        for it, file in enumerate(self.files):
+            if it != id:  # skip already done file
+                file.spectrum_full()
+                if mcal is not None:
+                    file.def_mcal = mcal
+                    file.mass_calibration()
+                    if opt_mcal:
+                        file.optimize_mcal()
+                if integrals is not None:
+                    file.def_integrals = integrals
+                if backgrounds is not None:
+                    file.def_backgrounds = backgrounds
+                if applied_filters is not None:
+                    file.applied_filters = applied_filters
+
+                # run the evaluation
+                file.calculate_applied_filters()
+
+                # integrals
+                if bg_corr and backgrounds is not None:
+                    bg_corr = True
+                file.integrals_calc(bg_corr=bg_corr)
 
     def close_files(self) -> None:
         """Destroys the files and frees the memory."""
