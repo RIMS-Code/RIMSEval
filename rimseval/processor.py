@@ -307,6 +307,10 @@ class CRDFileProcessor:
         # if get_arguments("pkg_peirce_rejection"):
         #     self.filter_pkg_peirce_countrate()
 
+        if vals := get_arguments("macro"):
+            if vals[0]:
+                self.run_macro(Path(vals[1]))
+
         if vals := get_arguments("dead_time_corr"):
             if vals[0]:
                 self.dead_time_correction(vals[1])
@@ -667,6 +671,8 @@ class CRDFileProcessor:
 
         :param fname: Filename to the macro.
         """
+        self.applied_filters["macro"] = [True, str(fname.absolute())]
+
         pyfile = fname.with_suffix("").name
         file_path = fname.absolute().parent
         print("fname")
