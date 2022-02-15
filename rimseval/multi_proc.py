@@ -6,6 +6,7 @@ from typing import List, Union
 
 import numpy as np
 
+import rimseval.interfacer
 from rimseval.processor import CRDFileProcessor
 
 
@@ -80,6 +81,10 @@ class MultiFileProcessor:
         backgrounds = crd_main.def_backgrounds
         applied_filters = crd_main.applied_filters
 
+        # run file itself first:
+        crd_main.calculate_applied_filters()
+        rimseval.interfacer.save_cal_file(crd_main)
+
         for it, file in enumerate(self.files):
             if it != id:  # skip already done file
                 file.spectrum_full()
@@ -102,6 +107,9 @@ class MultiFileProcessor:
                 if bg_corr and backgrounds is not None:
                     bg_corr = True
                 file.integrals_calc(bg_corr=bg_corr)
+
+                # save calibration
+                rimseval.interfacer.save_cal_file(file)
 
     def close_files(self) -> None:
         """Destroys the files and frees the memory."""

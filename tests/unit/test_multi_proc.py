@@ -36,3 +36,4 @@ def test_mfp_apply_to_all(crd_file):
         np.testing.assert_equal(crd.data_pkg, crd_main.data_pkg)
         assert crd.nof_shots == crd_main.nof_shots
         np.testing.assert_equal(crd.nof_shots_pkg, crd_main.nof_shots_pkg)
+        assert crd.fname.with_suffix(".json").is_file()
