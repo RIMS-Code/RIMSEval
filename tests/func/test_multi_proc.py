@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import rimseval
 from rimseval.multi_proc import MultiFileProcessor as mfp
 from rimseval.processor import CRDFileProcessor
 
@@ -12,6 +13,17 @@ def test_mfp_num_of_files():
 
     crds = mfp(files)
     assert crds.num_of_files == len(files)
+
+
+def test_mfp_peak_fwhm(crd_file):
+    """Get / set the peak FWHM of the multip processor."""
+    val = 42.0
+    _, _, _, fname = crd_file
+    files = [Path(fname)]
+
+    crds = mfp(files)
+    crds.peak_fwhm = val
+    assert crds.peak_fwhm == val
 
 
 def test_mfp_close_files(crd_file):

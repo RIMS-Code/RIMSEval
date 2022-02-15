@@ -4,6 +4,8 @@ import gc
 from pathlib import Path
 from typing import List, Union
 
+import numpy as np
+
 from rimseval.processor import CRDFileProcessor
 
 
@@ -39,6 +41,28 @@ class MultiFileProcessor:
     def num_of_files(self) -> int:
         """Get the number of files that are in the multiprocessor."""
         return self._num_of_files
+
+    @property
+    def peak_fwhm(self) -> float:
+        """Get / Set FWHM of each peak.
+
+        The getter returns the average, the setter sets the same for all.
+
+        :return: Average peak FWHM in us.
+        """
+        if self._files is None:
+            self.open_files()
+        fwhm = np.zeros(len(self._files))
+        for it, file in enumerate(self._files):
+            fwhm[it] = file.peak_fwhm
+        return np.average(fwhm)
+
+    @peak_fwhm.setter
+    def peak_fwhm(self, value: float):
+        if self._files is None:
+            self.open_files()
+        for file in self._files:
+            file.peak_fwhm = value
 
     # METHODS #
 
