@@ -68,7 +68,7 @@ def mass_spectrum(crd: CRDFileProcessor, fname: Path, bins: int = 1) -> None:
     :param bins: How many data to bin.
     """
     tof_binned = bin_array_avg(crd.tof, bins)
-    mass_binned = bin_array_avg(crd.tof, bins)
+    mass_binned = bin_array_avg(crd.mass, bins)
     data_binned = bin_array_sum(crd.data, bins)
 
     header = "Mass (amu),Time of Flight (us),Counts"
