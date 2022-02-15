@@ -21,7 +21,10 @@ class CRDFileProcessor:
     Computationally expensive routines are sourced out into processor_utils.py for
     jitting.
 
-    Todo example
+    Example:
+        >>> my_file = Path("crd_files/my_file.crd")
+        >>> crd = CRDFileProcessor(my_file)  # open the file
+        >>> crd.spectrum_full()  # create a spectrum
     """
 
     def __init__(self, fname: Path) -> None:
@@ -315,7 +318,6 @@ class CRDFileProcessor:
             if vals[0]:
                 self.dead_time_correction(vals[1])
 
-    # fixme make sure that the following docstring is actually correct
     def dead_time_correction(self, dbins: int) -> None:
         """Perform a dead time correction on the whole spectrum.
 

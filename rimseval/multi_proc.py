@@ -13,7 +13,12 @@ from rimseval.processor import CRDFileProcessor
 class MultiFileProcessor:
     """Class to process multiple CRD files at ones.
 
-    Todo: Example
+    Example:
+        >>> file_names = [Path("file1.crd"), Path("file2.crd"), Path("file3.crd")]
+        >>> mfp = MultiFileProcessor(file_names)
+        >>> mfp.num_of_files
+        3
+        >>> mfp.peak_fwhm = 0.02  # set full with half max for all files
     """
 
     def __init__(self, crd_files: List[Path]):

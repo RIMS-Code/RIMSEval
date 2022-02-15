@@ -9,23 +9,6 @@ from scipy import optimize
 from .utilities import fitting, utils
 
 
-def channel_to_tof(ch: int, bin_start: int, bin_length: int, delta_t: float) -> float:
-    """Transform TDC channel (bin it is in) to time of flight in us.
-
-    # fixme: remove if unused
-
-    :param ch: TDC channel that the ion is in.
-    :param bin_start: Start bin for TDC, see crd.header["binStart"]
-    :param bin_length: Bin length for TDC, see crd.header["binLength"], in ps.
-    :param delta_t: Time offset between TDC time zero and acceleration, see
-        crd.header["deltaT"], in s.
-
-    :return: Time of flight of given ion in us.
-    """
-    tof = ((bin_start + ch) * bin_length) / 1e6 + delta_t * 1e6
-    return tof
-
-
 @njit
 def create_packages(
     shots: int,

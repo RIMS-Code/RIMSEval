@@ -13,7 +13,13 @@ from . import crd_utils
 class CRDReader:
     """Read CRD Files and make the data available.
 
-    ToDo: Example
+    Example:
+        >>> fname = Path("folder/my_crd_file.crd")
+        >>> crd_file = CRDReader(fname)
+        >>> crd_file.nof_ions
+        13281
+        >>> crd_file.nof_shots
+        5000
     """
 
     def __init__(self, fname: Path) -> None:
