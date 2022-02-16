@@ -6,6 +6,7 @@ The routines in this folder
 deal with data input and output.
 Transformers for converting list files
 to `CRD` files can also be found here.
+Also export functions are found here.
 
 
 
@@ -95,3 +96,23 @@ for processing `LST` files.
 ********************************
 
 .. autofunction:: transfer_lst_to_crd_data
+
+
+
+.. py:currentmodule:: rimseval.data_io.export
+
+----------------
+Export functions
+----------------
+
+********************
+:func:`tof_spectrum`
+********************
+
+.. autofunction:: tof_spectrum
+
+*********************
+:func:`mass_spectrum`
+*********************
+
+.. autofunction:: mass_spectrum

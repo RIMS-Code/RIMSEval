@@ -46,6 +46,7 @@ Contents
 
     pkg/install
     pkg/usage
+    pkg/guis
     pkg/filters
     pkg/variables
 

@@ -15,4 +15,5 @@ Some words on API reference.
     interfacer
     data_io
     guis
+    multi_proc
     utilities

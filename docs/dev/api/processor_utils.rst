@@ -9,12 +9,6 @@ Many of the mathematically heavy routines
 are outsourced here for JITing with
 `numba <https://numba.pydata.org/>`_.
 
-----------------------
-:func:`channel_to_tof`
-----------------------
-
-.. autofunction:: channel_to_tof
-
 -----------------------
 :func:`create_packages`
 -----------------------

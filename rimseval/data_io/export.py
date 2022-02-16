@@ -9,7 +9,7 @@ from rimseval.processor import CRDFileProcessor
 
 
 @njit
-def bin_array_avg(arr: np.ndarray, bins: int) -> np.ndarray:  # pragma: nocover
+def _bin_array_avg(arr: np.ndarray, bins: int) -> np.ndarray:  # pragma: nocover
     """Takes a numpy array and bins it by averaging the range.
 
     End of the array, if it doesn't fit, will be thrown away.
@@ -26,7 +26,7 @@ def bin_array_avg(arr: np.ndarray, bins: int) -> np.ndarray:  # pragma: nocover
 
 
 @njit
-def bin_array_sum(arr: np.ndarray, bin: int) -> np.ndarray:  # pragma: nocover
+def _bin_array_sum(arr: np.ndarray, bin: int) -> np.ndarray:  # pragma: nocover
     """Takes a numpy array and bins it by summing the range.
 
     End of the array, if it doesn't fit, will be thrown away.
@@ -49,8 +49,8 @@ def tof_spectrum(crd: CRDFileProcessor, fname: Path, bins: int = 1) -> None:
     :param fname: File name to export to.
     :param bins: How many data to bin.
     """
-    tof_binned = bin_array_avg(crd.tof, bins)
-    data_binned = bin_array_sum(crd.data, bins)
+    tof_binned = _bin_array_avg(crd.tof, bins)
+    data_binned = _bin_array_sum(crd.data, bins)
 
     header = "Time of Flight (us),Counts"
     data_to_write = np.stack([tof_binned, data_binned], axis=1)
@@ -67,9 +67,9 @@ def mass_spectrum(crd: CRDFileProcessor, fname: Path, bins: int = 1) -> None:
     :param fname: File name to export to.
     :param bins: How many data to bin.
     """
-    tof_binned = bin_array_avg(crd.tof, bins)
-    mass_binned = bin_array_avg(crd.mass, bins)
-    data_binned = bin_array_sum(crd.data, bins)
+    tof_binned = _bin_array_avg(crd.tof, bins)
+    mass_binned = _bin_array_avg(crd.mass, bins)
+    data_binned = _bin_array_sum(crd.data, bins)
 
     header = "Mass (amu),Time of Flight (us),Counts"
     data_to_write = np.stack([mass_binned, tof_binned, data_binned], axis=1)

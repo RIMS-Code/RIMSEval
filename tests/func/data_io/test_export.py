@@ -15,12 +15,12 @@ def test_bin_array_avg():
 
     bins = 2
     arr_exp = np.array([1.5, 3.5, 5.5, 7.5, 9.5])
-    arr_rec = export.bin_array_avg(arr_in, bins)
+    arr_rec = export._bin_array_avg(arr_in, bins)
     np.testing.assert_equal(arr_exp, arr_rec)
 
     bins = 3
     arr_exp = np.array([2, 5, 8])
-    arr_rec = export.bin_array_avg(arr_in, bins)
+    arr_rec = export._bin_array_avg(arr_in, bins)
     np.testing.assert_equal(arr_exp, arr_rec)
 
 
@@ -30,12 +30,12 @@ def test_bin_array_sum():
 
     bin = 2
     arr_exp = np.array([3, 7, 11, 15, 19])
-    arr_rec = export.bin_array_sum(arr_in, bin)
+    arr_rec = export._bin_array_sum(arr_in, bin)
     np.testing.assert_equal(arr_exp, arr_rec)
 
     bin = 3
     arr_exp = np.array([6, 15, 24])
-    arr_rec = export.bin_array_sum(arr_in, bin)
+    arr_rec = export._bin_array_sum(arr_in, bin)
     np.testing.assert_equal(arr_exp, arr_rec)
 
 
