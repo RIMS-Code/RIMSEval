@@ -4,13 +4,14 @@ import gc
 from pathlib import Path
 from typing import List, Union
 
+from PyQt6 import QtCore
 import numpy as np
 
 import rimseval.interfacer
 from rimseval.processor import CRDFileProcessor
 
 
-class MultiFileProcessor:
+class MultiFileProcessor(QtCore.QObject):
     """Class to process multiple CRD files at ones.
 
     Example:
@@ -21,11 +22,14 @@ class MultiFileProcessor:
         >>> mfp.peak_fwhm = 0.02  # set full with half max for all files
     """
 
+    signal_processed = QtCore.pyqtSignal(str)  # emits the filename that was processed
+
     def __init__(self, crd_files: List[Path]):
         """Initialize the multiple file processor.
 
         :param crd_files: List of pathes to the CRD files.
         """
+        super().__init__()
         self._num_of_files = len(crd_files)
         self.crd_files = crd_files
 
@@ -88,6 +92,7 @@ class MultiFileProcessor:
 
         # run file itself first:
         crd_main.calculate_applied_filters()
+        self.signal_processed.emit(str(crd_main.fname.name))
         rimseval.interfacer.save_cal_file(crd_main)
 
         for it, file in enumerate(self.files):
@@ -115,6 +120,9 @@ class MultiFileProcessor:
 
                 # save calibration
                 rimseval.interfacer.save_cal_file(file)
+
+                # emit signal
+                self.signal_processed.emit(str(file.fname.name))
 
     def close_files(self) -> None:
         """Destroys the files and frees the memory."""
