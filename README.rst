@@ -23,9 +23,48 @@ RIMS Evaluation Software
 Introduction
 ------------
 
-The goal of this project is to give the user
-an API as well as a GUI interface to evaluate RIMS spectra.
-All code is available on
-`GitHub <https://github.com/RIMS-Code/RIMSEval>`_.
+The goal of this project is to provide a python
+interface to process resonance ionization mass spectrometry (RIMS) data.
 
-More to come, so check back :)
+A detailed user guide documenting the package can be found
+`here <https://rimseval.readthedocs.io/en/latest/>`_.
+
+--------------------
+Package installation
+--------------------
+
+.. code-block:: shell-session
+
+    pip install rimseval
+
+Add ``--pre`` flag for pre-releases or install the latest version from GitHub.
+More information in the
+`documentation <https://rimseval.readthedocs.io/en/latest/>`_.
+
+
+.. note:: It is highly recommended that you use a virtual environment,
+    since ``numpy`` is pinned to a specific version
+    in order to appropriately work with ``numba``.
+
+-----------
+RIMSEvalGUI
+-----------
+
+A GUI that wraps around the ``rimseval`` package
+is available on
+`GitHub <https://github.com/RIMS-Code/RIMSEvalGUI>`_.
+The above mentioned documentation also serves
+as the documentation for this GUI.
+
+------------
+Contributing
+------------
+
+Contributions are very welcome!
+Especially the documentation could need some more examples
+and polishing.
+Please feel free to contact me if you'd like to contribute.
+
+The `documentation <https://rimseval.readthedocs.io/en/latest/>`_
+also contains a developers guide,
+if you are interested in contributing to the code base itself.
