@@ -91,7 +91,16 @@ class MultiFileProcessor(QtCore.QObject):
         applied_filters = crd_main.applied_filters
 
         # run file itself first:
+        if crd_main.tof is None:
+            crd_main.spectrum_full()
+        if crd_main.mass is None:
+            crd_main.mass_calibration()
         crd_main.calculate_applied_filters()
+        if bg_corr and backgrounds is not None:
+            bg_corr = True
+        else:
+            bg_corr = False
+        crd_main.integrals_calc(bg_corr=bg_corr)
         self.signal_processed.emit(str(crd_main.fname.name))
         rimseval.interfacer.save_cal_file(crd_main)
 
@@ -114,8 +123,6 @@ class MultiFileProcessor(QtCore.QObject):
                 file.calculate_applied_filters()
 
                 # integrals
-                if bg_corr and backgrounds is not None:
-                    bg_corr = True
                 file.integrals_calc(bg_corr=bg_corr)
 
                 # save calibration
