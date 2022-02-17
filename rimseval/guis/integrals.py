@@ -223,7 +223,10 @@ class DefineBackgrounds(DefineAnyTemplate):
 
     def apply(self):
         """Apply the mass calibration and return it."""
-        self.crd.def_backgrounds = self.bg_names, np.array(self.bg_values)
+        if self.bg_names:
+            self.crd.def_backgrounds = self.bg_names, np.array(self.bg_values)
+        else:
+            self.crd.def_backgrounds = None
         self.signal_backgrounds_defined.emit()
         self.close()
 
@@ -355,7 +358,10 @@ class DefineIntegrals(DefineAnyTemplate):
 
     def apply(self):
         """Apply the mass calibration and return it."""
-        self.crd.def_integrals = self.int_names, np.array(self.int_values)
+        if self.int_names:
+            self.crd.def_integrals = self.int_names, np.array(self.int_values)
+        else:
+            self.crd.def_integrals = None
         self.signal_integrals_defined.emit()
         self.close()
 
