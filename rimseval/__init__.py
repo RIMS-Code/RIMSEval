@@ -35,4 +35,4 @@ __uri__ = "https://rimseval.readthedocs.io"
 __author__ = "Reto Trappitsch"
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2021, Reto Trappitsch"
+__copyright__ = "Copyright (c) 2022, Reto Trappitsch"
