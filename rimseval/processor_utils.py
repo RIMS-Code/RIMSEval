@@ -159,14 +159,18 @@ def integrals_bg_corr(
         for it in range(len(integrals_in)):
             int_value = integrals_in[it][0]
             bg_indexes = np.where(bgs_names_in == int_names_in[it])[0]
-            bg_norm = np.sum(bgs_norm[bg_indexes]) / len(bg_indexes)
-            bg_norm_unc = np.sum(bgs_norm_unc[bg_indexes]) / len(bg_indexes)
+            if len(bg_indexes) > 0:  # background actually exists
+                bg_norm = np.sum(bgs_norm[bg_indexes]) / len(bg_indexes)
+                bg_norm_unc = np.sum(bgs_norm_unc[bg_indexes]) / len(bg_indexes)
 
-            # write out the corrected values
-            integrals_corr_in[it][0] = int_value - int_ch_in[it] * bg_norm
-            integrals_corr_in[it][1] = np.sqrt(
-                int_value + bg_norm_unc ** 2
-            )  # sqrt stat, assumes integral uncertainty is sqrt(integral)
+                # write out the corrected values
+                integrals_corr_in[it][0] = int_value - int_ch_in[it] * bg_norm
+                integrals_corr_in[it][1] = np.sqrt(
+                    int_value + bg_norm_unc ** 2
+                )  # sqrt stat, assumes integral uncertainty is sqrt(integral)
+            else:
+                integrals_corr_in[it][0] = int_value
+                integrals_corr_in[it][1] = np.sqrt(int_value)
         return integrals_corr_in
 
     # for integrals, not packages

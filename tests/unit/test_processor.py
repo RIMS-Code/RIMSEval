@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rimseval import interfacer
 from rimseval.processor import CRDFileProcessor
 
 
@@ -90,6 +91,20 @@ def test_integrals_multiple_backgrounds(crd_file):
     # set the background correction
     crd.def_backgrounds = (["all", "all"], np.array([[0.1, 0.9], [2.1, 3.0]]))
     crd.integrals_calc(bg_corr=True)
+
+
+def test_background_one_bg_with_multiple_peaks(crd_data):
+    """Ti Standard 01 spectrum with json file to do background correction."""
+    crd = CRDFileProcessor(crd_data.joinpath("ti_standard_01.crd"))
+    interfacer.load_cal_file(crd)
+    crd.spectrum_full()
+    crd.mass_calibration()
+    crd.calculate_applied_filters()
+    crd.integrals_calc(bg_corr=True)
+
+    # assert background correction does not throw nans or zeros
+    assert not np.isnan(crd.integrals).any()
+    assert not (crd.integrals == 0).any()
 
 
 def test_integrals_pkg(crd_file):
