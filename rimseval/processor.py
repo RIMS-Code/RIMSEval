@@ -163,6 +163,7 @@ class CRDFileProcessor:
     def def_integrals(self, value):
         if not value:  # empty list is passed
             self._params_integrals = None
+            self._params_backgrounds = None
         else:
             if len(value) != 2:
                 raise ValueError("Data tuple must be of length 2.")
@@ -174,6 +175,25 @@ class CRDFileProcessor:
                 raise ValueError(
                     "The peak names for integral definitions must be unique."
                 )
+
+            # delete backgrounds that are unused
+            if self._params_backgrounds is not None:
+                ind_to_delete = []
+                for it, name in enumerate(self._params_backgrounds[0]):
+                    if name not in value[0]:
+                        ind_to_delete.append(it)
+                if len(ind_to_delete) == len(self._params_backgrounds[0]):
+                    self._params_backgrounds = None
+                else:  # remove existing
+                    bg_names = [
+                        ele
+                        for id, ele in enumerate(self._params_backgrounds[0])
+                        if id not in ind_to_delete
+                    ]
+                    bg_vals = np.delete(
+                        self._params_backgrounds[1], ind_to_delete, axis=0
+                    )
+                    self._params_backgrounds = bg_names, bg_vals
 
             self._params_integrals = value
 

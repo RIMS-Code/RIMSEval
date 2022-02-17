@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 import numpy as np
 
 from rimseval.processor import CRDFileProcessor
@@ -157,6 +158,32 @@ def test_mass_calibration_2pts(crd_file):
     print(tms)
     np.testing.assert_almost_equal(mass_rec, mass_exp)
     assert crd.mass.ndim == crd.tof.ndim
+
+
+@pytest.mark.parametrize("new_integral", [None, (["Int2"], np.array([[3.0, 4.0]]))])
+def test_integrals_definition_delete_undefined_background_to_none(
+    crd_file, new_integral
+):
+    """Delete backgrounds and set to none if peak goes to undefined."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    crd.def_integrals = ["Integral"], np.array([[1.0, 2.0]])
+    crd.def_backgrounds = ["Integral"], np.array([[2.0, 3.0]])
+    crd.def_integrals = new_integral
+    assert crd.def_backgrounds is None
+
+
+def test_integrals_definition_delete_undefined_background(crd_file):
+    """Delete backgrounds and set to none if peak goes to undefined."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    crd.def_integrals = ["Int1", "Int2"], np.array([[1.0, 2.0], [2.0, 3.0]])
+    crd.def_backgrounds = ["Int1", "Int2"], np.array([[2.0, 3.0], [4.0, 5.0]])
+    crd.def_integrals = ["Int1"], np.array([[1.0, 2.0]])
+
+    assert "Int2" not in crd.def_backgrounds[0]
 
 
 def test_packages(crd_file):
