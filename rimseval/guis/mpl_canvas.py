@@ -1,10 +1,10 @@
 """Matplotlib Canvas implementation to handle various mouse events."""
 
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
 )
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from PyQt6 import QtCore, QtWidgets
 
@@ -26,7 +26,6 @@ class PlotSpectrum(QtWidgets.QMainWindow):
 
         :param crd: The CRD file processor to work with.
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
-        :param parent: Parent application, defaults to None
         :param theme: Theme, if applicable ("dark" or "light", default None)
         """
         super().__init__()

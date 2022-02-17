@@ -6,8 +6,8 @@ from . import data_io
 from . import guis
 from . import interfacer
 from . import utilities
-from .processor import CRDFileProcessor
 from .multi_proc import MultiFileProcessor
+from .processor import CRDFileProcessor
 
 ini = iniabu.IniAbu(database="nist")
 

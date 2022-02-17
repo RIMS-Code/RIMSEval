@@ -2,10 +2,10 @@
 
 import gc
 from pathlib import Path
-from typing import List, Union
+from typing import List
 
-from PyQt6 import QtCore
 import numpy as np
+from PyQt6 import QtCore
 
 import rimseval.interfacer
 from rimseval.processor import CRDFileProcessor
@@ -42,6 +42,8 @@ class MultiFileProcessor(QtCore.QObject):
         """Return a list of files.
 
         If the files are not opened, it will open and read them.
+
+        :return: List of CRDFileProcessor instances with files opened
         """
         if self._files is None:
             self.open_files()
@@ -81,7 +83,7 @@ class MultiFileProcessor(QtCore.QObject):
 
         :param id: Index where the main CRD file is in the list
         :param opt_mcal: Optimize mass calibration if True (default: False)
-        :param bc_corr: Perform background correction?
+        :param bg_corr: Perform background correction?
         """
         crd_main = self.files[id]
 

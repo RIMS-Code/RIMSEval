@@ -166,7 +166,7 @@ def integrals_bg_corr(
                 # write out the corrected values
                 integrals_corr_in[it][0] = int_value - int_ch_in[it] * bg_norm
                 integrals_corr_in[it][1] = np.sqrt(
-                    int_value + bg_norm_unc ** 2
+                    int_value + bg_norm_unc**2
                 )  # sqrt stat, assumes integral uncertainty is sqrt(integral)
             else:
                 integrals_corr_in[it][0] = int_value

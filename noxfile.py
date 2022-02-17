@@ -2,14 +2,13 @@
 
 import nox
 
-
-# todo: add lint and safety to mandatory tests
-nox.options.sessions = ["tests"]
+# fixme: add safety to nox
+nox.options.sessions = ["lint", "tests"]
 
 package = "rimseval"
 locations = "rimseval", "noxfile.py"
 python_default = "3.9"
-python_suite = ["3.9", "3.8"]
+python_suite = ["3.10", "3.9", "3.8"]
 
 
 @nox.session(python=python_default)

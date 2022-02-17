@@ -4,15 +4,15 @@ Note: Interfacing with external files is done in the `interfacer.py` library.
 """
 
 from pathlib import Path
-from typing import Any, List, Tuple, Union
 import sys
+from typing import Any, List, Tuple, Union
 import warnings
 
 import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import ini, peirce, utils
+from .utilities import peirce, utils
 
 
 class CRDFileProcessor:
@@ -281,15 +281,17 @@ class CRDFileProcessor:
         """Check for which filters are available and then recalculate all from start."""
         self.spectrum_full()  # reset all filters
 
-        def get_arguments(key: str):
+        def get_arguments(key: str) -> Union[List, None]:
             """Get arguments from the dictionary or None.
 
             :param key: Key in dictionary ``self.applied_filters``
+
+            :return: List if the key exists, None otherwise
             """
             try:
                 return self.applied_filters[key]
             except KeyError:
-                return None
+                return
 
         # reset packages if not toggled
         if vals := get_arguments("packages"):
@@ -376,7 +378,7 @@ class CRDFileProcessor:
         :param max_ions: Maximum number of ions per package.
 
         :raises ValueError: Invalid range for number of ions.
-        :raises IOError: No package data available.
+        :raises OSError: No package data available.
         """
         if max_ions < 1:
             raise ValueError("The maximum number of ions must be larger than 1.")
@@ -497,14 +499,14 @@ class CRDFileProcessor:
     def filter_pkg_peirce_countrate(self) -> None:
         """Filter out packages based on Peirce criterion for total count rate.
 
-        # fixme this needs more thinking and testing!
+        Fixme: This needs more thinking and testing
+        Now we are going to directly use all the integrals to get the sum of the counts,
+        which we will then feed to the rejection routine. Maybe this can detect blasts.
 
         .. warning:: Running this more than once might lead to weird results. You have
             been warned!
 
-        Now we are going to directly use all the integrals to get the sum of the counts,
-        which we will then feed to the rejection routine. Maybe this can detect blasts.
-        """
+        """  # noqa: D202
 
         self.applied_filters["pkg_peirce_rejection"] = True
 
@@ -702,7 +704,7 @@ class CRDFileProcessor:
 
         sys.path.append(str(file_path))
 
-        exec(f"import {pyfile}") in globals(), locals()
+        exec(f"import {pyfile}") in globals(), locals()  # noqa: S102
         macro = vars()[pyfile]
         macro.calc(self)
 

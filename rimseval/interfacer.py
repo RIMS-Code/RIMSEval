@@ -21,7 +21,7 @@ def read_lion_eval_calfile(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param fname: Filename to mass calibration file. If `None`, try the same file name
         as for the CRD file, but with `.cal` as an extension.
 
-    :raises IOError: Calibration file does not exist.
+    :raises OSError: Calibration file does not exist.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".cal")
@@ -69,7 +69,7 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param fname: Filename and path. If `None`, try file with same name as CRD file but
         `.json` suffix.
 
-    :raises IOError: Calibration file does not exist.
+    :raises OSError: Calibration file does not exist.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".json")

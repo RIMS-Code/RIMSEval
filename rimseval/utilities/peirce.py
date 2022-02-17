@@ -39,12 +39,12 @@ def peirce_criterion(n_tot: int, n: int, m: int = 1) -> float:
         while abs(r_new - r_old) > (n_tot * 2.0e-16):
             # Calculate Lamda
             # (1/(N-n)th root of Gould's equation A'):
-            ldiv = r_new ** n
+            ldiv = r_new**n
             if ldiv == 0:
                 ldiv = 1.0e-6
-            lambda_g = ((q_cap ** n_tot) / (ldiv)) ** (1.0 / (n_tot - n))
+            lambda_g = ((q_cap**n_tot) / (ldiv)) ** (1.0 / (n_tot - n))
             # Calculate x-squared (Gould's equation C):
-            x2 = 1.0 + (n_tot - m - n) / n * (1.0 - lambda_g ** 2.0)
+            x2 = 1.0 + (n_tot - m - n) / n * (1.0 - lambda_g**2.0)
             # If x2 goes negative, return 0:
             if x2 < 0:
                 x2 = 0.0

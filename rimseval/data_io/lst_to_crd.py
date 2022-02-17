@@ -178,7 +178,7 @@ class LST2CRD:
 
         :raises ValueError: File name not provided.
         :raises ValueError: Channel for data not provided.
-        :raises IOError: The Data Format is not available / could not be found in file.
+        :raises OSError: The Data Format is not available / could not be found in file.
         :raises NotImplementedError: The current data format is not (yet) implemented.
         """
         if self.file_name is None:
@@ -283,7 +283,7 @@ class LST2CRD:
             sources the actual writing task out.
 
         :raises ValueError: No data has been read in.
-        :raises IOError: Data is empty.
+        :raises OSError: Data is empty.
         """
         if self._data_signal is None:
             raise ValueError("No data has been read in yet.")

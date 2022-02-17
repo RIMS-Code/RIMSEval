@@ -194,7 +194,7 @@ class CRDReader:
         names are as specified in the CRD format file for version 1.0.
 
         :raises KeyError: Header is not available.
-        :raises IOError: Corrupt data length.
+        :raises OSError: Corrupt data length.
         """
         with open(self.fname, "rb") as f_in:
             # read start of the header

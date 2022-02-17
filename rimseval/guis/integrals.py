@@ -1,15 +1,15 @@
 """Interactive integral and background selection using matplotlib's qtagg backend."""
 
 import sys
-from typing import Tuple, List, Union
+from typing import List, Union
 
 import matplotlib.colors as mcolors
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 
 
-from .mpl_canvas import PlotSpectrum
 from rimseval.processor import CRDFileProcessor
+from .mpl_canvas import PlotSpectrum
 
 
 class DefineAnyTemplate(PlotSpectrum):
@@ -64,10 +64,10 @@ class DefineAnyTemplate(PlotSpectrum):
         raise NotImplementedError
 
     def button_pressed(self, name: str):
-        """Action for left click of a peak button.
+        """Define action for left click of a peak button.
 
         :param name: Name of the peak.
-        """
+        """  # noqa: DAR401
         raise NotImplementedError
 
     def check_peak_overlapping(self, peak_pos: np.array) -> Union[List, None]:
@@ -121,14 +121,14 @@ class DefineAnyTemplate(PlotSpectrum):
             self.right_layout.addWidget(button)
         self.right_layout.addStretch()
 
-    def mouse_right_press(self, xpos: float, *args, **kwargs) -> None:
-        """The right mouse button was pressed.
+    def mouse_right_press(self, xpos: float) -> None:
+        """Act on right mouse button pressed.
 
         :param xpos: Position on x axis.
         """
         self._last_xpos = xpos
 
-    def mouse_right_released(self, xpos: float, *args, **kwargs) -> None:
+    def mouse_right_released(self, xpos: float) -> None:
         """Right mouse button was released.
 
         :param xpos: Position on x axis.
@@ -174,7 +174,8 @@ class DefineAnyTemplate(PlotSpectrum):
         """Query user for position.
 
         :param peak_pos: Sorted array, left and right position of peak.
-        """
+        :param name: Name to preset the line-edit with.
+        """  # noqa: DAR401
         raise NotImplementedError
 
 
@@ -257,10 +258,6 @@ class DefineBackgrounds(DefineAnyTemplate):
         .. note:: Canvas is not cleared prior to this!
         """
         for it, peak_pos in enumerate(self.bg_values):
-            indexes = np.where(
-                np.logical_and(self.crd.mass > peak_pos[0], self.crd.mass < peak_pos[1])
-            )
-
             int_name_index = self.int_names.index(self.bg_names[it])
             col = tableau_color(int_name_index)
 
@@ -390,6 +387,7 @@ class DefineIntegrals(DefineAnyTemplate):
         """Query user for position.
 
         :param peak_pos: Sorted array, left and right position of peak.
+        :param name: Name to pre-populate line-edit with.
         """
         # check for overlap:
         if self.check_peak_overlapping(peak_pos):
@@ -451,8 +449,6 @@ class PeakDialog(QtWidgets.QDialog):
         :param parent: Parent class for dialog.
         :param peak_names: Name of the peaks to be displayed. If None, will reject.
         :param desc: Description for user.
-
-        :return: Accept (1) or Reject (0). Also emits a signal with button name.
         """
         super().__init__(parent)
 

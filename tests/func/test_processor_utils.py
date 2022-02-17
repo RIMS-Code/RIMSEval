@@ -64,7 +64,7 @@ def test_integrals_bg_corr():
         ]
     )
     integrals_corr = integrals[:, 0] - int_ch * bgs_norm
-    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc ** 2)
+    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc**2)
 
     integrals_exp = np.array(
         [
@@ -103,7 +103,7 @@ def test_integrals_bg_corr_pkg():
         ]
     )
     integrals_corr = integrals[:, 0] - int_ch * bgs_norm
-    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc ** 2)
+    integrals_corr_unc = np.sqrt(integrals[:, 0] + bgs_norm_unc**2)
 
     integrals_exp = np.array(
         [

@@ -10,7 +10,7 @@ from rimseval.processor import CRDFileProcessor
 
 @njit
 def _bin_array_avg(arr: np.ndarray, bins: int) -> np.ndarray:  # pragma: nocover
-    """Takes a numpy array and bins it by averaging the range.
+    """Take a numpy array and bins it by averaging the range.
 
     End of the array, if it doesn't fit, will be thrown away.
 
@@ -27,7 +27,7 @@ def _bin_array_avg(arr: np.ndarray, bins: int) -> np.ndarray:  # pragma: nocover
 
 @njit
 def _bin_array_sum(arr: np.ndarray, bin: int) -> np.ndarray:  # pragma: nocover
-    """Takes a numpy array and bins it by summing the range.
+    """Take a numpy array and bins it by summing the range.
 
     End of the array, if it doesn't fit, will be thrown away.
 
