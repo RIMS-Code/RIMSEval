@@ -6,6 +6,9 @@ RIMS Evaluation Software
 .. image:: https://github.com/RIMS-Code/RIMSEval/workflows/rimseval-tests/badge.svg?branch=main
     :target: https://github.com/RIMS-Code/RIMSEval
     :alt: Tests rimseval
+.. image:: https://img.shields.io/pypi/v/rimseval?color=informational
+    :target: https://pypi.org/project/rimseval/
+    :alt: PyPi rimseval
 .. image:: https://readthedocs.org/projects/rimseval/badge/?version=latest
     :target: https://rimseval.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
