@@ -8,7 +8,7 @@ Executable
 
 To install an executable file of the software on your computer,
 download the latest release version for your operating system from
-`the GitHub repository <https://github.com/RIMS-Code/RIMSEval/releases>`_.
+`the GitHub repository <https://github.com/RIMS-Code/RIMSEvalGUI/releases>`_.
 You do not need to have an existing python environment,
 since all dependencies will be installed along.
 
