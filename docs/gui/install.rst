@@ -26,7 +26,17 @@ Preapring your Environment
 
 If you work with Anaconda3,
 you should have the Anaconda Prompt installed on your system.
-Open the Anaconda Prompt and type:
+Open the Anaconda Prompt.
+First, we want to set up a virtual environment to use
+for the ``rimseval`` GUI.
+In the Anaconda Prompt, type:
+
+.. code-block:: shell-session
+
+    conda create -n rimseval python=3.9
+    conda activate rimseval
+
+Next let's check if ``git`` is available. Type:
 
 .. code-block:: shell-session
 
@@ -40,14 +50,10 @@ install it from the Anaconda Prompt via:
 
     conda install -c anaconda git
 
-Next, we want to set up a virtual environment to use
-for the ``rimseval`` GUI.
-In the Anaconda Prompt, type:
-
-.. code-block:: shell-session
-
-    conda create -n rimseval python=3.9
-    conda activate rimseval
+.. note:: If you do not have ``git`` installed system wide and install it
+    according to the order above, it will only be installed in your virtual environment.
+    This is fine, simply ensure that your virtual environment is activated
+    in any of the steps below (which it should be anyway).
 
 ++++++++++++++++++++++
 Installing RIMSEvalGUI
