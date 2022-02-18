@@ -12,36 +12,120 @@ download the latest release version for your operating system from
 You do not need to have an existing python environment,
 since all dependencies will be installed along.
 
---------------------
-Anaconda / Miniconda
---------------------
+.. note:: The executable is great for a working, bug-free program.
+    If you want to help debugging, it is recommended that you run the software
+    either from Anaconda (see below) or from regular Python directly.
 
-If you want to install the RIMSEval GUI on Anaconda,
-you should first set up a virtual environment.
-To setup the environment and activate it, type:
+--------
+Anaconda
+--------
+
+++++++++++++++++++++++++++
+Preapring your Environment
+++++++++++++++++++++++++++
+
+If you work with Anaconda3,
+you should have the Anaconda Prompt installed on your system.
+Open the Anaconda Prompt and type:
+
+.. code-block:: shell-session
+
+    git version
+
+You should see the version of ``git`` that you have installed.
+If you see an error saying that ``git`` was not found,
+install it from the Anaconda Prompt via:
+
+.. code-block:: shell-session
+
+    conda install -c anaconda git
+
+Next, we want to set up a virtual environment to use
+for the ``rimseval`` GUI.
+In the Anaconda Prompt, type:
 
 .. code-block:: shell-session
 
     conda create -n rimseval python=3.9
     conda activate rimseval
 
-Then you can install all requirements by typing:
+++++++++++++++++++++++
+Installing RIMSEvalGUI
+++++++++++++++++++++++
+
+With the ``rimseval`` virtual environment activated,
+move to a folder where you want to put the ``RIMSEvalGUI`` source code.
+Then clone the GitHub repository by typing:
+
+.. code-block:: shell-session
+
+    git clone https://github.com/RIMS-Code/RIMSEvalGUI.git
+    cd RIMSEvalGUI
+
+The last command will enter the newly created folder.
+Then install the necessary requirements by typing:
 
 .. code-block:: shell-session
 
     pip install -r requirements.txt
 
-The RIMSEval GUI can then be started by typing:
+If everything worked, you should be able to start the GUI
+by typing:
 
 .. code-block:: shell-session
 
     python RIMSEvalGUI.py
 
++++++++++++++++++++
+Running RIMSEvalGUI
++++++++++++++++++++
+
+If you start the Anaconda Prompt anew,
+you can run the program the next time by first moving to your installation folder.
+Then activate the virtual environment and run the python script.
+The following gives a summary of the steps to run the ``RIMSEvalGUI``.
+Note that the ``path_to_folder`` should be replaced with the folder
+where the ``RIMSEvalGUI`` folder lies.
+
+.. code-block:: shell-session
+
+    cd path_to_folder/RIMSEvalGUI
+    conda activate rimseval
+    python RIMSEvalGUI.py
+
+The GUI should start.
+The Anaconda Prompt in the background will show you any warnings
+and errors that the program throws.
+
+++++++++++++++++++++++++++
+Updating your installation
+++++++++++++++++++++++++++
+
+When a new version comes out,
+you want to update your installation as following.
+The steps to do so are as following form the Anaconda Prompt,
+noting the same caveat for folder navigation as above:
+
+.. code-block:: shell-session
+
+    cd path_to_folder/RIMSEvalGUI
+    conda activate rimseval
+    git pull
+    pip install -r requirements.txt --upgrade
+
+Now you can start the new GUI as described above.
+Double check that the latest version is indeed displayed in the window title.
+
 ------
 Python
 ------
 
-To setup teh RIMSEval GUI on regular python,
+.. note:: If you are used to `git` and `python`, these instructions
+    should work great for you.
+    Otherwise, it might be recommendable that you install Anaconda
+    and follow the instructions above.
+
+To setup the RIMSEval GUI on regular python,
 make sure that you have Python 3.9 installed installed.
 Then create a virtual environment.
 Instructions can, e.g., found
@@ -59,3 +143,13 @@ The RIMSEval GUI can then be started by typing:
 .. code-block:: shell-session
 
     python RIMSEvalGUI.py
+
+To update the RIMSEval GUI,
+refresh the folder from github and then upgrade the dependencies.
+From the shell you can accomplish this from within the RIMSEvalGUI folder,
+assuming you have initially cloned the folder from GitHub:
+
+.. code-block:: shell-session
+
+    git pull
+    pip install -r requirements.txt --upgrade
