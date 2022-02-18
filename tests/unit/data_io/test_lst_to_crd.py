@@ -66,7 +66,7 @@ def test_mcs8a_short_10k(tmpdir, lst_crd_path):
     )
 
 
-def test_mcs8a_short_10k_wrong_channel(tmpdir, lst_crd_path):
+def test_mcs8a_short_10k_wrong_channel_error_message(tmpdir, lst_crd_path):
     """Raise OSError and propose the correct channel to user"""
     lst_fname = "MCS8a_short_10k_signal.lst"
     other_channels = [9]

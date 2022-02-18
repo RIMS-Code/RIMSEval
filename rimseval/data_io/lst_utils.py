@@ -14,7 +14,8 @@ def ascii_to_ndarray(
     """Turn ASCII LST data to a numpy array.
 
     Takes the whole data block and returns the data in a properly formatted numpy array.
-    For speed, using numba JITing.
+    If channels other than the selected ones are available, these are written to a
+    List and also returned as ``other_channels``.
 
     :param data_list: Data, directly supplied from the TDC block.
     :param fmt: Format of the data
