@@ -20,7 +20,7 @@ def test_ascii_to_ndarray_ascii_1a_no_tag(init_lst_proc):
     channel = 4
     expected_return = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
 
-    ret_data, ret_tag = utl.ascii_to_ndarray(data_list, fmt, channel)
+    ret_data, ret_tag, _ = utl.ascii_to_ndarray(data_list, fmt, channel)
     np.testing.assert_equal(ret_data, expected_return)
     assert ret_tag is None
 
@@ -40,10 +40,27 @@ def test_ascii_to_ndarray_ascii_1a_tag(init_lst_proc):
     expected_data = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
     expected_tag = np.array([2], dtype=np.uint32)
 
-    ret_data, ret_tag = utl.ascii_to_ndarray(data_list, fmt, channel, tag)
+    ret_data, ret_tag, _ = utl.ascii_to_ndarray(data_list, fmt, channel, tag)
 
     np.testing.assert_equal(ret_data, expected_data)
     np.testing.assert_equal(ret_tag, expected_tag)
+
+
+def test_ascii_to_ndarray_ascii_1a_no_tag_other_channel(init_lst_proc):
+    """Convert ASCII_1A, data to numpy array, w/o tag."""
+    data_list = [
+        "0001000e7474",
+        "0002000e7474",
+        "0002000e7473",  # wrong channel
+        "0003000e7474",
+        "000000000000",  # zero
+    ]
+    fmt = init_lst_proc.ASCIIFormat.ASC_1A
+    other_channels_exp = [4]
+    channel = 3
+
+    _, _, other_channels_ret = utl.ascii_to_ndarray(data_list, fmt, channel)
+    assert other_channels_ret == other_channels_exp
 
 
 def test_get_sweep_time_ascii():

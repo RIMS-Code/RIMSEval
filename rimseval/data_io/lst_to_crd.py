@@ -85,6 +85,7 @@ class LST2CRD:
         self._data_format = None  # format of the data. auto set on reading
         self._data_signal = None  # data for signal (total)
         self._tags = None  # array for tagged shots
+        self._other_channels = None  # List for other channels that have counts
 
     # PROPERTIES #
 
@@ -264,13 +265,14 @@ class LST2CRD:
         self.set_data_format()
 
         if data_type.lower() == "asc":
-            data_sig, tags = lst_utils.ascii_to_ndarray(
+            data_sig, tags, other_channels = lst_utils.ascii_to_ndarray(
                 data_ascii, self._data_format, self.channel_data, self.channel_tag
             )
         else:
             raise NotImplementedError("Binary data is currently not supported.")
         self._data_signal = data_sig
         self._tags = tags
+        self._other_channels = other_channels
 
         # set number of ions
         self._file_info["no_ions"] = len(data_sig)
@@ -290,8 +292,9 @@ class LST2CRD:
 
         if self._data_signal.shape[0] == 0:
             raise OSError(
-                "There are no counts present in this file. Please double "
-                "check that you are using the correct channel for the signal."
+                f"There are no counts present in this file. Please double "
+                f"check that you are using the correct channel for the signal. "
+                f"The file seems to have counts in channels {self._other_channels}."
             )
 
         # calculate the maximum number of sweeps that can be recorded

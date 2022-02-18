@@ -10,18 +10,19 @@ from .lst_to_crd import LST2CRD
 
 def ascii_to_ndarray(
     data_list: List[str], fmt: LST2CRD.ASCIIFormat, channel: int, tag: int = None
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, List]:
     """Turn ASCII LST data to a numpy array.
 
     Takes the whole data block and returns the data in a properly formatted numpy array.
-    For speed, using numba JITing.
+    If channels other than the selected ones are available, these are written to a
+    List and also returned as ``other_channels``.
 
     :param data_list: Data, directly supplied from the TDC block.
     :param fmt: Format of the data
     :param channel: Channel the data is in
     :param tag: Channel the tag is in, or None if no tag
 
-    :return: Data, Tag Data
+    :return: Data, Tag Data, Other Channels available
     """
     # prepare the data and list
     data_arr = np.empty((len(data_list), 2), dtype=np.uint32)
@@ -41,6 +42,8 @@ def ascii_to_ndarray(
 
     tag_counter = 0
 
+    other_channels = []
+
     # transform to bin number with correct length
     for data in data_list:
         if data != "":
@@ -58,12 +61,15 @@ def ascii_to_ndarray(
                 swp_val, _ = get_sweep_time_ascii(bin_tmp, boundaries[0], boundaries[1])
                 data_arr_tag[tag_counter] = swp_val
                 tag_counter += 1
+            elif tmp_channel != 0:
+                if tmp_channel not in other_channels:
+                    other_channels.append(tmp_channel)
 
     data_arr = data_arr[:ion_counter]
     if tag is not None:
         data_arr_tag = data_arr_tag[:tag_counter]
 
-    return data_arr, data_arr_tag
+    return data_arr, data_arr_tag, other_channels
 
 
 def get_sweep_time_ascii(
