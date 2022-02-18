@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+import rimseval
 from rimseval import interfacer
 from rimseval.processor import CRDFileProcessor
 
@@ -217,3 +218,19 @@ def test_calculation_with_filters(crd_data):
     np.testing.assert_equal(crd.data, crd2.data)
     np.testing.assert_equal(crd.data_pkg, crd2.data_pkg)
     np.testing.assert_equal(crd.tof, crd2.tof)
+
+
+def test_calculation_tof_spectrum_never_cut(crd_data):
+    """Ensure tof spectrum length stays the same throughout filters"""
+    fname = crd_data.joinpath("ti_standard_01.crd")
+    crd = CRDFileProcessor(fname)
+    interfacer.load_cal_file(crd)
+    crd.spectrum_full()
+    crd.mass_calibration()
+
+    # cut the range, the set max ions per shot
+    crd.spectrum_part([[1, 10000]])
+    crd.filter_max_ions_per_shot(10)
+
+    assert crd.data.shape == crd.tof.shape
+    assert crd.data.shape == crd.mass.shape
