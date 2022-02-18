@@ -101,20 +101,44 @@ and errors that the program throws.
 Updating your installation
 ++++++++++++++++++++++++++
 
-When a new version comes out,
-you want to update your installation as following.
-The steps to do so are as following form the Anaconda Prompt,
-noting the same caveat for folder navigation as above:
+Updating your installation, e.g., when a new version comes out,
+can be easily done with git.
+The steps to do so are as following form the Anaconda Prompt.
+We assume that you have already activated the ``rimseval`` virtual environment
+and changed directory into the ``RIMSEvalGUI`` folder on your computer (see above).
 
 .. code-block:: shell-session
 
-    cd path_to_folder/RIMSEvalGUI
-    conda activate rimseval
     git pull
     pip install -r requirements.txt --upgrade
 
 Now you can start the new GUI as described above.
 Double check that the latest version is indeed displayed in the window title.
+
+The above procedure gives you the latest development version.
+If you rather prefer the latest version that was officially released,
+check the releases
+`here <https://github.com/RIMS-Code/RIMSEvalGUI/releases>`_.
+Each release has a so-called tag associated with it,
+which is equal to the version number of the release.
+For example, to check out version `v2.0.0` and not go to the latest development version,
+proceed as following:
+
+.. code-block:: shell-session
+
+    git pull
+    git checkout tags/v2.0.0
+    pip install -r requirements.txt --upgrade
+
+To switch back to the main branch / latest development version,
+you can simply type:
+
+.. code-block:: shell-session
+
+    git checkout main
+    git pull
+    git install -r requirements.txt --upgrade
+
 
 ------
 Python
