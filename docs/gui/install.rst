@@ -121,7 +121,7 @@ check the releases
 `here <https://github.com/RIMS-Code/RIMSEvalGUI/releases>`_.
 Each release has a so-called tag associated with it,
 which is equal to the version number of the release.
-For example, to check out version `v2.0.0` and not go to the latest development version,
+For example, to check out version ``v2.0.0`` and not go to the latest development version,
 proceed as following:
 
 .. code-block:: shell-session
