@@ -1,4 +1,4 @@
-"""Initialization of the rimseval package."""
+"""Resonance Ionization Mass Spectrometry (RIMS) Data Evaluation for CRD Files."""
 
 import iniabu
 
