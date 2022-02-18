@@ -254,8 +254,8 @@ class CRDFileProcessor:
 
         self.data = processor_utils.sort_data_into_spectrum(
             all_tofs_filtered,
-            self.all_tofs.min(),
-            self.all_tofs.max(),
+            self.crd.all_tofs.min(),
+            self.crd.all_tofs.max(),
         )
 
         # remove the rejected shots from packages
@@ -805,7 +805,7 @@ class CRDFileProcessor:
             self.data = np.zeros_like(self.data)
         else:
             self.data = processor_utils.sort_data_into_spectrum(
-                all_tofs_filtered, self.all_tofs.min(), self.all_tofs.max()
+                all_tofs_filtered, self.crd.all_tofs.min(), self.crd.all_tofs.max()
             )
 
         # set back values
