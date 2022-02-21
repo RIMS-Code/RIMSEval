@@ -16,8 +16,8 @@ try:
 except ImportError:
     qdarktheme = None
 
-from rimseval.processor import CRDFileProcessor
 from rimseval.guis.mpl_canvas import MyMplNavigationToolbar
+from rimseval.processor import CRDFileProcessor
 
 
 class PlotFigure(QtWidgets.QMainWindow):
@@ -106,10 +106,10 @@ def dt_ions(crd: CRDFileProcessor, logy: bool = False, theme: str = None) -> Non
     app = QtWidgets.QApplication(sys.argv)
     fig = PlotFigure(logy=logy, theme=theme)
 
-    if theme == "dark":
-        main_color = "w"
-    else:
-        main_color = "tab:blue"
+    # if theme == "dark":
+    #     main_color = "w"
+    # else:
+    #     main_color = "tab:blue"
 
     # fig.axes.bar(xdata, hist, width=1, color=main_color, label="Data")
     # fig.axes.step(
