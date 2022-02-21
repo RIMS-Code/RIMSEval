@@ -94,6 +94,46 @@ class PlotFigure(QtWidgets.QMainWindow):
         self.sc.draw()
 
 
+def dt_ions(crd: CRDFileProcessor, logy: bool = False, theme: str = None) -> None:
+    """Plot ToF difference between ions for shots with 2+ ions.
+
+    Todo: Finish this routine
+
+    :param crd: CRD file to process.
+    :param logy: Plot with logarithmic y axis? Defaults to ``True``
+    :param theme: Theme to plot in, defaults to ``None``.
+    """
+    app = QtWidgets.QApplication(sys.argv)
+    fig = PlotFigure(logy=logy, theme=theme)
+
+    if theme == "dark":
+        main_color = "w"
+    else:
+        main_color = "tab:blue"
+
+    # fig.axes.bar(xdata, hist, width=1, color=main_color, label="Data")
+    # fig.axes.step(
+    #     xdata - 0.5,
+    #     theoretical_values,
+    #     "-",
+    #     color="tab:red",
+    #     label="Poisson Distribution",
+    # )
+
+    # labels
+    # fig.axes.set_xlabel("Number of ions in individual shot")
+    # fig.axes.set_ylabel("Frequency")
+    # fig.axes.set_title(
+    #     f"Histogram number of ions per shot - {crd.fname.with_suffix('').name}"
+    # )
+
+    # fig.axes.legend()
+
+    # create the app
+    fig.show()
+    app.exec()
+
+
 def hist_nof_shots(
     crd: CRDFileProcessor, logy: bool = False, theme: str = None
 ) -> None:
