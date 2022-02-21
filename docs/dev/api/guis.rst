@@ -152,3 +152,16 @@ the zoom function is automatically deactivated.
 .. autoclass:: MyMplNavigationToolbar
     :members:
     :undoc-members:
+
+
+
+.. currentmodule:: rimseval.guis.plots
+
+-----
+Plots
+-----
+
+These routines allow for specialty plots,
+i.e., to plot figures that are enot regularly used
+or needed during data evaluation but can give
+useful further information on the instrument, etc.
