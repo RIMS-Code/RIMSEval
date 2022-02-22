@@ -88,4 +88,4 @@ the data is ordered in two arrays with one helper array.
     .. code-block:: python
 
         tof_range = crd.ions_per_shot[9]  # the first shot is index 0
-        arrival_bins = crd.all_tofs[tof_range]
+        arrival_bins = crd.all_tofs[tof_range[0]:tof_range[1]]
