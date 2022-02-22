@@ -106,19 +106,20 @@ def dt_ions(crd: CRDFileProcessor, logy: bool = False, theme: str = None) -> Non
     app = QtWidgets.QApplication(sys.argv)
     fig = PlotFigure(logy=logy, theme=theme)
 
-    # if theme == "dark":
-    #     main_color = "w"
-    # else:
-    #     main_color = "tab:blue"
+    if theme == "dark":
+        main_color = "w"
+        text_color = "w"
+    else:
+        main_color = "tab:blue"
+        text_color = "k"
 
-    # fig.axes.bar(xdata, hist, width=1, color=main_color, label="Data")
-    # fig.axes.step(
-    #     xdata - 0.5,
-    #     theoretical_values,
-    #     "-",
-    #     color="tab:red",
-    #     label="Poisson Distribution",
-    # )
+    ion_ranges = crd.ions_to_tof_map[np.where(crd.ions_per_shot > 1)]
+    spacings, frequency = _calculate_bin_differences(crd.all_tofs, ion_ranges)
+
+    # turn spacings to ns
+    spacings *= crd.crd.header["binLength"]  # us to ns: * 1000, ps to ns / 1000
+
+    fig.axes.plot(spacings, frequency, "-", color=main_color)
 
     # labels
     # fig.axes.set_xlabel("Number of ions in individual shot")
@@ -191,3 +192,40 @@ def _create_histogram(data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     for it in data:
         hist[int(it)] += 1
     return xdata, hist
+
+
+@njit
+def _calculate_bin_differences(
+    all_tofs: np.ndarray, ion_ranges: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Sort through bins and write the bin spacings back.
+
+    :param all_tofs: All tofs array with info on arrival bins
+    :param ion_ranges: Range of ions to consider.
+
+    :return: Spacings between ions in bins, frequency of spacing occurance
+    """
+    # calculate number of spacings -> must be a gaussian sum of numbers
+    nof_spacings = 0
+    for rng in ion_ranges:
+        nof_ions = rng[1] - rng[0]
+        nof_spacings += nof_ions * (nof_ions - 1) / 2
+
+    ind = 0
+    spacings = np.zeros(int(nof_spacings), dtype=np.int32)
+    for rng in ion_ranges:
+        ions = all_tofs[rng[0] : rng[1]]
+        for it in range(len(ions) - 1):
+            diffs = ions[it + 1 :] - ions[it]
+            spacings[ind : ind + len(diffs)] = diffs
+            ind += len(diffs)
+
+    # now create the histogram
+    min_diff = np.min(spacings)
+    max_diff = np.max(spacings)
+
+    frequency = np.zeros(max_diff - min_diff + 1, dtype=np.int32)
+    for sp in spacings:
+        frequency[sp - min_diff] += 1
+
+    return np.arange(min_diff, max_diff + 1), frequency
