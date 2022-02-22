@@ -11,8 +11,6 @@ import numpy as np
 from PyQt6 import QtWidgets
 from scipy.stats import poisson
 
-import rimseval.guis.mpl_canvas
-
 try:
     import qdarktheme
 except ImportError:
@@ -48,8 +46,8 @@ class PlotFigure(QtWidgets.QMainWindow):
 
         # create a matpotlib canvas using my own canvas
         self.fig = Figure(figsize=(9, 6), dpi=100)
-        sc = FigureCanvas(self.fig)
         self.axes = self.fig.add_subplot(111)
+        sc = FigureCanvas(self.fig)
         self.sc = sc
 
         toolbar = MyMplNavigationToolbar(sc, self)
@@ -68,7 +66,7 @@ class PlotFigure(QtWidgets.QMainWindow):
         self.button_logy_toggle = QtWidgets.QPushButton("LogY")
         self.button_logy_toggle.setCheckable(True)
         self.button_logy_toggle.setChecked(logy)
-        # self.button_logy_toggle.clicked.connect(self.logy_toggle)
+        self.button_logy_toggle.clicked.connect(self.logy_toggle)
         self.bottom_layout.addWidget(self.button_logy_toggle)
 
         close_button = QtWidgets.QPushButton("Close")
@@ -118,19 +116,28 @@ class DtIons(PlotFigure):
         """
         super().__init__(logy=logy, theme=theme)
 
-        ion_ranges = crd.ions_to_tof_map[np.where(crd.ions_per_shot > 1)]
-        spacings, frequency = _calculate_bin_differences(crd.all_tofs, ion_ranges)
+        self.setWindowTitle("Histogram time difference between ions")
+
+        self.crd = crd
+        self.max_ns = max_ns
+
+        self.calc_and_draw()
+
+    def calc_and_draw(self) -> None:
+        """Calculate the required data and draw it."""
+        ion_ranges = self.crd.ions_to_tof_map[np.where(self.crd.ions_per_shot > 1)]
+        spacings, frequency = _calculate_bin_differences(self.crd.all_tofs, ion_ranges)
 
         # turn spacings to ns
         spacings = spacings.astype(float)
-        spacings *= crd.crd.header["binLength"] / 1000  # bins are in ps
+        spacings *= self.crd.crd.header["binLength"] / 1000  # bins are in ps
 
         # plot
         self.axes.plot(spacings, frequency, "-", color=self.main_color)
         self.axes.text(
             0.95,
             0.95,
-            f"TDC bin length: {crd.crd.header['binLength']}ps",
+            f"TDC bin length: {self.crd.crd.header['binLength']}ps",
             horizontalalignment="right",
             verticalalignment="top",
             transform=self.axes.transAxes,
@@ -139,11 +146,11 @@ class DtIons(PlotFigure):
         # labels
         self.axes.set_xlabel("Time between all ions for individual shots (ns)")
         self.axes.set_ylabel("Frequency")
-        self.axes.set_title(f"{crd.fname.with_suffix('').name}")
+        self.axes.set_title(f"{self.crd.fname.with_suffix('').name}")
 
         # ax limit
-        if max_ns is not None:
-            self.axes.set_xlim(right=max_ns)
+        if self.max_ns is not None:
+            self.axes.set_xlim(right=self.max_ns)
         self.axes.set_xlim(left=0)
         self.axes.set_ylim(bottom=0)
 
@@ -151,7 +158,7 @@ class DtIons(PlotFigure):
 
 
 class IonsPerShot(PlotFigure):
-    """Plot histogram for number of ions per shot"""
+    """Plot histogram for number of ions per shot."""
 
     def __init__(
         self, crd: CRDFileProcessor, logy: bool = False, theme: str = None
@@ -166,10 +173,16 @@ class IonsPerShot(PlotFigure):
 
         self.setWindowTitle("Histogram ions per shot")
 
-        xdata, hist = _create_histogram(crd.ions_per_shot)
+        self.crd = crd
+
+        self.calc_and_draw()
+
+    def calc_and_draw(self) -> None:
+        """Calculate the histogram and plot it."""
+        xdata, hist = _create_histogram(self.crd.ions_per_shot)
 
         # theoretical prediction
-        lambda_poisson = np.sum(crd.ions_per_shot) / crd.nof_shots
+        lambda_poisson = np.sum(self.crd.ions_per_shot) / self.crd.nof_shots
         theoretical_values = poisson.pmf(xdata, lambda_poisson) * np.sum(hist)
 
         # plot
@@ -186,7 +199,7 @@ class IonsPerShot(PlotFigure):
         self.axes.set_xlabel("Number of ions in individual shot")
         self.axes.set_ylabel("Frequency")
         self.axes.set_title(
-            f"Histogram number of ions per shot - {crd.fname.with_suffix('').name}"
+            f"Histogram number of ions per shot - {self.crd.fname.with_suffix('').name}"
         )
         self.axes.legend()
 
