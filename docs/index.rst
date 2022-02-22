@@ -52,6 +52,7 @@ Contents
     pkg/guis
     pkg/filters
     pkg/variables
+    pkg/special
 
 .. toctree::
     :maxdepth: 2
