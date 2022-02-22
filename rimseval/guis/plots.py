@@ -11,6 +11,8 @@ import numpy as np
 from PyQt6 import QtWidgets
 from scipy.stats import poisson
 
+import rimseval.guis.mpl_canvas
+
 try:
     import qdarktheme
 except ImportError:
@@ -23,14 +25,14 @@ from rimseval.processor import CRDFileProcessor
 class PlotFigure(QtWidgets.QMainWindow):
     """QMainWindow to plot a Figure."""
 
-    def __init__(self, logy: bool = True, theme: str = None) -> None:
+    def __init__(self, logy: bool = False, theme: str = None) -> None:
         """Get a PyQt5 window to define the mass calibration for the given data.
 
         :param logy: Display the y axis logarithmically? Bottom set to 0.7
         :param theme: Theme, if applicable ("dark" or "light", default None)
         """
         super().__init__()
-        self.setWindowTitle("Mass Spectrum")
+        self.setWindowTitle("Figure")
 
         self.theme = theme
         if theme is not None and qdarktheme is not None:
@@ -38,6 +40,9 @@ class PlotFigure(QtWidgets.QMainWindow):
 
         if theme == "dark":
             plt.style.use("dark_background")
+            self.main_color = "w"
+        else:
+            self.main_color = "tab:blue"
 
         self.logy = logy
 
@@ -63,7 +68,7 @@ class PlotFigure(QtWidgets.QMainWindow):
         self.button_logy_toggle = QtWidgets.QPushButton("LogY")
         self.button_logy_toggle.setCheckable(True)
         self.button_logy_toggle.setChecked(logy)
-        self.button_logy_toggle.clicked.connect(self.logy_toggle)
+        # self.button_logy_toggle.clicked.connect(self.logy_toggle)
         self.bottom_layout.addWidget(self.button_logy_toggle)
 
         close_button = QtWidgets.QPushButton("Close")
@@ -94,6 +99,100 @@ class PlotFigure(QtWidgets.QMainWindow):
         self.sc.draw()
 
 
+class DtIons(PlotFigure):
+    """Plot time differences between ions."""
+
+    def __init__(
+        self,
+        crd: CRDFileProcessor,
+        logy: bool = False,
+        theme: str = None,
+        max_ns: float = None,
+    ) -> None:
+        """Initialize the class.
+
+        :param crd: CRD file to process.
+        :param logy: Plot with logarithmic y axis? Defaults to ``True``
+        :param theme: Theme to plot in, defaults to ``None``.
+        :param max_ns: Maximum time to plot in ns. If None, plots all.
+        """
+        super().__init__(logy=logy, theme=theme)
+
+        ion_ranges = crd.ions_to_tof_map[np.where(crd.ions_per_shot > 1)]
+        spacings, frequency = _calculate_bin_differences(crd.all_tofs, ion_ranges)
+
+        # turn spacings to ns
+        spacings = spacings.astype(float)
+        spacings *= crd.crd.header["binLength"] / 1000  # bins are in ps
+
+        # plot
+        self.axes.plot(spacings, frequency, "-", color=self.main_color)
+        self.axes.text(
+            0.95,
+            0.95,
+            f"TDC bin length: {crd.crd.header['binLength']}ps",
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=self.axes.transAxes,
+        )
+
+        # labels
+        self.axes.set_xlabel("Time between all ions for individual shots (ns)")
+        self.axes.set_ylabel("Frequency")
+        self.axes.set_title(f"{crd.fname.with_suffix('').name}")
+
+        # ax limit
+        if max_ns is not None:
+            self.axes.set_xlim(right=max_ns)
+        self.axes.set_xlim(left=0)
+        self.axes.set_ylim(bottom=0)
+
+        self.sc.draw()
+
+
+class IonsPerShot(PlotFigure):
+    """Plot histogram for number of ions per shot"""
+
+    def __init__(
+        self, crd: CRDFileProcessor, logy: bool = False, theme: str = None
+    ) -> None:
+        """Initialize the class.
+
+        :param crd: CRD file to process.
+        :param logy: Plot with logarithmic y-axis? Defaults to ``True``
+        :param theme: Theme to plot in, defaults to ``None``.
+        """
+        super().__init__(logy=logy, theme=theme)
+
+        self.setWindowTitle("Histogram ions per shot")
+
+        xdata, hist = _create_histogram(crd.ions_per_shot)
+
+        # theoretical prediction
+        lambda_poisson = np.sum(crd.ions_per_shot) / crd.nof_shots
+        theoretical_values = poisson.pmf(xdata, lambda_poisson) * np.sum(hist)
+
+        # plot
+        self.axes.bar(xdata, hist, width=1, color=self.main_color, label="Data")
+        self.axes.step(
+            xdata - 0.5,
+            theoretical_values,
+            "-",
+            color="tab:red",
+            label="Poisson Distribution",
+        )
+
+        # labels
+        self.axes.set_xlabel("Number of ions in individual shot")
+        self.axes.set_ylabel("Frequency")
+        self.axes.set_title(
+            f"Histogram number of ions per shot - {crd.fname.with_suffix('').name}"
+        )
+        self.axes.legend()
+
+        self.sc.draw()
+
+
 def dt_ions(
     crd: CRDFileProcessor, logy: bool = False, theme: str = None, max_ns: float = None
 ) -> None:
@@ -105,48 +204,12 @@ def dt_ions(
     :param max_ns: Maximum time to plot in ns. If None, plots all.
     """
     app = QtWidgets.QApplication(sys.argv)
-    fig = PlotFigure(logy=logy, theme=theme)
-
-    if theme == "dark":
-        main_color = "w"
-    else:
-        main_color = "tab:blue"
-
-    ion_ranges = crd.ions_to_tof_map[np.where(crd.ions_per_shot > 1)]
-    spacings, frequency = _calculate_bin_differences(crd.all_tofs, ion_ranges)
-
-    # turn spacings to ns
-    spacings = spacings.astype(float)
-    spacings *= crd.crd.header["binLength"] / 1000  # bins are in ps
-
-    # plot
-    fig.axes.plot(spacings, frequency, "-", color=main_color)
-    fig.axes.text(
-        0.95,
-        0.95,
-        f"TDC bin length: {crd.crd.header['binLength']}ps",
-        horizontalalignment="right",
-        verticalalignment="top",
-        transform=fig.axes.transAxes,
-    )
-
-    # labels
-    fig.axes.set_xlabel("Time between all ions for individual shots (ns)")
-    fig.axes.set_ylabel("Frequency")
-    fig.axes.set_title(f"{crd.fname.with_suffix('').name}")
-
-    # ax limit
-    if max_ns is not None:
-        fig.axes.set_xlim(right=max_ns)
-    fig.axes.set_xlim(left=0)
-    fig.axes.set_ylim(bottom=0)
-
-    # create the app
-    fig.show()
+    window = DtIons(crd, logy=logy, theme=theme, max_ns=max_ns)
+    window.show()
     app.exec()
 
 
-def hist_nof_shots(
+def nof_ions_per_shot(
     crd: CRDFileProcessor, logy: bool = False, theme: str = None
 ) -> None:
     """Plot a histogram of the number of shots in a given crd file.
@@ -158,40 +221,8 @@ def hist_nof_shots(
     :param theme: Theme to plot in, defaults to ``None``.
     """
     app = QtWidgets.QApplication(sys.argv)
-    fig = PlotFigure(logy=logy, theme=theme)
-
-    xdata, hist = _create_histogram(crd.ions_per_shot)
-
-    # theoretical prediction
-    lambda_poisson = np.sum(crd.ions_per_shot) / crd.nof_shots
-    theoretical_values = poisson.pmf(xdata, lambda_poisson) * np.sum(hist)
-
-    if theme == "dark":
-        main_color = "w"
-    else:
-        main_color = "tab:blue"
-
-    fig.axes.bar(xdata, hist, width=1, color=main_color, label="Data")
-    fig.axes.step(
-        xdata - 0.5,
-        theoretical_values,
-        "-",
-        color="tab:red",
-        label="Poisson Distribution",
-    )
-
-    # labels
-    fig.axes.set_xlabel("Number of ions in individual shot")
-    fig.axes.set_ylabel("Frequency")
-    fig.axes.set_title(
-        f"Histogram number of ions per shot - {crd.fname.with_suffix('').name}"
-    )
-
-    fig.axes.legend()
-    fig.show()
-
-    # create the app
-    fig.show()
+    window = IonsPerShot(crd, logy=logy, theme=theme)
+    window.show()
     app.exec()
 
 

@@ -39,7 +39,7 @@ The following code shows you how to do this:
     crd = CRDFileProcessor(crd)
     crd.spectrum_full()
 
-    hist_nof_shots(crd)
+    nof_ions_per_shot(crd)
 
 This will open a  ``matplotlib`` window and display the histogram.
 
