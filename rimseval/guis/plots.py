@@ -94,41 +94,52 @@ class PlotFigure(QtWidgets.QMainWindow):
         self.sc.draw()
 
 
-def dt_ions(crd: CRDFileProcessor, logy: bool = False, theme: str = None) -> None:
+def dt_ions(
+    crd: CRDFileProcessor, logy: bool = False, theme: str = None, max_ns: float = None
+) -> None:
     """Plot ToF difference between ions for shots with 2+ ions.
-
-    Todo: Finish this routine
 
     :param crd: CRD file to process.
     :param logy: Plot with logarithmic y axis? Defaults to ``True``
     :param theme: Theme to plot in, defaults to ``None``.
+    :param max_ns: Maximum time to plot in ns. If None, plots all.
     """
     app = QtWidgets.QApplication(sys.argv)
     fig = PlotFigure(logy=logy, theme=theme)
 
     if theme == "dark":
         main_color = "w"
-        text_color = "w"
     else:
         main_color = "tab:blue"
-        text_color = "k"
 
     ion_ranges = crd.ions_to_tof_map[np.where(crd.ions_per_shot > 1)]
     spacings, frequency = _calculate_bin_differences(crd.all_tofs, ion_ranges)
 
     # turn spacings to ns
-    spacings *= crd.crd.header["binLength"]  # us to ns: * 1000, ps to ns / 1000
+    spacings = spacings.astype(float)
+    spacings *= crd.crd.header["binLength"] / 1000  # bins are in ps
 
+    # plot
     fig.axes.plot(spacings, frequency, "-", color=main_color)
+    fig.axes.text(
+        0.95,
+        0.95,
+        f"TDC bin length: {crd.crd.header['binLength']}ps",
+        horizontalalignment="right",
+        verticalalignment="top",
+        transform=fig.axes.transAxes,
+    )
 
     # labels
-    # fig.axes.set_xlabel("Number of ions in individual shot")
-    # fig.axes.set_ylabel("Frequency")
-    # fig.axes.set_title(
-    #     f"Histogram number of ions per shot - {crd.fname.with_suffix('').name}"
-    # )
+    fig.axes.set_xlabel("Time between all ions for individual shots (ns)")
+    fig.axes.set_ylabel("Frequency")
+    fig.axes.set_title(f"{crd.fname.with_suffix('').name}")
 
-    # fig.axes.legend()
+    # ax limit
+    if max_ns is not None:
+        fig.axes.set_xlim(right=max_ns)
+    fig.axes.set_xlim(left=0)
+    fig.axes.set_ylim(bottom=0)
 
     # create the app
     fig.show()
@@ -216,7 +227,7 @@ def _calculate_bin_differences(
     for rng in ion_ranges:
         ions = all_tofs[rng[0] : rng[1]]
         for it in range(len(ions) - 1):
-            diffs = ions[it + 1 :] - ions[it]
+            diffs = np.abs(ions[it + 1 :] - ions[it])
             spacings[ind : ind + len(diffs)] = diffs
             ind += len(diffs)
 
