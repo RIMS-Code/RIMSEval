@@ -192,6 +192,10 @@ class MultiFileProcessor(QtCore.QObject):
         qualifier) if it exists. Otherwise, if a secondary calibration is given,
         it will try to load that one. If that file does not exist either, nothing
         will be done.
+
+        :param crd: CRD file to load the calibration for.
+        :param secondary_cal: Optional, calibration to fall back on if no primary
+            calibration is available.
         """
         if (calfile := crd.fname.with_suffix(".json")).is_file():
             pass
