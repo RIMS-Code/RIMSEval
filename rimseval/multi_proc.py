@@ -139,10 +139,54 @@ class MultiFileProcessor(QtCore.QObject):
         gc.collect()  # garbage collector
         self._files = None
 
+    def close_selected_files(self, ids: List[int], main_id: int = None) -> int:
+        """Close selected files.
+
+        Close the ided files and free the memory. If the main_id is given, the program
+        will return the new ID of the main file in case it got changed. If the main
+        file is gone or no main file was provided, zero is returned.
+
+        :param ids: List of file IDs, i.e., where they are in ``self.files``.
+        :param main_id: ID of the main file, an updated ID will be returned if main
+            file is present, otherwise zero will be returned.
+
+        :return: New ID of main file if present or given. Otherwise, return zero.
+        """
+        main_file = None
+        if main_id is not None:
+            main_file = self._files[main_id]
+
+        ids.sort(reverse=True)
+        for id in ids:
+            del self._files[id]
+        gc.collect()
+
+        if main_id is None:
+            return 0
+        elif main_file not in self._files:
+            return 0
+        else:
+            return self._files.index(main_file)
+
     def open_files(self) -> None:
         """Open the files and store them in the list."""
         files = [CRDFileProcessor(fname) for fname in self.crd_files]
         self._files = files
+
+    def open_additional_files(self, fnames: List[Path], read_files=True) -> None:
+        """Open additional files to the ones already opened.
+
+        Files will be appended to the list, no sorting.
+
+        :param fnames: List of filenames for the additional files to be opened.
+        :param read_files: Read the files after opening?
+        """
+        for fname in fnames:
+            file_to_add = CRDFileProcessor(fname)
+            if read_files:
+                file_to_add.spectrum_full()
+
+            self._files.append(file_to_add)
 
     def read_files(self) -> None:
         """Run spectrum_full on all CRD files."""
