@@ -8,7 +8,7 @@ ini = iniabu.IniAbu(database="nist")  # select correct iniabu database for this 
 
 
 @njit
-def not_index(ind: np.array, length: int) -> np.array:  # pragma: nocov
+def not_index(ind: np.array, length: int) -> np.array:  # pragma: nocover
     """Reverse an index.
 
     After filtering ions, e.g., using `np.where`, and keeping the indices of an array,

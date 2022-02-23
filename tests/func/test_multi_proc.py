@@ -38,6 +38,37 @@ def test_mfp_close_files(crd_file):
     assert crds._files is None
 
 
+def test_mfp_close_selected_files(crd_file):
+    """Close 2 out of three selected files."""
+    _, _, _, fname = crd_file
+    files = [Path(fname)] * 5
+
+    crds = mfp(files)
+    crds.open_files()
+
+    main_id = 3  # the main file
+
+    ids_to_del = [0, 2]
+    new_main_id = crds.close_selected_files(ids_to_del, main_id=main_id)
+    assert new_main_id == 1  # main id update
+    assert len(crds.files) == len(files) - len(ids_to_del)
+
+    # delete main file
+    assert crds.close_selected_files([new_main_id], main_id=new_main_id) == 0
+
+    # delete one more without a main id file -> returns zero
+    assert crds.close_selected_files([0]) == 0
+    assert len(crds.files) == len(files) - len(ids_to_del) - 2
+
+
+def test_mfp_load_calibration_pass_through(crd_file):
+    """Do nothing if no calibration file is available."""
+    _, _, _, fname = crd_file
+    crds = mfp([Path(fname)])
+    crds.load_calibrations()
+    assert crds.files[0].def_mcal is None
+
+
 def test_mfp_open_crd_file(crd_file):
     """Open a single file in the multifileprocessor."""
     _, _, _, fname = crd_file
@@ -48,6 +79,23 @@ def test_mfp_open_crd_file(crd_file):
     assert crds.files is not None
     for crd in crds.files:
         assert isinstance(crd, CRDFileProcessor)
+
+
+def test_mfp_open_additional_file(crd_file):
+    """Open additional file in MFP with single file already opened."""
+    _, _, _, fname = crd_file
+
+    crds = mfp([Path(fname)])
+    crds.read_files()
+
+    assert len(crds.files) == 1
+
+    crds.open_additional_files([Path(fname), Path(fname)], read_files=True)
+    assert len(crds.files) == 3
+
+    # ensure all files were read
+    for crd in crds.files:
+        assert crd.tof is not None
 
 
 def test_mfp_read_crd_file(crd_file):
