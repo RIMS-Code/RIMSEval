@@ -170,13 +170,17 @@ useful further information on the instrument, etc.
 :func:`dt_ions`
 ***************
 
+Create a PyQt app and run it.
+
 .. autofunction:: dt_ions
 
-**********************
-:func:`hist_nof_shots`
-**********************
+*************************
+:func:`nof_ions_per_shot`
+*************************
 
-.. autofunction:: hist_nof_shots
+Create a PyQt app and run it.
+
+.. autofunction:: nof_ions_per_shot
 
 *******************
 :class:`PlotFigure`
@@ -185,5 +189,25 @@ useful further information on the instrument, etc.
 Class to plot a figure.
 
 .. autoclass:: PlotFigure
+    :members:
+    :undoc-members:
+
+***************
+:class:`DtIons`
+***************
+
+Matplotlib PyQt figure to plot histogram for arrival time differences between ions.
+
+.. autoclass:: DtIons
+    :members:
+    :undoc-members:
+
+********************
+:class:`IonsPerShot`
+********************
+
+Matplotlib PyQt figure to plot histogram of ions per shot.
+
+.. autoclass:: IonsPerShot
     :members:
     :undoc-members:
