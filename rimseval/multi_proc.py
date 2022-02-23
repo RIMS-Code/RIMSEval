@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 from PyQt6 import QtCore
 
-import rimseval.interfacer
+import rimseval
 from rimseval.processor import CRDFileProcessor
 
 
@@ -168,23 +168,61 @@ class MultiFileProcessor(QtCore.QObject):
         else:
             return self._files.index(main_file)
 
+    def load_calibrations(self, secondary_cal: Path = None) -> None:
+        """Load calibration files for all CRDs.
+
+        This routine checks first if a calibration file with the same name exists.
+        If so, it will be loaded. If no primary calibration is present and a secondary
+        calibration filename is given, the program will try to load that one if it
+        exists. Otherwise, no calibration will be loaded.
+
+        :param secondary_cal: File for secondary calibration. Will only be used if it
+            exists.
+        """
+        for crd in self.files:
+            self.load_calibration_single(crd, secondary_cal=secondary_cal)
+
+    @staticmethod
+    def load_calibration_single(
+        crd: CRDFileProcessor, secondary_cal: Path = None
+    ) -> None:
+        """Load a single calibration for a CRD file.
+
+        Loads the primary calibration (i.e., the one with the same name but .json
+        qualifier) if it exists. Otherwise, if a secondary calibration is given,
+        it will try to load that one. If that file does not exist either, nothing
+        will be done.
+        """
+        if (calfile := crd.fname.with_suffix(".json")).is_file():
+            pass
+        elif secondary_cal is not None and (calfile := secondary_cal).is_file():
+            pass
+        else:
+            return
+
+        rimseval.interfacer.load_cal_file(crd, calfile)
+
     def open_files(self) -> None:
         """Open the files and store them in the list."""
         files = [CRDFileProcessor(fname) for fname in self.crd_files]
         self._files = files
 
-    def open_additional_files(self, fnames: List[Path], read_files=True) -> None:
+    def open_additional_files(
+        self, fnames: List[Path], read_files=True, secondary_cal=None
+    ) -> None:
         """Open additional files to the ones already opened.
 
         Files will be appended to the list, no sorting.
 
         :param fnames: List of filenames for the additional files to be opened.
         :param read_files: Read the files after opening?
+        :param secondary_cal: Secondary calibration file for loading calibrations.
         """
         for fname in fnames:
             file_to_add = CRDFileProcessor(fname)
             if read_files:
                 file_to_add.spectrum_full()
+            self.load_calibration_single(file_to_add, secondary_cal=secondary_cal)
 
             self._files.append(file_to_add)
 

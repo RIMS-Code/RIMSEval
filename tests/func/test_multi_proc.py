@@ -61,6 +61,14 @@ def test_mfp_close_selected_files(crd_file):
     assert len(crds.files) == len(files) - len(ids_to_del) - 2
 
 
+def test_mfp_load_calibration_pass_through(crd_file):
+    """Do nothing if no calibration file is available."""
+    _, _, _, fname = crd_file
+    crds = mfp([Path(fname)])
+    crds.load_calibrations()
+    assert crds.files[0].def_mcal is None
+
+
 def test_mfp_open_crd_file(crd_file):
     """Open a single file in the multifileprocessor."""
     _, _, _, fname = crd_file

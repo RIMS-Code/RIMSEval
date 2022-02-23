@@ -71,3 +71,17 @@ def test_mfp_apply_to_all_main_file_not_processed(crd_file):
         assert crd.nof_shots == crd_main.nof_shots
         np.testing.assert_equal(crd.nof_shots_pkg, crd_main.nof_shots_pkg)
         assert crd.fname.with_suffix(".json").is_file()
+
+
+def test_mfp_load_calibrations(crd_file, crd_data):
+    """Load calibrations with primary and secondary file."""
+    _, _, _, fname = crd_file
+    files = [Path(fname), crd_data.joinpath("ti_standard_01.crd")]
+
+    secondary_cal_file = crd_data.joinpath("ti_standard_01.json")
+
+    crds = mfp(files)
+    crds.load_calibrations(secondary_cal=secondary_cal_file)
+
+    for crd in crds.files:
+        assert crd.def_mcal is not None  # loading complete
