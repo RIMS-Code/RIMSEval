@@ -169,6 +169,9 @@ you could set the backgrounds as following:
 .. warning:: The backgrounds you define must have the same name as the peaks they are defined for.
     Multiple definitions per background can exist.
 
+.. note:: Integral and background definitions can also be performed using a ``matplotlib`` GUI.
+    For details, see :doc:`here <guis>`.
+
 To apply the integrals,
 simply run:
 
@@ -181,8 +184,23 @@ to either ``True`` or ``False``, respectively.
 Details on integral background corrections and the math behind it
 can be found :doc:`here <../bg/integrals>`.
 
-.. note:: Integral and background definitions can also be performed using a ``matplotlib`` GUI.
-    For details, see :doc:`here <guis>`.
+Finally, if your integral names follow the format used in the ``iniabu`` package,
+you can calculate :math:`\delta`-values for your individual peaks automatically.
+These values are always calculated with respect to the major isotope.
+If values are not available, ``np.nan`` will be written for that specific
+:math:`\delta`-value.
+To calculate the :math:`\delta` values, run (after calculating integrals):
+
+.. code-block:: python
+
+    crd.integrals_calc_delta()
+
+This will save the :math:`\delta`-values and associated uncertainties to
+``crd.integrals_delta``. If packages were defined, an :math:`\delta`-values
+for each package will also be calculated and stored in ``crd.integrals_delta_pkg``.
+Details on the calculation and error propagation can be found
+:doc:`here <../bg/deltas>`.
+
 
 +++++++
 Results
