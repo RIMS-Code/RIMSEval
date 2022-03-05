@@ -6,7 +6,7 @@ from numba import njit
 import numpy as np
 from scipy import optimize
 
-from .utilities import ini, fitting, utils
+from .utilities import fitting, ini, utils
 
 
 @njit

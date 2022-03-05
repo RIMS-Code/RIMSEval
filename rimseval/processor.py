@@ -605,8 +605,6 @@ class CRDFileProcessor:
     def integrals_calc_delta(self) -> None:
         """Calculate delta values for integrals and save them in class.
 
-        todo packages
-
         This routine uses the ``iniabu`` package to calculate delta values for defined
         integrals. It reads the peak names and calculates delta values for isotopes
         that can be understood ``iniabu``, and calculates the delta values with
