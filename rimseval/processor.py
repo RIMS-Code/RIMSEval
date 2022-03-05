@@ -772,7 +772,10 @@ class CRDFileProcessor:
                 "Bin ranges in CRD file were of bad length. Creating ToF "
                 "array without CRD header input."
             )
-            self.tof = np.arange(len(self.data)) * bin_length / 1e6
+            self.tof = (
+                np.arange(len(self.data)) * bin_length / 1e6
+                + self.all_tofs.min() / self.us_to_chan
+            )
 
     def spectrum_part(self, rng: Union[Tuple[Any], List[Any]]) -> None:
         """Create ToF for a part of the spectra.
