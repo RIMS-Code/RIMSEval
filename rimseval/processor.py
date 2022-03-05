@@ -56,7 +56,9 @@ class CRDFileProcessor:
 
         # Integrals
         self.integrals = None
+        self.integrals_delta = None
         self.integrals_pkg = None
+        self.integrals_delta_pkg = None
 
         # parameters for calibration and evaluation
         self._params_mcal = None  # mass calibration
@@ -599,6 +601,29 @@ class CRDFileProcessor:
                 self.integrals_pkg,
                 bgs_pkg,
             )
+
+    def integrals_calc_delta(self) -> None:
+        """Calculate delta values for integrals and save them in class.
+
+        todo packages
+
+        This routine uses the ``iniabu`` package to calculate delta values for defined
+        integrals. It reads the peak names and calculates delta values for isotopes
+        that can be understood ``iniabu``, and calculates the delta values with
+        respect to the major isotope. These values are then saved to the class as
+        ``integrals_delta`` and ``integrals_delta_pkg``, if packages were defined.
+        Uncertainties are propagated according to Gaussian error propagation.
+        The format of the resulting arrays are identical to the ``integrals`` and
+        ``integrals_pkg`` arrays.
+
+        :raises ValueError: No integrals were calculated.
+        """
+        if self.integrals is None or self.def_integrals is None:
+            raise ValueError("No integrals were defined or calculated.")
+
+        integrals_delta = np.zeros_like(self.integrals)
+
+        self.integrals_delta = integrals_delta
 
     def mass_calibration(self) -> None:
         r"""Perform a mass calibration on the data.

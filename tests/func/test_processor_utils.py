@@ -43,6 +43,17 @@ def test_create_packages():
     np.testing.assert_equal(pkg_data_rec, pkg_data_exp)
 
 
+def test_delta_calc():
+    """Take an integrals like array and calculate delta values.
+
+    Details of delta calculation is not tested.
+    """
+    names = ["Fe54", "Fe56", "244Pu", "bg"]
+    integrals = np.array([[10000, 100], [100000, 240], [100, 10], [2001, 21]])
+    deltas = pu.delta_calc(names, integrals)
+    assert np.isnan(deltas[2:3]).all()  # last two must be nans
+
+
 def test_integrals_bg_corr():
     """Background correction for defined integrals."""
     integrals = np.array([[10, np.sqrt(10)], [40, np.sqrt(40)]])

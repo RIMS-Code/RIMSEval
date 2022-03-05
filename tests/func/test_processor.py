@@ -186,6 +186,14 @@ def test_integrals_definition_delete_undefined_background(crd_file):
     assert "Int2" not in crd.def_backgrounds[0]
 
 
+def test_integrals_delta_calc(crd_int_delta):
+    """Assure that the delta calculation on the integral returns correct values."""
+    crd_int_delta.integrals_calc_delta()
+    deltas_exp = np.array([0, 0, 0, 0, np.nan, np.nan, np.nan])
+
+    assert crd_int_delta.integrals_delta is not None
+
+
 def test_packages(crd_file):
     """Simple test to ensure packages are made in two ways correctly."""
     _, ions_per_shot, _, fname = crd_file
