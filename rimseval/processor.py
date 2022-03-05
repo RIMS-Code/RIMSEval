@@ -621,7 +621,15 @@ class CRDFileProcessor:
         if self.integrals is None or self.def_integrals is None:
             raise ValueError("No integrals were defined or calculated.")
 
-        integrals_delta = np.zeros_like(self.integrals)
+        peak_names = self.def_integrals[0]
+
+        integrals_delta = processor_utils.delta_calc(peak_names, self.integrals)
+
+        if self.integrals_pkg is not None:
+            integrals_delta_pkg = np.zeros_like(self.integrals_pkg, dtype=float)
+            for it, line in enumerate(self.integrals_pkg):
+                integrals_delta_pkg[it] = processor_utils.delta_calc(peak_names, line)
+            self.integrals_delta_pkg = integrals_delta_pkg
 
         self.integrals_delta = integrals_delta
 
