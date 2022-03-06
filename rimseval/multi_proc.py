@@ -103,6 +103,7 @@ class MultiFileProcessor(QtCore.QObject):
         else:
             bg_corr = False
         crd_main.integrals_calc(bg_corr=bg_corr)
+        crd_main.integrals_calc_delta()
         self.signal_processed.emit(str(crd_main.fname.name))
         rimseval.interfacer.save_cal_file(crd_main)
 
@@ -126,6 +127,7 @@ class MultiFileProcessor(QtCore.QObject):
 
                 # integrals
                 file.integrals_calc(bg_corr=bg_corr)
+                file.integrals_calc_delta()
 
                 # save calibration
                 rimseval.interfacer.save_cal_file(file)

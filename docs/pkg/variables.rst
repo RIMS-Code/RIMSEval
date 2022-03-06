@@ -55,11 +55,15 @@ Integrals
     the sum of counts in the defined area and its uncertainty.
     :math:`m` defined peaks, it will therefore be of size :math:`m \times 2`.
     The second entry of each integral is the uncertainty of the counts.
+- ``crd.integrals_delta``: :math:`\delta`-values for all integrals and uncertainties.
+    The format is the same as for ``crd.integrals``.
 - ``crd.integrals_pkg``: Integral data for packages.
     For a total of :math:`p` packages and :math:`m` defined integrals,
     this ``numpy.ndarray`` will be of size :math:`p \times m \times 2`.
     As for the integrals, the sum of counts for each peak and its uncertainty
     are given.
+- ``crd.integrals_delta_pkg``: :math:`\delta`-values for all packages.
+    The format is the same as for ``crd.integrals_pkg``.
 
 ----------------
 Single Shot Data

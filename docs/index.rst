@@ -71,6 +71,7 @@ Contents
     :maxdepth: 2
     :caption: Scientific Background
 
+    bg/deltas
     bg/integrals
 
 .. toctree::
