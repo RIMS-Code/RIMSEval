@@ -45,4 +45,5 @@ def crd_int_delta(crd_file) -> CRDFileProcessor:
             [34212, 185],
         ]
     )
+    crd.integrals_pkg = np.array([crd.integrals, crd.integrals])
     return crd
