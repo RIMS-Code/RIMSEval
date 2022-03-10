@@ -741,12 +741,14 @@ class CRDFileProcessor:
 
         sys.path.remove(str(file_path))
 
-    def sort_integrals(self) -> None:
+    def sort_integrals(self, sort_vals: bool = True) -> None:
         """Sort all the integrals that are defined by mass.
 
         Takes the integrals and the names and sorts them by mass. The starting mass
         of each integral is used for sorting.
         If no integrals are defined, this routine does nothing.
+
+        :param sort_vals: Sort the integrals and integral packages? Default: True
 
         Example:
             >>> crd.def_integrals
@@ -767,9 +769,9 @@ class CRDFileProcessor:
         names_sorted = list(np.array(names)[sort_ind])
         self.def_integrals = names_sorted, values[sort_ind]
 
-        if self.integrals is not None:
+        if self.integrals is not None and sort_vals:
             self.integrals = self.integrals[sort_ind]
-        if self.integrals_pkg is not None:
+        if self.integrals_pkg is not None and sort_vals:
             self.integrals_pkg = self.integrals_pkg[:, sort_ind]
 
     def spectrum_full(self) -> None:
