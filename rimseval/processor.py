@@ -760,8 +760,17 @@ class CRDFileProcessor:
 
         names, values = self.def_integrals
         sort_ind = values[:, 0].argsort()
+
+        if (sort_ind == np.arange(len(names))).all():  # already sorted
+            return
+
         names_sorted = list(np.array(names)[sort_ind])
         self.def_integrals = names_sorted, values[sort_ind]
+
+        if self.integrals is not None:
+            self.integrals = self.integrals[sort_ind]
+        if self.integrals_pkg is not None:
+            self.integrals_pkg = self.integrals_pkg[:, sort_ind]
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.

@@ -220,12 +220,21 @@ def test_sort_integrals(crd_file):
     crd = CRDFileProcessor(Path(fname))
     crd.sort_integrals()  # does nothing, since None
     crd.def_integrals = ["Fe-56", "Ti-46"], np.array([[55.8, 56.2], [45.8, 46.2]])
+
+    crd.integrals = np.array([[2, 2], [1, 1]])
+    crd.integrals_pkg = np.array([crd.integrals, crd.integrals - 1])
+
     names_exp = ["Ti-46", "Fe-56"]
     values_exp = np.array([[45.8, 46.2], [55.8, 56.2]])
+    integrals_exp = np.array([[1, 1], [2, 2]])
+    integrals_pkg_exp = np.array([[[1, 1], [2, 2]], [[0, 0], [1, 1]]])
+
     crd.sort_integrals()
     names_rec, values_rec = crd.def_integrals
     assert names_rec == names_exp
     np.testing.assert_equal(values_rec, values_exp)
+    np.testing.assert_equal(crd.integrals, integrals_exp)
+    np.testing.assert_equal(crd.integrals_pkg, integrals_pkg_exp)
 
 
 def test_spectrum_part(crd_file):
