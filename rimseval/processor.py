@@ -741,6 +741,39 @@ class CRDFileProcessor:
 
         sys.path.remove(str(file_path))
 
+    def sort_integrals(self, sort_vals: bool = True) -> None:
+        """Sort all the integrals that are defined by mass.
+
+        Takes the integrals and the names and sorts them by mass. The starting mass
+        of each integral is used for sorting.
+        If no integrals are defined, this routine does nothing.
+
+        :param sort_vals: Sort the integrals and integral packages? Default: True
+
+        Example:
+            >>> crd.def_integrals
+            ["Fe-56", "Ti-46"], array([[55.8, 56.2], [45.8, 46.2]])
+            >>> crd.sort_integrals()
+            >>> crd.def_integrals
+            ["Ti-46", "Fe-56"], array([[45.8, 46.2], [55.8, 56.2]])
+        """
+        if self.def_integrals is None:
+            return
+
+        names, values = self.def_integrals
+        sort_ind = values[:, 0].argsort()
+
+        if (sort_ind == np.arange(len(names))).all():  # already sorted
+            return
+
+        names_sorted = list(np.array(names)[sort_ind])
+        self.def_integrals = names_sorted, values[sort_ind]
+
+        if self.integrals is not None and sort_vals:
+            self.integrals = self.integrals[sort_ind]
+        if self.integrals_pkg is not None and sort_vals:
+            self.integrals_pkg = self.integrals_pkg[:, sort_ind]
+
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.
 
