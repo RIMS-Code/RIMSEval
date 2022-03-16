@@ -1,5 +1,6 @@
 """Function test for processor class methods, focusing on each function."""
 
+import datetime
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,19 @@ import numpy as np
 
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils as pu
+
+# TEST PROPERTIES #
+
+
+def test_timestamp(crd_file):
+    """Get the time stamp of the CRD file as a python datetime."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    timestamp = crd.timestamp
+    assert isinstance(timestamp, datetime.datetime)
+
+
+# TEST METHODS #
 
 
 def test_data_dimension_after_dead_time_correction(crd_file):
