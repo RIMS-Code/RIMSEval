@@ -221,7 +221,7 @@ class CRDFileProcessor:
         Example:
             >>> crd = CRDFileProcessor(Path("my_file.crd"))
             >>> crd.timestamp
-
+            datetime.datetime(2021, 7, 10, 11, 41, 13)
         """
         hdr_timestamp = self.crd.header["startDateTime"].rstrip(b"\x00").decode("utf-8")
         dt = datetime.datetime.strptime(hdr_timestamp, "%Y:%m:%d %H:%M:%S")
