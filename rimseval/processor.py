@@ -3,6 +3,7 @@
 Note: Interfacing with external files is done in the `interfacer.py` library.
 """
 
+import datetime
 from pathlib import Path
 import sys
 from typing import Any, List, Tuple, Union
@@ -210,6 +211,21 @@ class CRDFileProcessor:
     @peak_fwhm.setter
     def peak_fwhm(self, value: float) -> None:
         self._peak_fwhm = value
+
+    @property
+    def timestamp(self) -> datetime.datetime:
+        """Get the time stamp when the recording was started.
+
+        :return: Timestamp of the CRD file.
+
+        Example:
+            >>> crd = CRDFileProcessor(Path("my_file.crd"))
+            >>> crd.timestamp
+
+        """
+        hdr_timestamp = self.crd.header["startDateTime"].rstrip(b"\x00").decode("utf-8")
+        dt = datetime.datetime.strptime(hdr_timestamp, "%Y:%m:%d %H:%M:%S")
+        return dt
 
     @property
     def us_to_chan(self) -> float:
