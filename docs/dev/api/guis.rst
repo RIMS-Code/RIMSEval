@@ -174,6 +174,14 @@ Create a PyQt app and run it.
 
 .. autofunction:: dt_ions
 
+**************************
+:func:`integrals_packages`
+**************************
+
+Create a PyQt app and run it.
+
+.. autofunction:: integrals_packages
+
 *************************
 :func:`nof_ions_per_shot`
 *************************
@@ -199,6 +207,16 @@ Class to plot a figure.
 Matplotlib PyQt figure to plot histogram for arrival time differences between ions.
 
 .. autoclass:: DtIons
+    :members:
+    :undoc-members:
+
+****************************
+:class:`IntegralsPerPackage`
+****************************
+
+Matplotlib PyQt figure to integrals per package.
+
+.. autoclass:: IntegralsPerPackage
     :members:
     :undoc-members:
 
