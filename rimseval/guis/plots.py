@@ -1,5 +1,6 @@
 """Plotting capability for specialty functions."""
 
+import itertools
 import sys
 from typing import Tuple
 
@@ -18,6 +19,10 @@ except ImportError:
 
 from rimseval.guis.mpl_canvas import MyMplNavigationToolbar
 from rimseval.processor import CRDFileProcessor
+
+
+# markers to cycle through
+MARKERS = ("o", "^", "s", "v", "<", ">", "+", "x", "*", "1", "2", "3", "4")
 
 
 class PlotFigure(QtWidgets.QMainWindow):
@@ -157,6 +162,60 @@ class DtIons(PlotFigure):
         self.sc.draw()
 
 
+class IntegralsPerPackage(PlotFigure):
+    """Plot integrals of all packages versus package number."""
+
+    def __init__(
+        self, crd: CRDFileProcessor, logy: bool = False, theme: str = None
+    ) -> None:
+        """Initialize the class.
+
+        :param crd: CRD file to process.
+        :param logy: Plot with logarithmic y-axis? Defaults to ``True``
+        :param theme: Theme to plot in, defaults to ``None``.
+
+        :raises OSError: Packages are not defined
+        """
+        super().__init__(logy=logy, theme=theme)
+
+        self.setWindowTitle("Integrals per package")
+
+        self.crd = crd
+
+        if crd.integrals_pkg is None:
+            raise OSError("Integrals for packages are not available.")
+
+        self.calc_and_draw()
+
+    def calc_and_draw(self) -> None:
+        """Create the plot for all the defined integrals."""
+        int_names = self.crd.def_integrals[0]
+        integrals_pkg = self.crd.integrals_pkg
+
+        xdata = np.arange(len(integrals_pkg)) + 1  # start with 1
+        counts = integrals_pkg[:, :, 0]
+        errors = integrals_pkg[:, :, 1]
+
+        # plot
+        marker = itertools.cycle(MARKERS)
+        for it in range(counts.shape[1]):  # loop through all defined integrals
+            dat = counts[:, it]
+            err = errors[:, it]
+            self.axes.errorbar(
+                xdata, dat, yerr=err, ls="--", label=int_names[it], marker=next(marker)
+            )
+
+        # labels
+        self.axes.set_xlabel("Package number")
+        self.axes.set_ylabel("Counts in integral")
+        self.axes.set_title(
+            f"Integrals per package - {self.crd.fname.with_suffix('').name}"
+        )
+        self.axes.legend()
+
+        self.sc.draw()
+
+
 class IonsPerShot(PlotFigure):
     """Plot histogram for number of ions per shot."""
 
@@ -218,6 +277,22 @@ def dt_ions(
     """
     app = QtWidgets.QApplication(sys.argv)
     window = DtIons(crd, logy=logy, theme=theme, max_ns=max_ns)
+    window.show()
+    app.exec()
+
+
+def integrals_packages(
+    crd: CRDFileProcessor, logy: bool = False, theme: str = None, max_ns: float = None
+) -> None:
+    """Plot all the integrals versus package number for data split into packages.
+
+    :param crd: CRD file to process.
+    :param logy: Plot with logarithmic y axis? Defaults to ``True``
+    :param theme: Theme to plot in, defaults to ``None``.
+    :param max_ns: Maximum time to plot in ns. If None, plots all.
+    """
+    app = QtWidgets.QApplication(sys.argv)
+    window = IntegralsPerPackage(crd, logy=logy, theme=theme)
     window.show()
     app.exec()
 
