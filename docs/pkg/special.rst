@@ -30,7 +30,7 @@ The following code shows you how to do this:
 
 .. code-block:: python
 
-    from typing import Path
+    from pathlib import Path
 
     from rimseval import CRDFileProcessor
     from rimseval.guis import hist_nof_shots
@@ -70,7 +70,7 @@ This number is of course user-defined and can be omitted.
 
 .. code-block:: python
 
-    from typing import Path
+    from pathlib import Path
 
     from rimseval import CRDFileProcessor
     from rimseval.guis import dt_ions
@@ -80,3 +80,31 @@ This number is of course user-defined and can be omitted.
     crd.spectrum_full()
 
     dt_ions(crd, max_ns=100)
+
+
+---------------------
+Integrals per package
+---------------------
+
+If you have split your spectrum into packages
+and have defined integrals,
+this routine allows you to show a figure
+of all integrals per package
+versus the number of the package.
+This is especially interesting to find bursts in your measurements,
+i.e., when measuring with the desorption laser.
+
+The following example shows how the plot is generated:
+
+.. code-block:: python
+
+    from pathlib import Path
+
+    from rimseval import CRDFileProcessor
+    from rimseval.guis import integrals_packages
+
+    my_file = Path("path/to/my_file.crd")
+    crd = CRDFileProcessor(crd)
+    crd.spectrum_full()
+
+    integrals_packages(crd)
