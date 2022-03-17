@@ -282,14 +282,13 @@ def dt_ions(
 
 
 def integrals_packages(
-    crd: CRDFileProcessor, logy: bool = False, theme: str = None, max_ns: float = None
+    crd: CRDFileProcessor, logy: bool = False, theme: str = None
 ) -> None:
     """Plot all the integrals versus package number for data split into packages.
 
     :param crd: CRD file to process.
     :param logy: Plot with logarithmic y axis? Defaults to ``True``
     :param theme: Theme to plot in, defaults to ``None``.
-    :param max_ns: Maximum time to plot in ns. If None, plots all.
     """
     app = QtWidgets.QApplication(sys.argv)
     window = IntegralsPerPackage(crd, logy=logy, theme=theme)
