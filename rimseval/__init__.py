@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 # Package information
-__version__ = "2.0.0.dev4"
+__version__ = "2.0.0.dev5"
 
 __title__ = "rimseval"
 __description__ = (
