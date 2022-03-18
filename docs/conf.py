@@ -9,7 +9,7 @@ sys.path.append("../")
 project = "RIMSEval"
 author = "Reto Trappitsch"
 copyright = f"2021, {author}"
-version = "2.0.0.dev4"
+version = "2.0.0.dev5"
 release = version
 
 
