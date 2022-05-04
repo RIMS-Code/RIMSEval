@@ -13,7 +13,7 @@ import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import peirce, utils
+from .utilities import ini, peirce, utils
 
 
 class CRDFileProcessor:
@@ -760,8 +760,11 @@ class CRDFileProcessor:
     def sort_integrals(self, sort_vals: bool = True) -> None:
         """Sort all the integrals that are defined by mass.
 
-        Takes the integrals and the names and sorts them by mass. The starting mass
-        of each integral is used for sorting.
+        Takes the integrals and the names and sorts them by proton number (first order),
+        then by mass (second order). All integrals that cannot be identified with a
+        clear proton number (e.g., molecules) are sorted in at the end of the primary
+        sorting, then sorted by mass.
+        The starting mass of each integral is used for sorting.
         If no integrals are defined, this routine does nothing.
 
         :param sort_vals: Sort the integrals and integral packages? Default: True
@@ -777,7 +780,15 @@ class CRDFileProcessor:
             return
 
         names, values = self.def_integrals
-        sort_ind = values[:, 0].argsort()
+
+        zz = []  # number of protons per isotope - first sort key
+        for name in names:
+            try:
+                zz.append(ini.iso[name].z)
+            except IndexError:
+                zz.append(999)  # at the end of everything
+
+        sort_ind = sorted(np.arange(len(names)), key=lambda x: (zz[x], values[x, 0]))
 
         if (sort_ind == np.arange(len(names))).all():  # already sorted
             return
