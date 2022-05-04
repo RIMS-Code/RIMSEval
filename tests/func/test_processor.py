@@ -251,6 +251,48 @@ def test_sort_integrals(crd_file):
     np.testing.assert_equal(crd.integrals_pkg, integrals_pkg_exp)
 
 
+def test_sort_integrals_primary_and_secondary(crd_file) -> None:
+    """Sort integrals first by element (if available), then by mass.
+
+    This is especially important when we have two elements that are shifted by half
+    masses.
+
+    :param crd_file: CRD test file.
+    """
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_integrals()  # does nothing, since None
+    crd.def_integrals = ["Zr-94", "Mo-96", "Mo-94", "Zr-96"], np.array(
+        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    )
+    crd.integrals = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
+
+    names_exp = ["Zr-94", "Zr-96", "Mo-94", "Mo-96"]
+    masses_exp = np.array([[93.9, 94.2], [95.9, 96.2], [93.4, 93.7], [95.4, 95.7]])
+    integrals_exp = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+
+    crd.sort_integrals()
+    names_rec, masses_rec = crd.def_integrals
+    assert names_rec == names_exp
+    assert masses_rec == pytest.approx(masses_exp)
+    np.testing.assert_equal(crd.integrals, integrals_exp)
+
+
+def test_sort_integrals_non_element(crd_file) -> None:
+    """Sort recognizable elements and other names together, all others last."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_integrals()  # does nothing, since None
+    crd.def_integrals = ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"], np.array(
+        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    )
+    crd.integrals = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
+
+    names_exp = ["Zr-96", "Mo-94", "ZrO-94", "MoO-96"]
+    crd.sort_integrals()
+    assert crd.def_integrals[0] == names_exp
+
+
 def test_spectrum_part(crd_file):
     """Cut spectrum by two shots."""
     _, ions_per_shot, _, fname = crd_file
