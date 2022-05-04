@@ -201,6 +201,26 @@ for each package will also be calculated and stored in ``crd.integrals_delta_pkg
 Details on the calculation and error propagation can be found
 :doc:`here <../bg/deltas>`.
 
+.. note:: While :math:`\delta`-values are generally calculated with respect
+    to the most abundant isotope,
+    this calculation is internally performed using the ``iniabu`` package.
+    The currently supported version of ``iniabu`` allows you to select the normalization isotopes.
+    The following gives an example in order to do so.
+
+    .. code-block:: python
+
+        from rimseval.utilities import ini
+        ini.norm_isos = {"Ti": "Ti-46", "Ba": "Ba-136"}
+
+    This code would set the normalization isotopes for titanium and barium
+    to :sup:`46`\Ti and :sup:`136`\Ba, respectively.
+    These new normalization isotopes are then respected by subsequent calls
+    to calculate :math:`\delta`-values.
+    Important here is that you import the ``ini`` instance that ``rimseval`` uses
+    and not any new instance from ``iniabu``.
+    For details on the ``norm_isos`` property, see
+    `the documentation here <https://iniabu.readthedocs.io/en/latest/config.html#normalization-isotope>`_.
+
 
 +++++++
 Results
