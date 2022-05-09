@@ -99,6 +99,20 @@ for processing `LST` files.
 
 
 
+.. py:currentmodule:: rimseval.data_io.excel_writer
+
+------------
+Excel Writer
+------------
+
+**************************
+:func:`workup_file_writer`
+**************************
+
+.. autofunction:: workup_file_writer
+
+
+
 .. py:currentmodule:: rimseval.data_io.export
 
 ----------------

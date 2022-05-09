@@ -6,6 +6,47 @@ The ``rimseval`` package has some special functions incorporated,
 which allow you to perform various analysis on your data
 and your RIMS setup.
 
+------------------------
+Excel Workup file writer
+------------------------
+
+Sometimes,
+it is useful to further process multiple evaluated spectra
+in an Excel file.
+You can use the
+:meth:`rimseval.data_io.excel_writer.workup_file_writer`
+to create a workbook to continue working on your data.
+This workbook will contain integrals,
+:math:`\delta`-values.
+
+Here is an example usage for a file
+that would contain zirconium data.
+Note that :math:`\delta`-values would usually
+be normalized to the most abundant :sup:`90`\Zr,
+however, we would like to normalize here
+to :sup:`94`\Zr.
+This is accomplished by setting the according
+normalization isotope of ``iniabu``.
+
+The following code assumes that ``crd`` is
+an instance of ``CRDFileProcessor``
+and that a mass calibration has been performed
+and integrals have been set for zirconium isotopes.
+
+.. code-block:: python
+
+    from pathlib import Path
+
+    from rimseval.data_io import excel_writer
+    from rimseval.utilities import ini
+
+    # set Zr normalization isotope to Zr-94
+    ini.norm_isos = {"Zr": "Zr-94"}
+
+    # Write the excel file
+    my_output_file = Path("workup_file.xlsx")
+    excel_writer.workup_file_writer(crd, my_output_file)
+
 -------------------
 Hist. ions per shot
 -------------------
