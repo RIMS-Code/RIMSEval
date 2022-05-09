@@ -94,7 +94,7 @@ def workup_file_writer(
     delta_col = int_col + 2 * len(int_names)  # start of delta column
 
     for col, hdr in enumerate(general_headers):
-        ws.write(hdr_row, col, general_headers[col], fmt_hdr)
+        ws.write(hdr_row, col, hdr, fmt_hdr)
         ws.set_column(col, col, general_headers_widths[col])
 
     for col, name in enumerate(int_names):
@@ -110,7 +110,7 @@ def workup_file_writer(
         fmt_hdr_use = fmt_hdr_0 if col == 0 else fmt_hdr
 
         ws.write(hdr_row, 2 * col + int_col, name, fmt_hdr_use)
-        ws.write(hdr_row, 2 * col + 1 + int_col, f"±1σ", fmt_hdr)
+        ws.write(hdr_row, 2 * col + 1 + int_col, "±1σ", fmt_hdr)
 
     # integral column width
     ws.set_column(int_col, int_col + 2 * len(int_names) - 1, wdth_counts)
@@ -128,7 +128,7 @@ def workup_file_writer(
                 f"δ({iso_format_excel(name)}/{iso_format_excel(norm_iso_name)})",
                 fmt_hdr_use,
             )
-            ws.write(hdr_row, col + 1, f"±1σ", fmt_hdr)
+            ws.write(hdr_row, col + 1, "±1σ", fmt_hdr)
 
             # set width
             ws.set_column(col, col, wdth_delta)
@@ -166,7 +166,7 @@ def workup_file_writer(
 
     # write delta equations
     col = delta_col
-    for it, name in enumerate(int_names):
+    for it, _ in enumerate(int_names):
         norm_iso_name = norm_names[it]
         if (
             norm_iso_name is not None and norm_iso_name in int_names
