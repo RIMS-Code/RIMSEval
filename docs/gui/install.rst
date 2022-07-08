@@ -12,7 +12,7 @@ download the latest release version for your operating system from
 You do not need to have an existing python environment,
 since all dependencies will be installed along.
 
-.. warning:: Issues on macOS
+.. note:: Issues on macOS
 
     Once you moved the `RIMSEvaluation` program from the `dmg` archive
     into your `Applications` folder, your macOS might still tell you
