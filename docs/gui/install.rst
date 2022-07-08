@@ -20,10 +20,10 @@ since all dependencies will be installed along.
     moved to the trash.
     This happens since the program is not officially signed
     with a valid Apple ID account.
-    More information can be found
-    in [this issue](https://github.com/RIMS-Code/RIMSEvalGUI/issues/9).
+    More information can be found in
+    `this issue <https://github.com/RIMS-Code/RIMSEvalGUI/issues/9>`_.
     To still use the `RIMSEvaluation` executable,
-    open a terminal and type the following command:
+    open a terminal and run the following command:
 
     .. code-block::
 
