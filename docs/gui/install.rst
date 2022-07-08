@@ -12,9 +12,28 @@ download the latest release version for your operating system from
 You do not need to have an existing python environment,
 since all dependencies will be installed along.
 
-.. note:: The executable is great for a working, bug-free program.
-    If you want to help debugging, it is recommended that you run the software
-    either from Anaconda (see below) or from regular Python directly.
+.. note:: Issues on macOS
+
+    Once you moved the `RIMSEvaluation` program from the `dmg` archive
+    into your `Applications` folder, your macOS might still tell you
+    that when opening the program that it is damaged and needs to be
+    moved to the trash.
+    This happens since the program is not officially signed
+    with a valid Apple ID account.
+    More information can be found in
+    `this issue <https://github.com/RIMS-Code/RIMSEvalGUI/issues/9>`_.
+    To still use the `RIMSEvaluation` executable,
+    open a terminal and run the following command:
+
+    .. code-block::
+
+        xattr -cr /Applications/RIMSEvaluation.app
+
+    This assumes that the program is in fact installed into
+    the main installation folder.
+    If not, replace ``/Applications/`` with the path to the correct
+    installation folder.
+    The `RIMSEvaluation` software should now run.
 
 --------
 Anaconda
