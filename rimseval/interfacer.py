@@ -69,8 +69,8 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param fname: Filename and path. If `None`, try file with same name as CRD file but
         `.json` suffix.
 
-    :raises IOError: Calibration file does not exist.
-    :raises IOError: JSON file cannot be decoded. JSON error message is returned too.
+    :raises OSError: Calibration file does not exist.
+    :raises OSError: JSON file cannot be decoded. JSON error message is returned too.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".json")
