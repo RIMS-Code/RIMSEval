@@ -69,7 +69,8 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
     :param fname: Filename and path. If `None`, try file with same name as CRD file but
         `.json` suffix.
 
-    :raises OSError: Calibration file does not exist.
+    :raises IOError: Calibration file does not exist.
+    :raises IOError: JSON file cannot be decoded. JSON error message is returned too.
     """
     if fname is None:
         fname = crd.fname.with_suffix(".json")
@@ -78,7 +79,12 @@ def load_cal_file(crd: CRDFileProcessor, fname: Path = None) -> None:
         raise OSError(f"The requested calibration file {fname} does not exist.")
 
     with fname.open("r", encoding="utf-8") as fin:
-        json_object = json.load(fin)
+        try:
+            json_object = json.load(fin)
+        except json.decoder.JSONDecodeError as orig_err:
+            raise OSError(
+                f"Cannot open the calibration file {fname.name}. JSON decode error."
+            ) from orig_err
 
     def entry_loader(key: str, json_obj: Any) -> Any:
         """Return the value of a json_object dictionary if existent, otherwise None."""

@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 
 from rimseval import interfacer
-from rimseval.processor import CRDFileProcessor
 
 
 def test_read_lion_eval_calfile(mocker, crd_proc_mock):
@@ -39,3 +38,16 @@ def test_read_lion_eval_calfile(mocker, crd_proc_mock):
     np.testing.assert_almost_equal(integrals_rec[1], integrals_exp[1])
     assert backgrounds_rec[0] == backgrounds_exp[0]
     np.testing.assert_almost_equal(backgrounds_rec[1], backgrounds_exp[1])
+
+
+def test_read_lion_eval_calfile_read_error(data_files_path, crd_proc_mock):
+    """Raise IOError if the calibration file cannot be read successfully."""
+    cal_file = data_files_path.joinpath("incomplete_cal_file.json")
+
+    err_exp = f"Cannot open the calibration file {cal_file.name}. JSON decode error."
+
+    with pytest.raises(IOError) as err:
+        interfacer.load_cal_file(crd_proc_mock, cal_file)
+
+    msg = err.value.args[0]
+    assert msg == err_exp
