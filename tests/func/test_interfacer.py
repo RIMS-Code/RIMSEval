@@ -42,7 +42,7 @@ def test_read_lion_eval_calfile(mocker, crd_proc_mock):
 
 def test_read_lion_eval_calfile_read_error(data_files_path, crd_proc_mock):
     """Raise IOError if the calibration file cannot be read successfully."""
-    cal_file = data_files_path.joinpath("incomplete_cal_file.json")
+    cal_file = data_files_path.joinpath("faulty_cal_file.json")
 
     err_exp = f"Cannot open the calibration file {cal_file.name}. JSON decode error."
 
