@@ -14,22 +14,16 @@ jobs:
   build:
     if: github.repository_owner == 'RIMS-Code'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+    - uses: wntrblm/nox
       with:
-        python-version: ${{ matrix.python-version }}
+        python-versions: "3.8, 3.9, 3.10"
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get -y install libegl1-mesa
         python -m pip install --upgrade pip
-        pip install nox
         pip install .[test]
         pip install coveralls
     - name: Run nox
