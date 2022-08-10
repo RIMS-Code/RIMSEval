@@ -19,9 +19,9 @@ jobs:
         python-version: ["3.8", "3.9", "3.10"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
         pip install .[test]
         pip install coveralls
     - name: Run nox
-      run: nox
+      run: nox --no-error-on-missing-interpreters
     - name: Re-run coverage and push to coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
