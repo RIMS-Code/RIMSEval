@@ -47,3 +47,13 @@ def crd_int_delta(crd_file) -> CRDFileProcessor:
     )
     crd.integrals_pkg = np.array([crd.integrals, crd.integrals])
     return crd
+
+
+@pytest.fixture
+def data_files_path(request) -> Path:
+    """Provides the path to the `data_files` folder.
+
+    :return: Path to the folder
+    """
+    curr = Path(request.fspath).parents[0]
+    return Path(curr).joinpath("data_files").absolute()
