@@ -1,0 +1,114 @@
+[MCS8A A] 104 FW 3.48 SV 1.106
+range=12032
+periods=2
+fstchan=1
+holdafter=0
+sweepmode=2fd2018
+dontcalib=-1
+calreg0=0
+calreg1=0
+calreg2=0
+calreg3=0
+swpreset=10000
+prena=4
+syncout=8
+cycles=2
+sequences=1
+tagbits=16
+vdac0=106cc
+vdac1=819
+vdac2=4738
+vdac3=92c
+vdac4=92c
+vdac5=92c
+vdac6=92c
+vdac7=92c
+rtpreset=20.000
+digio=0
+digval=0
+autoinc=0
+savedata=2
+sephead=0
+fmt=asc
+smoothpts=5
+[CHN1]
+REPORT-FILE from 08/31/2020 14:08:00.917 - 14:22:44.155  written 09/01/2020 14:24:00
+cmline0=08/31/2020 14:08:00.917 - 14:22:44.155
+cmline1=A1
+range=12032
+active=0
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=6.400000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN2]
+REPORT-FILE from 09/01/2020 14:24:00.933  written 09/01/2020 14:24:00
+cmline0=09/01/2020 14:24:00.933
+cmline1=A2
+range=12032
+active=1
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=6.400000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN3]
+REPORT-FILE from 08/31/2020 14:08:00.917  written 09/01/2020 14:24:00
+cmline0=08/31/2020 14:08:00.917
+cmline1=A3
+range=12032
+active=0
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=6.400000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN4]
+REPORT-FILE from 08/31/2020 14:08:00.917  written 09/01/2020 14:24:00
+cmline0=08/31/2020 14:08:00.917
+cmline1=A4
+range=12032
+active=0
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=6.400000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+;MCS8 #104 Sversion=1.106 Fversion=3.48
+time_patch=9
+;datalength=8 bytes
+;bit0..3: channel# 1..8 ( 4 bit)
+;bit4: edge 0=up / 1=dn ( 1 bit)
+;bit5 ..42: timedata    (38 bit), max sweep length 27.488 s
+;bit43..62: sweeps      (20 bit)
+;bit63:     data_lost   ( 1 bit)
+[DATA]
+000008000021cb89
+000010000021cba9
+000018000021cb69
+000020000021cb89

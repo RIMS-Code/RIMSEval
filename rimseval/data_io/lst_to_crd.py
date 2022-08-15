@@ -81,6 +81,7 @@ class LST2CRD:
         self._file_name = file_name
 
         # initialize values for future use
+        self._binary_file = False  # is this a binary file?
         self._file_info = {}  # dictionary with parsed header info
         self._data_format = None  # format of the data. auto set on reading
         self._data_signal = None  # data for signal (total)
@@ -188,12 +189,20 @@ class LST2CRD:
             raise ValueError("Please set a number for the data channel.")
 
         # read in the file
-        with self.file_name.open() as f:
-            content = f.read().split("\n")
+        try:
+            with self.file_name.open() as f:
+                content = f.read().splitlines()
+        except UnicodeDecodeError:  # we might have a binary file:
+            with self.file_name.open("rb") as f:
+                content = f.read().splitlines()
+                self._binary_file = True
 
         # find the data and save it into a data_ascii list
-        index_start_data = content.index("[DATA]") + 1
+        fnd_str = b"[DATA]" if self._binary_file else "[DATA]"
+        index_start_data = content.index(fnd_str) + 1
         header = content[:index_start_data]
+        if self._binary_file:
+            header = [it.decode("utf-8") for it in header]
         data_ascii = content[index_start_data:]
 
         # set the bin width - in ps
@@ -264,12 +273,11 @@ class LST2CRD:
         # find the data format or raise an error
         self.set_data_format()
 
-        if data_type.lower() == "asc":
-            data_sig, tags, other_channels = lst_utils.ascii_to_ndarray(
-                data_ascii, self._data_format, self.channel_data, self.channel_tag
-            )
-        else:
-            raise NotImplementedError("Binary data is currently not supported.")
+        # currently, only ascii data are supported. error checking in set_data_format()
+        data_sig, tags, other_channels = lst_utils.ascii_to_ndarray(
+            data_ascii, self._data_format, self.channel_data, self.channel_tag
+        )
+
         self._data_signal = data_sig
         self._tags = tags
         self._other_channels = other_channels
@@ -354,7 +362,8 @@ class LST2CRD:
         if ions_out_of_range_warning:
             warnings.warn(
                 "The lst file contained ions that were outside the allowed "
-                "range. These ions were not written to the crd file."
+                "range. These ions were not written to the crd file.",
+                UserWarning,
             )
 
     def set_data_format(self):
@@ -375,7 +384,7 @@ class LST2CRD:
             raise NotImplementedError("Binary data is currently not supported.")
         else:
             raise ValueError(
-                f"The data type {fmt_str} seems to be neither binary " f"nor ASCII."
+                f"The data type {fmt_str} seems to be neither binary nor ASCII."
             )
         self._data_format = fmt
 

@@ -1,0 +1,137 @@
+[MPA4A] 360
+range=12032
+periods=2
+fstchan=0
+holdafter=0
+sweepmode=132010
+swpreset=10000
+prena=4
+syncout=b0b
+fdac=0
+rxdelay=0
+cycles=18
+sequences=5
+tagbits=15
+dac0=20000
+dac1=2666
+dac2=2666
+dac3=5aab
+dac4=5aab
+dac5=1aab
+rtpreset=20.000
+digio=0
+digval=0
+autoinc=0
+savedata=3
+mpafmt=asc
+sephead=0
+fmt=asc
+smoothpts=5
+[CHN1]
+REPORT-FILE from 08/07/2020 14:34:47.624  written 08/07/2020 14:34:47
+cmline0=08/07/2020 14:34:47.624
+cmline1=A1
+range=12032
+active=0
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12032
+caloff=0.000000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN2]
+REPORT-FILE from 08/07/2020 14:34:47.624  written 08/07/2020 14:34:47
+cmline0=08/07/2020 14:34:47.624
+cmline1=A2
+range=12032
+active=0
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=0.000000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN3]
+REPORT-FILE from 08/07/2020 14:34:47.624  written 08/07/2020 14:34:47
+cmline0=08/07/2020 14:34:47.624
+cmline1=A3
+range=12032
+active=1
+bitshift=3
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=0.000000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN4]
+REPORT-FILE from 08/07/2020 14:34:47.624  written 08/07/2020 14:34:47
+cmline0=08/07/2020 14:34:47.624
+cmline1=A4
+range=12032
+active=1
+bitshift=3
+cftfak=2580100
+evpreset=80000
+roimin=0
+roimax=12000
+caloff=0.000000
+calfact=0.800000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=1
+[CHN5]
+REPORT-FILE from 08/07/2020 14:34:47.624  written 08/07/2020 14:34:47
+cmline0=08/07/2020 14:34:47.624
+cmline1=A5
+range=12032
+active=0
+bitshift=0
+cftfak=2580100
+evpreset=10
+roimin=0
+roimax=12000
+caloff=0.000000
+calfact=0.100000
+calfact2=0
+calfact3=0
+calunit=nsec
+caluse=0
+;MPA4 #360 Sversion=2.34 Fversion=f.0a
+time_patch=1a
+;datalength=6 bytes
+;bit0..2: channel# 1..6 ( 3 bit)
+;bit3: edge 0=up / 1=dn ( 1 bit)
+;bit4 ..31: timedata    (28 bit), max sweep length 0.027 s
+;bit32..47: sweeps      (16 bit)
+[DATA]
+0002000e7474
+0003000328a3
+0003000e7474
+0004000e7474
+0005000328c3
+0005000e7474
+0006000e7464
+0007000328b3
+00070ffe7474
+00080ffe7474
+0009000328b3
+0009000e7474
+000a000e7474
+000b000328b3
+000b000328b4
