@@ -152,7 +152,8 @@ class CRDReader:
                 f"corrupt. I will try a slow reading routine now in order to get the "
                 f"data. Some information: \n"
                 f"nof_shots: {self.nof_shots}\n"
-                f"nof_ions: {self.nof_ions}\n"
+                f"nof_ions: {self.nof_ions}\n",
+                UserWarning,
             )
             self.parse_data_fallback(data)
             return
