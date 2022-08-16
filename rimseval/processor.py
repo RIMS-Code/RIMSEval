@@ -371,7 +371,9 @@ class CRDFileProcessor:
         self.applied_filters["dead_time_corr"] = [True, dbins]
 
         if self.nof_shots == 0:
-            warnings.warn("No data available; maybe all shots were filtered out?")
+            warnings.warn(
+                "No data available; maybe all shots were filtered out?", UserWarning
+            )
             return
 
         self.data = processor_utils.dead_time_correction(
