@@ -346,7 +346,7 @@ class CRDFileProcessor:
             if vals[0]:
                 self.filter_max_ions_per_pkg(vals[1])
 
-        # fixme: after pierce criterion is done!
+        # fixme: after peirce criterion is done!
         # if get_arguments("pkg_peirce_rejection"):
         #     self.filter_pkg_peirce_countrate()
 
@@ -527,6 +527,12 @@ class CRDFileProcessor:
             been warned!
 
         """  # noqa: D202
+
+        warnings.warn(
+            "This routine to reject packages according to the Peirce criterium is "
+            "largely untested.",
+            UserWarning,
+        )
 
         self.applied_filters["pkg_peirce_rejection"] = True
 
