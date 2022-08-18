@@ -133,6 +133,20 @@ def test_filter_max_ions_per_time(crd_file):
     assert np.sum(crd.data) == np.sum(ions_per_shot) - 4
 
 
+def test_filter_max_ions_per_time_nothing(crd_file):
+    """Do nothing if filter shows no entries for removal."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    max_ions = ions_per_shot.max()  # no ions will be filtered
+    time_window_us = 80e-6  # channel width for MCS8a
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.filter_max_ions_per_time(max_ions, time_window_us)
+
+    assert crd.nof_shots == len(ions_per_shot)
+    assert np.sum(crd.data) == np.sum(ions_per_shot)
+
+
 def test_filter_max_ions_per_tof_window(crd_file):
     """Test maximum ions per shot in given time window."""
     header, ions_per_shot, all_tofs, fname = crd_file
@@ -147,6 +161,19 @@ def test_filter_max_ions_per_tof_window(crd_file):
 
     assert crd.nof_shots == len(ions_per_shot) - 1
     assert np.sum(crd.data) == np.sum(ions_per_shot) - 2
+
+
+def test_filter_max_ions_per_tof_window_conv_tof_window_no_shots(crd_file):
+    """Convert ToF window to np.ndarry, no filtering since no ions in criterion."""
+    header, ions_per_shot, all_tofs, fname = crd_file
+    max_ions = ions_per_shot.sum()  # filter the highest one out
+    tof_window_us = (221, 400)
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.filter_max_ions_per_tof_window(max_ions, tof_window_us)
+
+    assert crd.nof_shots == len(ions_per_shot)
+    assert np.sum(crd.data) == np.sum(ions_per_shot)
 
 
 def test_mass_calibration_2pts(crd_file):
@@ -244,6 +271,7 @@ def test_sort_integrals(crd_file):
     integrals_pkg_exp = np.array([[[1, 1], [2, 2]], [[0, 0], [1, 1]]])
 
     crd.sort_integrals()
+    crd.sort_integrals()  # second time, this should do nothing!
     names_rec, values_rec = crd.def_integrals
     assert names_rec == names_exp
     np.testing.assert_equal(values_rec, values_exp)
@@ -302,6 +330,18 @@ def test_spectrum_part(crd_file):
     crd.spectrum_part([1, len(ions_per_shot) - 2])
 
     assert crd.nof_shots == len(ions_per_shot) - 2
+
+
+def test_spectrum_part_no_tof_indexes(crd_file):
+    """Cut spectrum by two shots."""
+    _, ions_per_shot, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.spectrum_part([2, 2])
+
+    assert crd.nof_shots == 1
+    assert crd.data.sum() == 0
 
 
 def test_spectrum_part_data_length(crd_file):
