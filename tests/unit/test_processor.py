@@ -10,6 +10,25 @@ from rimseval import interfacer
 from rimseval.processor import CRDFileProcessor
 
 
+def test_filter_pkg_peirce_countrate(crd_file):
+    """Apply Peirce countrate outlier rejection (run through, no assertions)."""
+    _, _, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.packages(2)
+
+    # set some random mass cal from 1 to 2
+    crd.def_mcal = np.array([[crd.tof.min(), 1.0], [crd.tof.max(), 2.0]])
+    crd.mass_calibration()
+
+    # now set the integrals to include everything
+    crd.def_integrals = (["all"], np.array([[0.9, 2.1]]))  # avoid floating errors
+    crd.integrals_calc()
+
+    crd.filter_pkg_peirce_countrate()
+
+
 def test_integrals(crd_file):
     """Define an integral manually and calculate the integration."""
     _, ions_per_shot, all_tofs, fname = crd_file
@@ -177,7 +196,7 @@ def test_integrals_pkg_with_filtering(crd_file):
     np.testing.assert_almost_equal(crd.integrals, crd_integrals_sum)
 
 
-def test_calculation_with_filters(crd_data):
+def test_calculation_with_filters(crd_data, macro_path):
     """Test that reapplying all filters results in the correct data.
 
     Ensured that all filters do something on this file!
@@ -208,6 +227,10 @@ def test_calculation_with_filters(crd_data):
     crd.filter_max_ions_per_tof_window(20, np.array([2, 2.4]))
     crd.packages(1000)
     crd.filter_max_ions_per_pkg(500)
+
+    macro_file = macro_path.joinpath("ex_max_ions_per_shot_for_filter_test.py")
+    crd.run_macro(macro_file)
+
     crd.dead_time_correction(7)
     crd.integrals_calc()  # default conditions
 
@@ -234,3 +257,21 @@ def test_calculation_tof_spectrum_never_cut(crd_data):
 
     assert crd.data.shape == crd.tof.shape
     assert crd.data.shape == crd.mass.shape
+
+
+def test_optimize_mcal(crd_data):
+    """Optimize the mass calibration of a given spectrum.
+
+    Ensure that it runs through. Assert that values are as before to within 1%.
+
+    :param crd_data: Fixture to return the data path to the CRD files.
+    """
+    fname = crd_data.joinpath("ti_standard_01.crd")
+    mcal_input = np.array([[1.41150472, 45.95262772], [1.84462075, 46.95175879]])
+    crd = CRDFileProcessor(fname)
+    crd.spectrum_full()
+    crd.def_mcal = mcal_input
+    crd.mass_calibration()
+    crd.optimize_mcal()
+
+    np.testing.assert_allclose(mcal_input, crd.def_mcal, rtol=0.01)

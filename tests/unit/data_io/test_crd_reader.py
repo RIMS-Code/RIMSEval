@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 
 from rimseval.data_io.crd_reader import CRDReader
+from ...utils import assert_crd_equal
 
 
 # TEST PROPERTIES #
@@ -62,3 +63,52 @@ def test_crd_nof_shots(crd_file):
     hdr, _, _, fname = crd_file
     crd = CRDReader(Path(fname))
     assert crd.nof_shots == hdr["nofShots"]
+
+
+# ERROR CHECKING #
+
+
+def test_invalid_data_length(crd_data):
+    """Raise an OSError if an incorrect data length was encountered."""
+    crd_file = crd_data.joinpath("err_invalid_data_length.crd")
+    with pytest.raises(OSError) as err:
+        _ = CRDReader(crd_file)
+
+    msg = err.value.args[0]
+    assert "Data length does not agree" in msg
+
+
+def test_invalid_header(crd_data):
+    """Raise a KeyError if an incorrect header was encountered."""
+    hdr_version = "v0p1"
+    crd_file = crd_data.joinpath("err_invalid_header.crd")
+    with pytest.raises(KeyError) as err:
+        _ = CRDReader(crd_file)
+
+    msg = err.value.args[0]
+    assert hdr_version in msg
+
+
+def test_inavlid_num_of_ions_less(crd_data):
+    """Parse the file properly, even if less ions in file than expected."""
+    crd_file = crd_data.joinpath("err_less_ions_than_hdr.crd")
+
+    with pytest.warns(UserWarning, match="I will try a slow reading routine now"):
+        _ = CRDReader(crd_file)
+
+
+def test_inavlid_num_of_ions_more(crd_data):
+    """Parse the file properly, even if more ions in file than expected."""
+    crd_file = crd_data.joinpath("err_less_ions_than_hdr.crd")
+
+    with pytest.warns(UserWarning, match="I will try a slow reading routine now"):
+        _ = CRDReader(crd_file)
+
+
+def test_no_eof(crd_data, crd_file):
+    """Parse file even without an EoF."""
+    _, _, _, fname = crd_file
+    crd_correct = CRDReader(Path(fname))
+    crd_faulty = CRDReader(Path(crd_data.joinpath("err_no_eof.crd")))
+
+    assert_crd_equal(crd_correct, crd_faulty)

@@ -62,18 +62,14 @@ class MultiFileProcessor(QtCore.QObject):
 
         :return: Average peak FWHM in us.
         """
-        if self._files is None:
-            self.open_files()
-        fwhm = np.zeros(len(self._files))
-        for it, file in enumerate(self._files):
+        fwhm = np.zeros(len(self.files))
+        for it, file in enumerate(self.files):
             fwhm[it] = file.peak_fwhm
         return np.average(fwhm)
 
     @peak_fwhm.setter
     def peak_fwhm(self, value: float):
-        if self._files is None:
-            self.open_files()
-        for file in self._files:
+        for file in self.files:
             file.peak_fwhm = value
 
     # METHODS #

@@ -80,11 +80,11 @@ def test_get_sweep_time_ascii():
 
 def test_separate_signal_with_tag():
     """Separate a signal into tagged and untagged data."""
-    signal_all = np.array([[1, 59207], [2, 59207], [3, 59207]], dtype=np.uint32)
+    signal_all = np.array([[1, 9207], [2, 5207], [3, 59207]], dtype=np.uint32)
     tag_location = np.array([2], dtype=np.uint32)
 
-    untagged_exp = np.array([[1, 59207], [3, 59207]], dtype=np.uint32)
-    tagged_exp = np.array([[2, 59207]], dtype=np.uint32)
+    untagged_exp = np.array([[1, 9207], [3, 59207]], dtype=np.uint32)
+    tagged_exp = np.array([[2, 5207]], dtype=np.uint32)
 
     untagged_rec, tagged_rec = utl.separate_signal_with_tag(signal_all, tag_location)
 

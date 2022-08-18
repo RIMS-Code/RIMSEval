@@ -2,17 +2,23 @@
 
 from pathlib import Path
 
+import pytest
 import numpy as np
 
 from rimseval.multi_proc import MultiFileProcessor as mfp
 
 
-def test_mfp_apply_to_all(crd_file):
-    """Apply settings from one crd file to all."""
+@pytest.mark.parametrize("params", [[True, False], [False, True]])
+def test_mfp_apply_to_all(params, crd_file):
+    """Apply settings from one crd file to all.
+
+    :param params: Parameters for: bg_corr, opt_mcal
+    :param crd_file: CRD file to process.
+    """
     _, _, _, fname = crd_file
     files = [Path(fname), Path(fname)]
     id = 0  # id of main crd file
-    bg_corr = True
+    bg_corr = params[0]
 
     crds = mfp(files)
     crds.read_files()
@@ -27,7 +33,7 @@ def test_mfp_apply_to_all(crd_file):
     crd_main.integrals_calc(bg_corr=bg_corr)
 
     # apply to all
-    crds.apply_to_all(id=id, opt_mcal=False, bg_corr=bg_corr)
+    crds.apply_to_all(id=id, opt_mcal=params[1], bg_corr=bg_corr)
 
     for crd in crds.files:
         np.testing.assert_equal(crd.data, crd_main.data)

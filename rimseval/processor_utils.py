@@ -109,10 +109,7 @@ def delta_calc(names: List[str], integrals: np.ndarray) -> np.ndarray:
             norm_iso_name.append(None)
         else:
             ele = name.split("-")[0]
-            try:
-                maj = ini._get_norm_iso(ele)
-            except IndexError:
-                maj = None
+            maj = ini._get_norm_iso(ele)  # can't give index error if above passed
             norm_iso_name.append(maj)
 
     integrals_dict = dict(zip(names_iniabu, range(len(names_iniabu))))

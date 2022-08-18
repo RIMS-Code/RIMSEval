@@ -1,5 +1,8 @@
 """Tests for processors utilities."""
 
+import pytest
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 import rimseval.processor_utils as pu
@@ -52,6 +55,19 @@ def test_delta_calc():
     integrals = np.array([[10000, 100], [100000, 240], [100, 10], [2001, 21]])
     deltas = pu.delta_calc(names, integrals)
     assert np.isnan(deltas[2:3]).all()  # last two must be nans
+
+
+def test_gaussian_fit():
+    """Do a Gaussian feed on fixed-seed random data."""
+    np.random.seed(42)
+    mu, sigma = 0, 0.1
+    sampl = np.random.normal(mu, sigma, 1000)
+
+    ydat, bin_edges, _ = plt.hist(sampl, 25)
+    xdat = (bin_edges[1:] + bin_edges[:-1]) / 2
+
+    max_calc = pu.gaussian_fit_get_max(xdat, ydat)
+    assert mu == pytest.approx(max_calc, abs=0.01)
 
 
 def test_integrals_bg_corr():
@@ -196,6 +212,28 @@ def test_mask_filter_max_ions_per_tof_window():
         ions_per_shot, tofs, max_ions, time_window_chan
     )
     np.testing.assert_equal(exp_mask, rec_mask)
+
+
+def test_mass_calibration():
+    """Perform a mass calibration, functionality tested in unit tests."""
+    params = np.array([[1, 1], [10, 10], [20, 28.35]])
+    tofs = np.arange(0, 20)
+
+    mass, params_fit = pu.mass_calibration(params, tofs, return_params=True)
+
+    assert tofs.shape == mass.shape
+    assert params_fit is not None
+
+
+def test_mass_to_tof():
+    """Convert mass to time of flight."""
+    m = 42.0
+    tm0 = 13.0
+    const = 0.7
+
+    result_exp = np.sqrt(m) * const + tm0
+
+    assert result_exp == pu.mass_to_tof(m, tm0, const)
 
 
 def test_multi_range_indexes():
