@@ -889,10 +889,12 @@ class CRDFileProcessor:
 
         if index_err_lower or index_err_upper:
             msg = (
-                f"Your {'lower' if index_err_lower else ''}"
-                f"{' and ' if index_err_both else ' '}"
-                f"{'upper' if index_err_upper else ''} "
-                f"{'indexes are' if index_err_both else 'index is'} out of range."
+                f"Your{' lower' if index_err_lower else ''}"
+                f"{' and' if index_err_both else ''}"
+                f"{' upper' if index_err_upper else ''}"
+                f"{' indexes are' if index_err_both else ' index is'} out of range.\n\n"
+                f"The first shot (index 1) and the last index you select will be "
+                f"included. For example, selecting '1,5' will include shots 1 to 5."
             )
             raise IndexError(msg)
 
