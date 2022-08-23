@@ -8,6 +8,16 @@ import numpy as np
 from rimseval.utilities import peirce
 
 
+def test_peirce_criterion_ldiv_zero():
+    """Choose a minimum ldiv if it is zero (erfc turns 0 at large values)."""
+    # define values such that it turns out to be zero
+    n_tot = 100
+    n = 1e3  # this brings `ldiv` numerically to zero
+    m = 1
+
+    _ = peirce.peirce_criterion(n_tot, n, m)
+
+
 @given(n_hyp=st.integers(), m_hyp=st.integers())
 def test_peirce_criterion_n_tot_zero(n_hyp, m_hyp):
     """Check that setting number of observations to zero returns zero always."""
