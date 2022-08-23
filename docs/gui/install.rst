@@ -164,6 +164,12 @@ you can simply type:
     git pull
     git install -r requirements.txt --upgrade
 
+.. note:: Newer versions of the GUI can depend on development versions
+    of ``rimseval``. This means that you might see unexpected and wrong behavior.
+    The packaging tool of the GUI does not allow for specifically labeling of such versions.
+    Therefore, it is up to he user to ensure that you have the version that you like.
+    New versions that depend on development versions of ``rimseval`` will always be labeled
+    on GitHub as pre-releases. They will therefore not show up in the update reminder of the software.
 
 ------
 Python

@@ -40,7 +40,8 @@ Package installation
 
     pip install rimseval
 
-Add ``--pre`` flag for pre-releases or install the latest version from GitHub.
+If pre-releases are available and you would like to install one,
+add the ``--pre`` flag to above command.
 More information in the
 `documentation <https://rimseval.readthedocs.io/en/latest/>`_.
 
