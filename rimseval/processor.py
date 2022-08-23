@@ -862,6 +862,7 @@ class CRDFileProcessor:
 
         :raises ValueError: Ranges are not defined from, to where from < to
         :raises ValueError: Tuples are not mutually exclusive.
+        :raises IndexError: One or more indexes are out of range.
         """
         self.applied_filters["spectrum_part"] = [True, rng]
 
@@ -873,6 +874,29 @@ class CRDFileProcessor:
         rng = np.array(rng)
         if len(rng.shape) == 1:  # only one entry
             rng = rng.reshape(1, 2)
+
+        # check for index errors
+        index_err_lower = False
+        index_err_upper = False
+        if (rng < 1).any():
+            index_err_lower = True
+        if (rng > int(self.crd.header["nofShots"])).any():
+            index_err_upper = True
+
+        index_err_both = False
+        if index_err_upper and index_err_lower:
+            index_err_both = True
+
+        if index_err_lower or index_err_upper:
+            msg = (
+                f"Your{' lower' if index_err_lower else ''}"
+                f"{' and' if index_err_both else ''}"
+                f"{' upper' if index_err_upper else ''}"
+                f"{' indexes are' if index_err_both else ' index is'} out of range.\n\n"
+                f"The first shot (index 1) and the last index you select will be "
+                f"included. For example, selecting '1,5' will include shots 1 to 5."
+            )
+            raise IndexError(msg)
 
         # subtract 1 from start range -> zero indexing plus upper limit inclusive now
         rng[:, 0] -= 1
@@ -897,6 +921,7 @@ class CRDFileProcessor:
 
         # create all_tof ranges and filter
         rng_all_tofs = self.ions_to_tof_map[ion_indexes]
+
         tof_indexes = processor_utils.multi_range_indexes(rng_all_tofs)
 
         all_tofs_filtered = self.all_tofs[tof_indexes]

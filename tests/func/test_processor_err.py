@@ -159,6 +159,27 @@ def test_packages_wrong_shots(crd_file):
     assert err_exp in msg
 
 
+@pytest.mark.parametrize(
+    "limit",
+    [
+        [[0, 3], "Your lower index"],
+        [[1, 6], "Your upper index"],
+        [[-1, 10], "lower and upper"],
+    ],
+)
+def test_spectrum_part_range_index_error(limit, crd_file):
+    """Raise ValueError range is in incorrect order."""
+    _, _, _, fname = crd_file
+
+    crd = CRDFileProcessor(Path(fname))
+
+    with pytest.raises(IndexError) as err:
+        crd.spectrum_part([limit[0]])
+
+    msg = err.value.args[0]
+    assert limit[1] in msg
+
+
 def test_spectrum_part_range_wrong_order(crd_file):
     """Raise ValueError range is in incorrect order."""
     _, _, _, fname = crd_file
@@ -168,7 +189,7 @@ def test_spectrum_part_range_wrong_order(crd_file):
     err_exp = "such that `from` < `to`"
 
     with pytest.raises(ValueError) as err:
-        crd.spectrum_part([[10, 4]])
+        crd.spectrum_part([[4, 2]])
 
     msg = err.value.args[0]
     assert err_exp in msg
@@ -183,7 +204,7 @@ def test_spectrum_part_range_not_mutually_exclusive(crd_file):
     err_exp = "Your ranges are not mutually exclusive"
 
     with pytest.raises(ValueError) as err:
-        crd.spectrum_part([[4, 10], [8, 12]])
+        crd.spectrum_part([[1, 3], [3, 4]])
 
     msg = err.value.args[0]
     assert err_exp in msg
