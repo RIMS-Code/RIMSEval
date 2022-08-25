@@ -33,7 +33,7 @@ If the problem only occurs with a specific CRD or LST file, please attach the fi
 
 **Desktop / GUI (please complete the following information):**
  - OS: [e.g. Windows]
- - Version [displayed on the top of the Main Window]
+ - Version [displayed when going to "Settings" -> "Check for Updates"]
  - How did you install the GUI? [Installer, Anaconda, Python, ...]
 
 **Additional context**
