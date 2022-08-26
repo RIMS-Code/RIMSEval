@@ -255,6 +255,42 @@ def test_packages(crd_file):
     assert crd.nof_shots_pkg.sum() == crd.nof_shots
 
 
+def test_sort_backgrounds(crd_file):
+    """Sort backgrounds by number of protons, mass, and starting mass of interval."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_backgrounds()  # does nothing, since None
+    crd.def_backgrounds = ["Fe-56", "Ti-46", "Fe-56"], np.array(
+        [[58.8, 59.2], [45.8, 46.2], [55.8, 56.2]]
+    )
+
+    crd.backgrounds = np.array([[2, 2], [1, 1]])
+    crd.backgrounds_pkg = np.array([crd.backgrounds, crd.backgrounds - 1])
+
+    names_exp = ["Ti-46", "Fe-56", "Fe-56"]
+    values_exp = np.array([[45.8, 46.2], [55.8, 56.2], [58.8, 59.2]])
+
+    crd.sort_backgrounds()
+    names_rec, values_rec = crd.def_backgrounds
+    assert names_rec == names_exp
+    np.testing.assert_equal(values_rec, values_exp)
+
+
+def test_sort_backgrounds_non_element(crd_file) -> None:
+    """Sort recognizable elements and other names together, all others last."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_backgrounds()  # does nothing, since None
+    crd.def_backgrounds = ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"], np.array(
+        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    )
+    crd.backgrounds = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
+
+    names_exp = ["Zr-96", "Mo-94", "ZrO-94", "MoO-96"]
+    crd.sort_backgrounds()
+    assert crd.def_backgrounds[0] == names_exp
+
+
 def test_sort_integrals(crd_file):
     """Sort integrals by first mass."""
     _, _, _, fname = crd_file

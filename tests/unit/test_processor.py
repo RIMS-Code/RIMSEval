@@ -113,6 +113,58 @@ def test_integrals_multiple_backgrounds(crd_file):
     crd.integrals_calc(bg_corr=True)
 
 
+def test_integrals_multiple_backgrounds_sorting(crd_file):
+    """Ensure that everything is the same if backgrounds are sorted or not."""
+    _, ions_per_shot, all_tofs, fname = crd_file
+
+    # the unsorted way
+    crd = CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+
+    # set some random mass cal from 1 to 2
+    crd.def_mcal = np.array([[crd.tof.min(), 1.0], [crd.tof.max(), 2.0]])
+    crd.mass_calibration()
+
+    # now set the integrals to include everything
+    crd.def_integrals = (
+        ["pk1", "pk2"],
+        np.array([[0.9, 1.4], [1.5, 2.1]]),
+    )  # avoid floating errors
+    crd.integrals_calc()
+
+    # set the background correction
+    crd.def_backgrounds = (["pk2", "pk1"], np.array([[2.1, 3.0], [0.1, 2.1]]))
+    crd.integrals_calc(bg_corr=True)
+
+    # the sorted way
+    crd2 = CRDFileProcessor(Path(fname))
+    crd2.spectrum_full()
+
+    # set some random mass cal from 1 to 2
+    crd2.def_mcal = np.array([[crd2.tof.min(), 1.0], [crd2.tof.max(), 2.0]])
+    crd2.mass_calibration()
+
+    # now set the integrals to include everything
+    crd2.def_integrals = (
+        ["pk1", "pk2"],
+        np.array([[0.9, 1.4], [1.5, 2.1]]),
+    )  # avoid floating errors
+    crd2.integrals_calc()
+
+    # set the background correction
+    crd2.def_backgrounds = (["pk2", "pk1"], np.array([[2.1, 3.0], [0.1, 2.1]]))
+    crd2.sort_backgrounds()
+    crd2.integrals_calc(bg_corr=True)
+
+    # make sure it's all the same
+    assert crd2.def_backgrounds[0] == ["pk1", "pk2"]
+    np.testing.assert_almost_equal(crd.integrals, crd2.integrals)
+
+    # also make sure that the bg correction did something...
+    crd.integrals_calc(bg_corr=False)
+    assert (crd2.integrals < crd.integrals).any()
+
+
 def test_background_one_bg_with_multiple_peaks(crd_data):
     """Ti Standard 01 spectrum with json file to do background correction."""
     crd = CRDFileProcessor(crd_data.joinpath("ti_standard_01.crd"))

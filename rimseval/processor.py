@@ -765,6 +765,52 @@ class CRDFileProcessor:
 
         sys.path.remove(str(file_path))
 
+    def sort_backgrounds(self) -> None:
+        """Sort all the backgrounds that are defined.
+
+        Takes the backgrounds and the names and sorts them by proton number
+        (first order), then by mass (second order), and finally by start of the
+        background (third order). All backgrounds that cannot be identified with a
+        clear proton number are sorted in at the end of the second order sorting,
+        and then sorted by starting mass.
+        If no backgrounds are defined, this routine does nothing.
+
+        Example:
+            >>> crd.def_backgrounds
+            ["56Fe", "54Fe"], array([[55.4, 55.6], [53.4, 53.6]])
+            >>> crd.sort_backgrounds()
+            >>> crd.def_backgrounds
+            ["54Fe", "56Fe"], array([[53.4, 53.6], [55.4, 55.6]])
+        """
+        if self.def_backgrounds is None:
+            return
+
+        names, values = self.def_backgrounds
+
+        zz = []  # number of protons per isotope - first sort key
+        for name in names:
+            try:
+                zz.append(ini.iso[name].z)
+            except IndexError:
+                zz.append(999)  # at the end of everything
+
+        mass = []  # mass - second sort key
+        for name in names:
+            try:
+                mass.append(ini.iso[name].mass)
+            except IndexError:
+                mass.append(999)
+
+        sort_ind = sorted(
+            np.arange(len(names)), key=lambda x: (zz[x], mass[x], values[x, 0])
+        )
+
+        if (sort_ind == np.arange(len(names))).all():  # already sorted
+            return
+
+        names_sorted = list(np.array(names)[sort_ind])
+        self.def_backgrounds = names_sorted, values[sort_ind]
+
     def sort_integrals(self, sort_vals: bool = True) -> None:
         """Sort all the integrals that are defined by mass.
 
