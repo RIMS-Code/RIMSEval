@@ -191,6 +191,11 @@ class MyMplNavigationToolbar(NavigationToolbar):
         """Initialize toolbar."""
         super().__init__(*args, **kwargs)
 
+    def release_pan(self, event):
+        """Run a normal pan release event and then untoggle button."""
+        super().release_pan(event)
+        self.pan()  # untoggle pan button
+
     def release_zoom(self, event):
         """Run a normal zoom release event and then untoggle button."""
         super().release_zoom(event)
