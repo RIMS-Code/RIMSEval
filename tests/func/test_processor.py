@@ -271,6 +271,7 @@ def test_sort_backgrounds(crd_file):
     values_exp = np.array([[45.8, 46.2], [55.8, 56.2], [58.8, 59.2]])
 
     crd.sort_backgrounds()
+    crd.sort_backgrounds()  # already sorted, does nothing
     names_rec, values_rec = crd.def_backgrounds
     assert names_rec == names_exp
     np.testing.assert_equal(values_rec, values_exp)
