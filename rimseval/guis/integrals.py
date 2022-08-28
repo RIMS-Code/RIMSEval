@@ -165,11 +165,13 @@ class DefineAnyTemplate(PlotSpectrum):
             )
 
     def sort_integrals(self):
-        """Sort the names and integrals."""
+        """Sort the names and integrals using routine from processor_utilities."""
         if len(self.int_names) > 1:
-            sorted_zip = sorted(zip(self.int_names, self.int_values))
-            self.int_names = [i for i, j in sorted_zip]
-            self.int_values = [j for i, j in sorted_zip]
+            def_integrals, _ = pu.sort_integrals(
+                (self.int_names, np.array(self.int_values))
+            )
+            self.int_names, int_values = def_integrals
+            self.int_values = list(int_values)
 
     def user_input(self, peak_pos: np.array, name: str = "") -> None:
         """Query user for position.
