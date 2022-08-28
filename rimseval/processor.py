@@ -13,7 +13,7 @@ import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import ini, peirce, utils
+from .utilities import peirce, utils
 
 
 class CRDFileProcessor:
@@ -804,30 +804,15 @@ class CRDFileProcessor:
             >>> crd.def_integrals
             ["Ti-46", "Fe-56"], array([[45.8, 46.2], [55.8, 56.2]])
         """
-        if self.def_integrals is None:
-            return
+        if def_integrals := self.def_integrals:
+            sorted_integrals, sort_ind = processor_utils.sort_integrals(def_integrals)
+            if sort_ind:
+                self.def_integrals = sorted_integrals
 
-        names, values = self.def_integrals
-
-        zz = []  # number of protons per isotope - first sort key
-        for name in names:
-            try:
-                zz.append(ini.iso[name].z)
-            except IndexError:
-                zz.append(999)  # at the end of everything
-
-        sort_ind = sorted(np.arange(len(names)), key=lambda x: (zz[x], values[x, 0]))
-
-        if (sort_ind == np.arange(len(names))).all():  # already sorted
-            return
-
-        names_sorted = list(np.array(names)[sort_ind])
-        self.def_integrals = names_sorted, values[sort_ind]
-
-        if self.integrals is not None and sort_vals:
-            self.integrals = self.integrals[sort_ind]
-        if self.integrals_pkg is not None and sort_vals:
-            self.integrals_pkg = self.integrals_pkg[:, sort_ind]
+                if self.integrals is not None and sort_vals:
+                    self.integrals = self.integrals[sort_ind]
+                if self.integrals_pkg is not None and sort_vals:
+                    self.integrals_pkg = self.integrals_pkg[:, sort_ind]
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.

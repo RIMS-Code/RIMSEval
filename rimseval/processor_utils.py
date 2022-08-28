@@ -530,7 +530,7 @@ def remove_shots_from_packages(
 def sort_backgrounds(
     def_backgrounds: Tuple[List[str], np.ndarray]
 ) -> Tuple[List[str], np.ndarray]:
-    """Sort a background list and return the sorted list
+    """Sort a background list and return the sorted list.
 
     Sorting takes place first by Z, then by A, finally by start of the background area.
     Backgrounds given to this routine cannot be None.
@@ -563,6 +563,35 @@ def sort_backgrounds(
 
     names_sorted = list(np.array(names)[sort_ind])
     return names_sorted, values[sort_ind]
+
+
+def sort_integrals(
+    def_integrals: Tuple[List[str], np.ndarray]
+) -> Tuple[Tuple[List[str], np.ndarray], Union[np.ndarray, None]]:
+    """Sort integral definitions and return them plus the sorting array.
+
+    The latter is required to also sort the already calculated integrals.
+    Sorting takes place first by Z, then by A.
+
+    :param def_integrals: Integral definitions.
+    :return: Sorted integral definition, sorting array (None if already sorted).
+    """
+    names, values = def_integrals
+
+    zz = []  # number of protons per isotope - first sort key
+    for name in names:
+        try:
+            zz.append(ini.iso[name].z)
+        except IndexError:
+            zz.append(999)  # at the end of everything
+
+    sort_ind = sorted(np.arange(len(names)), key=lambda x: (zz[x], values[x, 0]))
+
+    if (sort_ind == np.arange(len(names))).all():  # already sorted
+        return (names, values), None
+
+    names_sorted = list(np.array(names)[sort_ind])
+    return (names_sorted, values[sort_ind]), sort_ind
 
 
 @njit
