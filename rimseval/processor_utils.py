@@ -527,6 +527,44 @@ def remove_shots_from_packages(
         return data_pkg, nof_shots_pkg
 
 
+def sort_backgrounds(
+    def_backgrounds: Tuple[List[str], np.ndarray]
+) -> Tuple[List[str], np.ndarray]:
+    """Sort a background list and return the sorted list
+
+    Sorting takes place first by Z, then by A, finally by start of the background area.
+    Backgrounds given to this routine cannot be None.
+
+    :param def_backgrounds: Background definition.
+    :return: Sorted background definition.
+    """
+    names, values = def_backgrounds
+
+    zz = []  # number of protons per isotope - first sort key
+    for name in names:
+        try:
+            zz.append(ini.iso[name].z)
+        except IndexError:
+            zz.append(999)  # at the end of everything
+
+    mass = []  # mass - second sort key
+    for name in names:
+        try:
+            mass.append(ini.iso[name].mass)
+        except IndexError:
+            mass.append(999)
+
+    sort_ind = sorted(
+        np.arange(len(names)), key=lambda x: (zz[x], mass[x], values[x, 0])
+    )
+
+    if (sort_ind == np.arange(len(names))).all():  # already sorted
+        return names, values
+
+    names_sorted = list(np.array(names)[sort_ind])
+    return names_sorted, values[sort_ind]
+
+
 @njit
 def sort_data_into_spectrum(
     ions: np.ndarray, bin_start: int, bin_end: int

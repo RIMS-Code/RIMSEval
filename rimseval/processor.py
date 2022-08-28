@@ -782,34 +782,8 @@ class CRDFileProcessor:
             >>> crd.def_backgrounds
             ["54Fe", "56Fe"], array([[53.4, 53.6], [55.4, 55.6]])
         """
-        if self.def_backgrounds is None:
-            return
-
-        names, values = self.def_backgrounds
-
-        zz = []  # number of protons per isotope - first sort key
-        for name in names:
-            try:
-                zz.append(ini.iso[name].z)
-            except IndexError:
-                zz.append(999)  # at the end of everything
-
-        mass = []  # mass - second sort key
-        for name in names:
-            try:
-                mass.append(ini.iso[name].mass)
-            except IndexError:
-                mass.append(999)
-
-        sort_ind = sorted(
-            np.arange(len(names)), key=lambda x: (zz[x], mass[x], values[x, 0])
-        )
-
-        if (sort_ind == np.arange(len(names))).all():  # already sorted
-            return
-
-        names_sorted = list(np.array(names)[sort_ind])
-        self.def_backgrounds = names_sorted, values[sort_ind]
+        if bg := self.def_backgrounds:
+            self.def_backgrounds = processor_utils.sort_backgrounds(bg)
 
     def sort_integrals(self, sort_vals: bool = True) -> None:
         """Sort all the integrals that are defined by mass.
