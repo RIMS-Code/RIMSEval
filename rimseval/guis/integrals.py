@@ -9,6 +9,7 @@ from PyQt6 import QtCore, QtWidgets
 
 
 from rimseval.processor import CRDFileProcessor
+import rimseval.processor_utils as pu
 from .mpl_canvas import PlotSpectrum
 
 
@@ -225,7 +226,9 @@ class DefineBackgrounds(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         if self.bg_names:
-            self.crd.def_backgrounds = self.bg_names, np.array(self.bg_values)
+            self.crd.def_backgrounds = pu.sort_backgrounds(
+                (self.bg_names, np.array(self.bg_values))
+            )
         else:
             self.crd.def_backgrounds = None
         self.signal_backgrounds_defined.emit()
