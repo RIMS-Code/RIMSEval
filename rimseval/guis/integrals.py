@@ -277,7 +277,6 @@ class DefineBackgrounds(DefineAnyTemplate):
 
         :param bg_pos: Sorted array, left and right position of background.
         :param name: Name of the peak, for reloading the UI.
-        :param other_peaks: Remove overlap of bg with other peaks than itself?
         """
         # dialog
         def set_selected_peak_name(val):
@@ -304,10 +303,10 @@ class DefineBackgrounds(DefineAnyTemplate):
             question = QtWidgets.QMessageBox.question(
                 self,
                 "Overlap detected",
-                f"Do you want to auto-correct for peak / background overlap "
-                f"with all peaks?\nPress `No` if you intentionally overlapped "
-                f"backgrounds with peaks other than the one the background "
-                f"is associated with.",
+                "Do you want to auto-correct for peak / background overlap "
+                "with all peaks?\nPress `No` if you intentionally overlapped "
+                "backgrounds with peaks other than the one the background "
+                "is associated with.",
             )
             if question == QtWidgets.QMessageBox.StandardButton.Yes:
                 self.bg_names += all_corr[0]
@@ -365,10 +364,10 @@ class DefineIntegrals(DefineAnyTemplate):
                     question = QtWidgets.QMessageBox.question(
                         self,
                         "Overlap detected",
-                        f"Do you want to auto-correct for peak / background overlap "
-                        f"with all peaks?\nPress `No` if you intentionally overlapped "
-                        f"backgrounds with peaks other than the one the background "
-                        f"is associated with.",
+                        "Do you want to auto-correct for peak / background overlap "
+                        "with all peaks?\nPress `No` if you intentionally overlapped "
+                        "backgrounds with peaks other than the one the background "
+                        "is associated with.",
                     )
                     if question == QtWidgets.QMessageBox.StandardButton.Yes:
                         self.crd.def_backgrounds = (all_corr[0], all_corr[1])
