@@ -443,6 +443,86 @@ def multi_range_indexes(rng: np.array) -> np.array:
     return indexes
 
 
+def peak_background_overlap(
+    def_integrals: Tuple[List, np.ndarray], def_backgrounds: Tuple[List, np.ndarray]
+) -> Tuple[Tuple[List, np.ndarray], Tuple[List, np.ndarray]]:
+    """Check if the backgrounds and peaks overlap and correct if they do.
+
+    Two types of overlap are possible: Overlap of the background with its own peak and
+    overlap of the background with another peak. Two background definitions are
+    returned: One where only the peak itself is cut out but other overlaps are kept and
+    one where both are cut out. The user ultimately needs to specify which one
+    gets applied.
+
+    :param def_integrals: Integral definitions
+    :param def_backgrounds: Background definitions
+
+    :return: Integral definitions corrected for peaks of bgs,
+        Integral definitions corrected for all overlapping peaks
+    """
+    int_names, int_vals = def_integrals
+    bg_names, bg_vals = def_backgrounds
+
+    # cut backgrounds such that they don't overlap with their own peak
+    bg_names_self, bg_vals_self = [], []
+    for it, bg_name in enumerate(bg_names):
+        int_low, int_high = int_vals[int_names.index(bg_name)]
+        bg_low, bg_high = bg_vals[it]
+        if bg_low < int_low and bg_high > int_high:  # bg passes through peak:
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, int_low]))
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([int_high, bg_high]))
+        elif bg_low < int_low and bg_high > int_low:  # overlap on negative side
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, int_low]))
+        elif bg_low < int_high and bg_high > int_high:  # overlap on positive side
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([int_high, bg_high]))
+        elif (bg_low < int_low and bg_high <= int_low) or (
+            bg_low >= int_high and bg_high > int_high
+        ):  # all good!
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, bg_high]))
+
+    def_bg_self_corr = sort_backgrounds((bg_names_self, np.array(bg_vals_self)))
+
+    # sorted integrals values:
+    int_vals_sorted = int_vals[int_vals[:, 0].argsort()]
+
+    # cut backgrounds such that they don't overlap with any peak
+    bg_names_all, bg_vals_all = [], []
+    for it, bg_name in enumerate(bg_names):
+        bg_low, bg_high = bg_vals[it]
+        # peak limits that are within bounds
+        boundaries = int_vals_sorted[
+            np.logical_and(int_vals_sorted > bg_low, int_vals_sorted < bg_high)
+        ]
+        if len(boundaries) == 0:  # no overlap
+            test_mask = np.logical_and(
+                bg_low >= int_vals_sorted[:, 0], bg_high <= int_vals_sorted[:, 1]
+            )
+            if not test_mask.any():  # if any of these are true, bg inside a peak
+                bg_names_all.append(bg_name)
+                bg_vals_all.append(bg_vals[it])
+            continue
+        # add the lower and upper boundaries if of bg, if necessary
+        if bg_low < boundaries[0] and any(boundaries[0] == int_vals_sorted[:, 0]):
+            boundaries = np.insert(boundaries, 0, bg_low)
+        if bg_high > boundaries[-1] and any(boundaries[-1] == int_vals_sorted[:, 1]):
+            boundaries = np.insert(boundaries, len(boundaries), bg_high)
+
+        all_values = boundaries.reshape(int(len(boundaries) / 2), 2)
+
+        for val in all_values:
+            bg_names_all.append(bg_name)
+            bg_vals_all.append(val)
+
+    def_bg_all_corr = sort_backgrounds((bg_names_all, np.array(bg_vals_all)))
+
+    return def_bg_self_corr, def_bg_all_corr
+
+
 @njit
 def remove_shots_from_filtered_packages_ind(
     shots_rejected: np.array,

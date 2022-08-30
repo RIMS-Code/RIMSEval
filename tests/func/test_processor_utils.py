@@ -2,6 +2,7 @@
 
 import pytest
 
+from hypothesis import given, strategies as st
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -251,6 +252,93 @@ def test_multi_range_indexes_empty():
     ranges = np.array([[0, 0], [0, 0]])
     indexes_exp = np.array([])
     np.testing.assert_equal(pu.multi_range_indexes(ranges), indexes_exp)
+
+
+def test_peak_background_overlap():
+    """Remove overlaps of peaks and backgrounds, if they exist."""
+    def_integrals = (
+        ["p1", "p2", "p3", "p4"],
+        np.array([[10.0, 11.0], [15.0, 16.0], [17.0, 18.0], [30, 31.0]]),
+    )
+    def_bg = (
+        ["p1", "p2", "p2", "p2", "p3", "p4", "p4", "p4"],
+        np.array(
+            [
+                [9.0, 12.0],
+                [14.0, 15.0],
+                [14.0, 15.5],
+                [15.7, 17.0],
+                [16.2, 17.3],
+                [17.3, 31],
+                [30.4, 30.9],
+                [31.0, 33.0],
+            ]
+        ),
+    )
+
+    def_bg_self_corr = (
+        ["p1", "p1", "p2", "p2", "p2", "p3", "p4", "p4"],
+        np.array(
+            [
+                [9.0, 10.0],
+                [11.0, 12.0],
+                [14.0, 15.0],
+                [14.0, 15.0],
+                [16, 17.0],
+                [16.2, 17.0],
+                [17.3, 30.0],
+                [31.0, 33.0],
+            ]
+        ),
+    )
+    def_bg_all_corr = (
+        ["p1", "p1", "p2", "p2", "p2", "p3", "p4", "p4"],
+        np.array(
+            [
+                [9.0, 10.0],
+                [11.0, 12.0],
+                [14.0, 15.0],
+                [14.0, 15.0],
+                [16, 17.0],
+                [16.2, 17.0],
+                [18, 30],
+                [31.0, 33.0],
+            ]
+        ),
+    )
+
+    rec_self_corr, rec_all_corr = pu.peak_background_overlap(def_integrals, def_bg)
+
+    assert rec_self_corr[0] == def_bg_self_corr[0]
+    np.testing.assert_allclose(rec_self_corr[1], def_bg_self_corr[1])
+
+    assert rec_all_corr[0] == def_bg_all_corr[0]
+    np.testing.assert_allclose(rec_all_corr[1], def_bg_all_corr[1])
+
+
+@given(bg=st.lists(st.floats(min_value=1, max_value=10), min_size=2, max_size=2))
+def test_peak_background_overlap_all_excluded(bg):
+    """Test with hypothesis that we don't have overlap."""
+    if bg[0] < bg[1]:
+        bg_low = bg[0]
+        bg_high = bg[1]
+    else:
+        bg_low = bg[1]
+        bg_high = bg[0]
+
+    def_integral = (["p1", "p2", "p3"], np.array([[2, 4], [5, 7], [8, 9.5]]))
+    def_bgs = (["p1"], np.array([[bg_low, bg_high]]))
+
+    _, def_bgs_all_corr = pu.peak_background_overlap(def_integral, def_bgs)
+    bgs = def_bgs_all_corr[1]
+    for bg in bgs:
+        # now we create a boolean mask for the bgs to compare if below or above
+        bool_low = bg < def_integral[1]
+        bool_high = bg > def_integral[1]
+
+        # summing horizontally results in 0 (both false) or 2 (both true).
+        assert not any(np.sum(bool_low, axis=1) % 2)
+        assert not any(np.sum(bool_high, axis=1) % 2)
 
 
 def test_sort_data_into_spectrum():

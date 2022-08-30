@@ -148,6 +148,8 @@ class CRDFileProcessor:
         The list contains first the names of the integrals.
         The np.ndarray then contains in each row the lower and upper limit in amu of
         the peak that needs to be integrated.
+        If backgrounds overlap with the peaks themselves, they will be automatically
+        adjusted.
 
         :return: Integral definitions.
 
@@ -199,6 +201,7 @@ class CRDFileProcessor:
                     self._params_backgrounds = bg_names, bg_vals
 
             self._params_integrals = value
+            self.adjust_overlap_background_peaks()
 
     @property
     def peak_fwhm(self) -> float:
@@ -240,6 +243,35 @@ class CRDFileProcessor:
         self._us_to_chan = value
 
     # METHODS #
+
+    def adjust_overlap_background_peaks(self, other_peaks: bool = False) -> None:
+        """Routine to adjust overlaps of backgrounds and peaks.
+
+        By default, this routine checks if the backgrounds overlap with the peaks they
+        are defined for and removes any background values that interfer with the peak
+        that is now defined. It also checks for overlap with other peaks and if it finds
+        any, warns the user.
+        If `other_peaks` is set to `True`, the routine will not warn the user, but
+        automatically correct these bad overlaps.
+
+        :param other_peaks: Automatically correct for overlap with other peaks?
+        :return: None
+        """
+        if not self.def_integrals or not self.def_backgrounds:
+            return
+
+        self_corr, all_corr = processor_utils.peak_background_overlap(
+            self.def_integrals, self.def_backgrounds
+        )
+        if other_peaks:
+            self.def_backgrounds = all_corr
+        else:
+            self.def_backgrounds = self_corr
+            if not (self_corr[1] == all_corr[1]).all():
+                warnings.warn(
+                    "Your backgrounds have overlaps with peaks other than themselves.",
+                    UserWarning,
+                )
 
     def apply_individual_shots_filter(self, shots_rejected: np.ndarray):
         """Routine to finish filtering for individual shots.

@@ -23,6 +23,40 @@ def test_timestamp(crd_file):
 # TEST METHODS #
 
 
+@pytest.mark.parametrize("ind", [0, 1])
+def test_adjust_overlap_background_peaks(ind, crd_file, mocker):
+    """Ensure the correct return is chosen and set, plus warning raised if required."""
+    corrs_exp = (["p1"], np.array([[2, 3]])), (["p1"], np.array([[5, 6]]))
+    mocker.patch(
+        "rimseval.processor_utils.peak_background_overlap",
+        return_value=(corrs_exp[0], corrs_exp[1]),
+    )
+
+    warn_msg = "Your backgrounds have overlaps with peaks other than themselves."
+
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    crd.def_backgrounds = (["p1"], np.array([[1, 9]]))
+    crd.def_integrals = (["p1"], np.array([[2.9, 3.2]]))
+
+    if ind == 0:  # expect a warning
+        with pytest.warns(UserWarning, match=warn_msg):
+            crd.adjust_overlap_background_peaks(other_peaks=bool(ind))
+    else:
+        crd.adjust_overlap_background_peaks(other_peaks=bool(ind))
+
+    assert crd.def_backgrounds[0] == corrs_exp[ind][0]
+    np.testing.assert_almost_equal(crd.def_backgrounds[1], corrs_exp[ind][1])
+
+
+def test_adjust_overlap_background_peaks_do_nothing(crd_file):
+    """Do nothing if backgrounds or integrals are not defined."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.adjust_overlap_background_peaks()
+
+
 def test_data_dimension_after_dead_time_correction(crd_file):
     """Ensure ToF and data have the same dimensions - BF 2021-07-23."""
     _, _, _, fname = crd_file
