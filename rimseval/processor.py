@@ -267,7 +267,10 @@ class CRDFileProcessor:
             self.def_backgrounds = all_corr
         else:
             self.def_backgrounds = self_corr
-            if not (self_corr[1] == all_corr[1]).all():
+            if (
+                not self_corr[1].shape == all_corr[1].shape
+                or not (self_corr[1] == all_corr[1]).all()
+            ):
                 warnings.warn(
                     "Your backgrounds have overlaps with peaks other than themselves.",
                     UserWarning,

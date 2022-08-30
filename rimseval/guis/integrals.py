@@ -277,6 +277,7 @@ class DefineBackgrounds(DefineAnyTemplate):
 
         :param bg_pos: Sorted array, left and right position of background.
         :param name: Name of the peak, for reloading the UI.
+        :param other_peaks: Remove overlap of bg with other peaks than itself?
         """
         # dialog
         def set_selected_peak_name(val):
@@ -293,41 +294,30 @@ class DefineBackgrounds(DefineAnyTemplate):
         else:
             name = self._selected_peak_name
 
-        # process peak
-        if ovl_names := self.check_peak_overlapping(bg_pos):
-            ovl_names = np.array(ovl_names)
+        self_corr, all_corr = pu.peak_background_overlap(
+            (self.int_names, np.array(self.int_values)), ([name], np.array([bg_pos]))
+        )
+        if (
+            not self_corr[1].shape == all_corr[1].shape
+            or not (self_corr[1] == all_corr[1]).all()
+        ):  # more overlap
+            question = QtWidgets.QMessageBox.question(
+                self,
+                "Overlap detected",
+                f"The selected background overlaps with a peak other than {name}. "
+                f"If this was your intention, press `Yes`. If you press `No`, "
+                f"the overlap will automatically be resolved.",
+            )
+            if question == QtWidgets.QMessageBox.StandardButton.No:
+                self.bg_names += all_corr[0]
+                self.bg_values += list(all_corr[1])
+            else:
+                self.bg_names += self_corr[0]
+                self.bg_values += list(self_corr[1])
+        else:
+            self.bg_names += self_corr[0]
+            self.bg_values += list(self_corr[1])
 
-            # check if overlapping with more than one peak
-            if np.where(ovl_names != name)[0].size > 0:
-                question = QtWidgets.QMessageBox.question(
-                    self,
-                    "Overlap detected",
-                    f"The selected background overlaps with a peak other than {name}. "
-                    f"Is this what you wanted?",
-                )
-                if question == QtWidgets.QMessageBox.StandardButton.No:
-                    return
-
-            # peak itself is included in overlap, cut it out
-            if np.where(ovl_names == name)[0].size > 0:
-                bg_l, bg_r = bg_pos
-                peak_l, peak_r = self.int_values[self.int_names.index(name)]
-
-                # peak is inside background
-                if bg_l < peak_l and bg_r > peak_r:
-                    self.bg_names.append(name)
-                    self.bg_values.append(np.array([bg_l, peak_l]))
-                    self.bg_names.append(name)
-                    self.bg_values.append(np.array([peak_r, bg_r]))
-                    self.peaks_changed()
-                    return
-                elif bg_l < peak_l < bg_r:
-                    bg_pos[1] = peak_l
-                elif bg_l < peak_r < bg_r:
-                    bg_pos[0] = peak_r
-
-        self.bg_names.append(name)
-        self.bg_values.append(bg_pos)
         self.peaks_changed()
 
 
