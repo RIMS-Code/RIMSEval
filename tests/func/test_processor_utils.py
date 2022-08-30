@@ -17,6 +17,7 @@ import rimseval.data_io.crd_utils as crdu
         [np.array([[2, 3]]), False],
         [np.array([[2, 3], [1, 2], [5, 7], [9.2, 10.2]]), False],
         [np.array([[2, 3], [5.2, 7.2], [7.0, 9.0], [10, 12]]), True],
+        [np.array([[5, 6], [2, 9]]), True],
     ],
 )
 def test_check_peak_overlap(int_vals):
