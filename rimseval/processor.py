@@ -188,6 +188,25 @@ class CRDFileProcessor:
             self.adjust_overlap_background_peaks()
 
     @property
+    def integrals_overlap(self) -> bool:
+        """Check if any of the integrals overlap.
+
+        :return: Do any integrals overlap?
+
+        Example:
+            >>> data = CRDFileProcessor("my_data.crd")
+            >>> peak_names = ["54Fe", "64Ni"]
+            >>> peak_limits = np.array([[53.8, 54.2], [63.5, 64.5]])
+            >>> data.def_integrals = (peak_names, peak_limits)
+            >>> data.integrals_overlap
+            False
+        """
+        if self.def_integrals is None:
+            return False
+
+        return processor_utils.check_peaks_overlap(self.def_integrals[1])
+
+    @property
     def peak_fwhm(self) -> float:
         """Get / Set the FWHM of the peak.
 

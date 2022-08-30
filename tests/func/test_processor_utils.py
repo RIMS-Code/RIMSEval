@@ -10,6 +10,23 @@ import rimseval.processor_utils as pu
 import rimseval.data_io.crd_utils as crdu
 
 
+@pytest.mark.parametrize(
+    "int_vals",
+    [
+        [None, False],
+        [np.array([[2, 3]]), False],
+        [np.array([[2, 3], [1, 2], [5, 7], [9.2, 10.2]]), False],
+        [np.array([[2, 3], [5.2, 7.2], [7.0, 9.0], [10, 12]]), True],
+    ],
+)
+def test_check_peak_overlap(int_vals):
+    """Check if peak definitions overlap."""
+    peak_limits = int_vals[0]
+    result_exp = int_vals[1]
+
+    assert pu.check_peaks_overlap(peak_limits) == result_exp
+
+
 def test_create_packages():
     """Create packages from data."""
     ions_per_shot = np.array([0, 0, 1, 0, 2, 0, 3, 2, 1, 4])

@@ -12,6 +12,17 @@ import rimseval.processor_utils as pu
 # TEST PROPERTIES #
 
 
+def test_integrals_overlap(crd_file):
+    """Check if integrals overlap and return bools."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    assert not crd.integrals_overlap
+
+    crd.def_integrals = ["p1", "p2"], np.array([[1, 2], [3, 4]])
+    assert not crd.integrals_overlap
+
+
 def test_timestamp(crd_file):
     """Get the time stamp of the CRD file as a python datetime."""
     _, _, _, fname = crd_file

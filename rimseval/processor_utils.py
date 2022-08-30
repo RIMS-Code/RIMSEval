@@ -9,6 +9,35 @@ from scipy import optimize
 from .utilities import fitting, ini, utils
 
 
+def check_peaks_overlap(peak_limits: np.ndarray) -> bool:
+    """Check if peaks overlap and return the result.
+
+    If any two peaks overlap, this will return `True`, otherwise `False`.
+
+    :param peak_limits: Range of peaks, n x 2 array
+    :return: Do the peaks overlap?
+    """
+    if peak_limits is None:
+        return False
+    if len(peak_limits) <= 1:  # no overlap is possible
+        return False
+
+    for it, lims in enumerate(peak_limits):
+        other_peaks = np.delete(peak_limits, it, axis=0)
+        mask_low = np.logical_and(
+            lims[0] < other_peaks[:, 0], lims[1] <= other_peaks[:, 0]
+        )
+        mask_high = np.logical_and(
+            lims[0] >= other_peaks[:, 1], lims[1] > other_peaks[:, 1]
+        )
+        mask = mask_low == mask_high
+        if any(mask):  # some peaks overlap!
+            return True
+
+    # all good!
+    return False
+
+
 @njit
 def create_packages(
     shots: int,
