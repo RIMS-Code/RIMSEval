@@ -453,6 +453,7 @@ def peak_background_overlap(
     returned: One where only the peak itself is cut out but other overlaps are kept and
     one where both are cut out. The user ultimately needs to specify which one
     gets applied.
+    Backgrounds that are not present in integrals are deleted.
 
     :param def_integrals: Integral definitions
     :param def_backgrounds: Background definitions
@@ -462,6 +463,17 @@ def peak_background_overlap(
     """
     int_names, int_vals = def_integrals
     bg_names, bg_vals = def_backgrounds
+
+    # delete backgrounds that are unused
+    ind_to_delete = []
+    for it, name in enumerate(bg_names):
+        if name not in int_names:
+            ind_to_delete.append(it)
+    if len(ind_to_delete) == len(bg_names):
+        return ([], np.empty(0)), ([], np.empty(0))
+    else:  # remove existing
+        bg_names = [ele for id, ele in enumerate(bg_names) if id not in ind_to_delete]
+        bg_vals = np.delete(bg_vals, ind_to_delete, axis=0)
 
     # cut backgrounds such that they don't overlap with their own peak
     bg_names_self, bg_vals_self = [], []

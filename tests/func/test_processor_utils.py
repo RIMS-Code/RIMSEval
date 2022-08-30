@@ -317,7 +317,7 @@ def test_peak_background_overlap():
 
 
 @given(bg=st.lists(st.floats(min_value=1, max_value=10), min_size=2, max_size=2))
-def test_peak_background_overlap_all_excluded(bg):
+def test_peak_background_overlap__excluded(bg):
     """Test with hypothesis that we don't have overlap."""
     if bg[0] < bg[1]:
         bg_low = bg[0]
@@ -339,6 +339,20 @@ def test_peak_background_overlap_all_excluded(bg):
         # summing horizontally results in 0 (both false) or 2 (both true).
         assert not any(np.sum(bool_low, axis=1) % 2)
         assert not any(np.sum(bool_high, axis=1) % 2)
+
+
+def test_peak_background_overlap_all_excluded():
+    """Ensure that correct value is returned if all peaks are excluded."""
+    def_integral = (["p1"], np.array([[2, 4]]))
+    def_bgs = (["p1"], np.array([[2.5, 3.5]]))
+
+    def_bgs_self_corr, def_bgs_all_corr = pu.peak_background_overlap(
+        def_integral, def_bgs
+    )
+    assert not def_bgs_self_corr[0]
+    assert not def_bgs_self_corr[1]
+    assert not def_bgs_all_corr[0]
+    assert not def_bgs_all_corr[1]
 
 
 def test_sort_data_into_spectrum():

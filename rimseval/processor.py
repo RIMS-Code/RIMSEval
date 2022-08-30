@@ -106,6 +106,9 @@ class CRDFileProcessor:
         else:
             if len(value) != 2:
                 raise ValueError("Data tuple must be of length 2.")
+            if not value[0]:  # backgrounds are empty
+                self._params_backgrounds = None
+                return
             if len(value[0]) != len(value[1]):
                 raise ValueError("Name and data array must have the same length.")
             if value[1].shape[1] != 2:
@@ -180,25 +183,6 @@ class CRDFileProcessor:
                 raise ValueError(
                     "The peak names for integral definitions must be unique."
                 )
-
-            # delete backgrounds that are unused
-            if self._params_backgrounds is not None:
-                ind_to_delete = []
-                for it, name in enumerate(self._params_backgrounds[0]):
-                    if name not in value[0]:
-                        ind_to_delete.append(it)
-                if len(ind_to_delete) == len(self._params_backgrounds[0]):
-                    self._params_backgrounds = None
-                else:  # remove existing
-                    bg_names = [
-                        ele
-                        for id, ele in enumerate(self._params_backgrounds[0])
-                        if id not in ind_to_delete
-                    ]
-                    bg_vals = np.delete(
-                        self._params_backgrounds[1], ind_to_delete, axis=0
-                    )
-                    self._params_backgrounds = bg_names, bg_vals
 
             self._params_integrals = value
             self.adjust_overlap_background_peaks()

@@ -304,11 +304,12 @@ class DefineBackgrounds(DefineAnyTemplate):
             question = QtWidgets.QMessageBox.question(
                 self,
                 "Overlap detected",
-                f"The selected background overlaps with a peak other than {name}. "
-                f"If this was your intention, press `Yes`. If you press `No`, "
-                f"the overlap will automatically be resolved.",
+                f"Do you want to auto-correct for peak / background overlap "
+                f"with all peaks?\nPress `No` if you intentionally overlapped "
+                f"backgrounds with peaks other than the one the background "
+                f"is associated with.",
             )
-            if question == QtWidgets.QMessageBox.StandardButton.No:
+            if question == QtWidgets.QMessageBox.StandardButton.Yes:
                 self.bg_names += all_corr[0]
                 self.bg_values += list(all_corr[1])
             else:
@@ -351,7 +352,32 @@ class DefineIntegrals(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         if self.int_names:
-            self.crd.def_integrals = self.int_names, np.array(self.int_values)
+            def_int = self.int_names, np.array(self.int_values)
+            if self.crd.def_backgrounds:
+                self_corr, all_corr = pu.peak_background_overlap(
+                    (self.int_names, np.array(self.int_values)),
+                    self.crd.def_backgrounds,
+                )
+                if (
+                    not self_corr[1].shape == all_corr[1].shape
+                    or not (self_corr[1] == all_corr[1]).all()
+                ):  # more overlap
+                    question = QtWidgets.QMessageBox.question(
+                        self,
+                        "Overlap detected",
+                        f"Do you want to auto-correct for peak / background overlap "
+                        f"with all peaks?\nPress `No` if you intentionally overlapped "
+                        f"backgrounds with peaks other than the one the background "
+                        f"is associated with.",
+                    )
+                    if question == QtWidgets.QMessageBox.StandardButton.Yes:
+                        self.crd.def_backgrounds = (all_corr[0], all_corr[1])
+                    else:
+                        self.crd.def_backgrounds = (self_corr[0], self_corr[1])
+                else:
+                    self.crd.def_backgrounds = (self_corr[0], self_corr[1])
+
+            self.crd.def_integrals = def_int
         else:
             self.crd.def_integrals = None
         self.signal_integrals_defined.emit()
