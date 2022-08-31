@@ -111,10 +111,10 @@ class MultiFileProcessor(QtCore.QObject):
                     file.mass_calibration()
                     if opt_mcal:
                         file.optimize_mcal()
-                if integrals is not None:
-                    file.def_integrals = integrals
                 if backgrounds is not None:
                     file.def_backgrounds = backgrounds
+                if integrals is not None:
+                    file.def_integrals = integrals
                 if applied_filters is not None:
                     file.applied_filters = applied_filters
 
