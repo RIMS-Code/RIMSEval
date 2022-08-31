@@ -139,21 +139,21 @@ def workup_file_writer(
     # WRITE DATA
     data_row = hdr_row + 1
 
-    # file naame
+    # file name
     ws.write(data_row, fname_col, crd.fname.name)
 
     # write the number of shots
     ws.write(data_row, shots_col, crd.nof_shots, fmt_counts)
 
-    for col in range(data_row + 1, num_eqn_rows + data_row):
-        ws.write_blank(col, shots_col, None, fmt_counts)
+    for row in range(data_row + 1, num_eqn_rows + data_row):
+        ws.write_blank(row, shots_col, None, fmt_counts)
 
     # write the timestamp if requested
     if timestamp:
         ws.write(data_row, shots_col + 1, crd.timestamp, fmt_timestamp)
 
-    for col in range(data_row + 1, num_eqn_rows + data_row):
-        ws.write_blank(col, shots_col + 1, None, fmt_timestamp)
+    for row in range(data_row + 1, num_eqn_rows + data_row):
+        ws.write_blank(row, shots_col + 1, None, fmt_timestamp)
 
     # write integrals
     for col, dat in enumerate(crd.integrals):
@@ -161,8 +161,11 @@ def workup_file_writer(
         ws.write(data_row, 2 * col + int_col, dat[0], fmt_counts_use)
         ws.write(data_row, 2 * col + int_col + 1, dat[1], fmt_counts_unc)
 
-    for col in range(data_row + 1, num_eqn_rows + data_row):  # boarder for integrals
-        ws.write_blank(col, int_col, None, fmt_counts_0)
+    for row in range(data_row + 1, num_eqn_rows + data_row):  # boarder for integrals
+        for col, _ in enumerate(crd.integrals):
+            fmt_counts_use = fmt_counts_0 if col == 0 else fmt_counts
+            ws.write_blank(row, 2 * col + int_col, None, fmt_counts_use)
+            ws.write_blank(row, 2 * col + int_col + 1, None, fmt_counts_unc)
 
     # write delta equations
     col = delta_col
