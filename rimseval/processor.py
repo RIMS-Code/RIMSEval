@@ -13,7 +13,7 @@ import numpy as np
 
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
-from .utilities import ini, peirce, utils
+from .utilities import peirce, utils
 
 
 class CRDFileProcessor:
@@ -106,6 +106,9 @@ class CRDFileProcessor:
         else:
             if len(value) != 2:
                 raise ValueError("Data tuple must be of length 2.")
+            if not value[0]:  # backgrounds are empty
+                self._params_backgrounds = None
+                return
             if len(value[0]) != len(value[1]):
                 raise ValueError("Name and data array must have the same length.")
             if value[1].shape[1] != 2:
@@ -148,6 +151,8 @@ class CRDFileProcessor:
         The list contains first the names of the integrals.
         The np.ndarray then contains in each row the lower and upper limit in amu of
         the peak that needs to be integrated.
+        If backgrounds overlap with the peaks themselves, they will be automatically
+        adjusted.
 
         :return: Integral definitions.
 
@@ -179,26 +184,27 @@ class CRDFileProcessor:
                     "The peak names for integral definitions must be unique."
                 )
 
-            # delete backgrounds that are unused
-            if self._params_backgrounds is not None:
-                ind_to_delete = []
-                for it, name in enumerate(self._params_backgrounds[0]):
-                    if name not in value[0]:
-                        ind_to_delete.append(it)
-                if len(ind_to_delete) == len(self._params_backgrounds[0]):
-                    self._params_backgrounds = None
-                else:  # remove existing
-                    bg_names = [
-                        ele
-                        for id, ele in enumerate(self._params_backgrounds[0])
-                        if id not in ind_to_delete
-                    ]
-                    bg_vals = np.delete(
-                        self._params_backgrounds[1], ind_to_delete, axis=0
-                    )
-                    self._params_backgrounds = bg_names, bg_vals
-
             self._params_integrals = value
+            self.adjust_overlap_background_peaks()
+
+    @property
+    def integrals_overlap(self) -> bool:
+        """Check if any of the integrals overlap.
+
+        :return: Do any integrals overlap?
+
+        Example:
+            >>> data = CRDFileProcessor("my_data.crd")
+            >>> peak_names = ["54Fe", "64Ni"]
+            >>> peak_limits = np.array([[53.8, 54.2], [63.5, 64.5]])
+            >>> data.def_integrals = (peak_names, peak_limits)
+            >>> data.integrals_overlap
+            False
+        """
+        if self.def_integrals is None:
+            return False
+
+        return processor_utils.check_peaks_overlap(self.def_integrals[1])
 
     @property
     def peak_fwhm(self) -> float:
@@ -240,6 +246,38 @@ class CRDFileProcessor:
         self._us_to_chan = value
 
     # METHODS #
+
+    def adjust_overlap_background_peaks(self, other_peaks: bool = False) -> None:
+        """Routine to adjust overlaps of backgrounds and peaks.
+
+        By default, this routine checks if the backgrounds overlap with the peaks they
+        are defined for and removes any background values that interfer with the peak
+        that is now defined. It also checks for overlap with other peaks and if it finds
+        any, warns the user.
+        If `other_peaks` is set to `True`, the routine will not warn the user, but
+        automatically correct these bad overlaps.
+
+        :param other_peaks: Automatically correct for overlap with other peaks?
+        :return: None
+        """
+        if not self.def_integrals or not self.def_backgrounds:
+            return
+
+        self_corr, all_corr = processor_utils.peak_background_overlap(
+            self.def_integrals, self.def_backgrounds
+        )
+        if other_peaks:
+            self.def_backgrounds = all_corr
+        else:
+            self.def_backgrounds = self_corr
+            if (
+                not self_corr[1].shape == all_corr[1].shape
+                or not (self_corr[1] == all_corr[1]).all()
+            ):
+                warnings.warn(
+                    "Your backgrounds have overlaps with peaks other than themselves.",
+                    UserWarning,
+                )
 
     def apply_individual_shots_filter(self, shots_rejected: np.ndarray):
         """Routine to finish filtering for individual shots.
@@ -765,6 +803,26 @@ class CRDFileProcessor:
 
         sys.path.remove(str(file_path))
 
+    def sort_backgrounds(self) -> None:
+        """Sort all the backgrounds that are defined.
+
+        Takes the backgrounds and the names and sorts them by proton number
+        (first order), then by mass (second order), and finally by start of the
+        background (third order). All backgrounds that cannot be identified with a
+        clear proton number are sorted in at the end of the second order sorting,
+        and then sorted by starting mass.
+        If no backgrounds are defined, this routine does nothing.
+
+        Example:
+            >>> crd.def_backgrounds
+            ["56Fe", "54Fe"], array([[55.4, 55.6], [53.4, 53.6]])
+            >>> crd.sort_backgrounds()
+            >>> crd.def_backgrounds
+            ["54Fe", "56Fe"], array([[53.4, 53.6], [55.4, 55.6]])
+        """
+        if bg := self.def_backgrounds:
+            self.def_backgrounds = processor_utils.sort_backgrounds(bg)
+
     def sort_integrals(self, sort_vals: bool = True) -> None:
         """Sort all the integrals that are defined by mass.
 
@@ -784,30 +842,15 @@ class CRDFileProcessor:
             >>> crd.def_integrals
             ["Ti-46", "Fe-56"], array([[45.8, 46.2], [55.8, 56.2]])
         """
-        if self.def_integrals is None:
-            return
+        if def_integrals := self.def_integrals:
+            sorted_integrals, sort_ind = processor_utils.sort_integrals(def_integrals)
+            if sort_ind:
+                self.def_integrals = sorted_integrals
 
-        names, values = self.def_integrals
-
-        zz = []  # number of protons per isotope - first sort key
-        for name in names:
-            try:
-                zz.append(ini.iso[name].z)
-            except IndexError:
-                zz.append(999)  # at the end of everything
-
-        sort_ind = sorted(np.arange(len(names)), key=lambda x: (zz[x], values[x, 0]))
-
-        if (sort_ind == np.arange(len(names))).all():  # already sorted
-            return
-
-        names_sorted = list(np.array(names)[sort_ind])
-        self.def_integrals = names_sorted, values[sort_ind]
-
-        if self.integrals is not None and sort_vals:
-            self.integrals = self.integrals[sort_ind]
-        if self.integrals_pkg is not None and sort_vals:
-            self.integrals_pkg = self.integrals_pkg[:, sort_ind]
+                if self.integrals is not None and sort_vals:
+                    self.integrals = self.integrals[sort_ind]
+                if self.integrals_pkg is not None and sort_vals:
+                    self.integrals_pkg = self.integrals_pkg[:, sort_ind]
 
     def spectrum_full(self) -> None:
         """Create ToF and summed ion count array for the full spectrum.

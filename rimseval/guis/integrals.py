@@ -9,6 +9,7 @@ from PyQt6 import QtCore, QtWidgets
 
 
 from rimseval.processor import CRDFileProcessor
+import rimseval.processor_utils as pu
 from .mpl_canvas import PlotSpectrum
 
 
@@ -164,11 +165,13 @@ class DefineAnyTemplate(PlotSpectrum):
             )
 
     def sort_integrals(self):
-        """Sort the names and integrals."""
+        """Sort the names and integrals using routine from processor_utilities."""
         if len(self.int_names) > 1:
-            sorted_zip = sorted(zip(self.int_names, self.int_values))
-            self.int_names = [i for i, j in sorted_zip]
-            self.int_values = [j for i, j in sorted_zip]
+            def_integrals, _ = pu.sort_integrals(
+                (self.int_names, np.array(self.int_values))
+            )
+            self.int_names, int_values = def_integrals
+            self.int_values = list(int_values)
 
     def user_input(self, peak_pos: np.array, name: str = "") -> None:
         """Query user for position.
@@ -225,7 +228,9 @@ class DefineBackgrounds(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         if self.bg_names:
-            self.crd.def_backgrounds = self.bg_names, np.array(self.bg_values)
+            self.crd.def_backgrounds = pu.sort_backgrounds(
+                (self.bg_names, np.array(self.bg_values))
+            )
         else:
             self.crd.def_backgrounds = None
         self.signal_backgrounds_defined.emit()
@@ -288,41 +293,31 @@ class DefineBackgrounds(DefineAnyTemplate):
         else:
             name = self._selected_peak_name
 
-        # process peak
-        if ovl_names := self.check_peak_overlapping(bg_pos):
-            ovl_names = np.array(ovl_names)
+        self_corr, all_corr = pu.peak_background_overlap(
+            (self.int_names, np.array(self.int_values)), ([name], np.array([bg_pos]))
+        )
+        if (
+            not self_corr[1].shape == all_corr[1].shape
+            or not (self_corr[1] == all_corr[1]).all()
+        ):  # more overlap
+            question = QtWidgets.QMessageBox.question(
+                self,
+                "Overlap detected",
+                "Do you want to auto-correct for peak / background overlap "
+                "with all peaks?\nPress `No` if you intentionally overlapped "
+                "backgrounds with peaks other than the one the background "
+                "is associated with.",
+            )
+            if question == QtWidgets.QMessageBox.StandardButton.Yes:
+                self.bg_names += all_corr[0]
+                self.bg_values += list(all_corr[1])
+            else:
+                self.bg_names += self_corr[0]
+                self.bg_values += list(self_corr[1])
+        else:
+            self.bg_names += self_corr[0]
+            self.bg_values += list(self_corr[1])
 
-            # check if overlapping with more than one peak
-            if np.where(ovl_names != name)[0].size > 0:
-                question = QtWidgets.QMessageBox.question(
-                    self,
-                    "Overlap detected",
-                    f"The selected background overlaps with a peak other than {name}. "
-                    f"Is this what you wanted?",
-                )
-                if question == QtWidgets.QMessageBox.StandardButton.No:
-                    return
-
-            # peak itself is included in overlap, cut it out
-            if np.where(ovl_names == name)[0].size > 0:
-                bg_l, bg_r = bg_pos
-                peak_l, peak_r = self.int_values[self.int_names.index(name)]
-
-                # peak is inside background
-                if bg_l < peak_l and bg_r > peak_r:
-                    self.bg_names.append(name)
-                    self.bg_values.append(np.array([bg_l, peak_l]))
-                    self.bg_names.append(name)
-                    self.bg_values.append(np.array([peak_r, bg_r]))
-                    self.peaks_changed()
-                    return
-                elif bg_l < peak_l < bg_r:
-                    bg_pos[1] = peak_l
-                elif bg_l < peak_r < bg_r:
-                    bg_pos[0] = peak_r
-
-        self.bg_names.append(name)
-        self.bg_values.append(bg_pos)
         self.peaks_changed()
 
 
@@ -356,7 +351,32 @@ class DefineIntegrals(DefineAnyTemplate):
     def apply(self):
         """Apply the mass calibration and return it."""
         if self.int_names:
-            self.crd.def_integrals = self.int_names, np.array(self.int_values)
+            def_int = self.int_names, np.array(self.int_values)
+            if self.crd.def_backgrounds:
+                self_corr, all_corr = pu.peak_background_overlap(
+                    (self.int_names, np.array(self.int_values)),
+                    self.crd.def_backgrounds,
+                )
+                if (
+                    not self_corr[1].shape == all_corr[1].shape
+                    or not (self_corr[1] == all_corr[1]).all()
+                ):  # more overlap
+                    question = QtWidgets.QMessageBox.question(
+                        self,
+                        "Overlap detected",
+                        "Do you want to auto-correct for peak / background overlap "
+                        "with all peaks?\nPress `No` if you intentionally overlapped "
+                        "backgrounds with peaks other than the one the background "
+                        "is associated with.",
+                    )
+                    if question == QtWidgets.QMessageBox.StandardButton.Yes:
+                        self.crd.def_backgrounds = (all_corr[0], all_corr[1])
+                    else:
+                        self.crd.def_backgrounds = (self_corr[0], self_corr[1])
+                else:
+                    self.crd.def_backgrounds = (self_corr[0], self_corr[1])
+
+            self.crd.def_integrals = def_int
         else:
             self.crd.def_integrals = None
         self.signal_integrals_defined.emit()

@@ -12,6 +12,17 @@ import rimseval.processor_utils as pu
 # TEST PROPERTIES #
 
 
+def test_integrals_overlap(crd_file):
+    """Check if integrals overlap and return bools."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    assert not crd.integrals_overlap
+
+    crd.def_integrals = ["p1", "p2"], np.array([[1, 2], [3, 4]])
+    assert not crd.integrals_overlap
+
+
 def test_timestamp(crd_file):
     """Get the time stamp of the CRD file as a python datetime."""
     _, _, _, fname = crd_file
@@ -21,6 +32,40 @@ def test_timestamp(crd_file):
 
 
 # TEST METHODS #
+
+
+@pytest.mark.parametrize("ind", [0, 1])
+def test_adjust_overlap_background_peaks(ind, crd_file, mocker):
+    """Ensure the correct return is chosen and set, plus warning raised if required."""
+    corrs_exp = (["p1"], np.array([[2, 3]])), (["p1"], np.array([[5, 6]]))
+    mocker.patch(
+        "rimseval.processor_utils.peak_background_overlap",
+        return_value=(corrs_exp[0], corrs_exp[1]),
+    )
+
+    warn_msg = "Your backgrounds have overlaps with peaks other than themselves."
+
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+
+    crd.def_backgrounds = (["p1"], np.array([[1, 9]]))
+    crd.def_integrals = (["p1"], np.array([[2.9, 3.2]]))
+
+    if ind == 0:  # expect a warning
+        with pytest.warns(UserWarning, match=warn_msg):
+            crd.adjust_overlap_background_peaks(other_peaks=bool(ind))
+    else:
+        crd.adjust_overlap_background_peaks(other_peaks=bool(ind))
+
+    assert crd.def_backgrounds[0] == corrs_exp[ind][0]
+    np.testing.assert_almost_equal(crd.def_backgrounds[1], corrs_exp[ind][1])
+
+
+def test_adjust_overlap_background_peaks_do_nothing(crd_file):
+    """Do nothing if backgrounds or integrals are not defined."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.adjust_overlap_background_peaks()
 
 
 def test_data_dimension_after_dead_time_correction(crd_file):
@@ -253,6 +298,43 @@ def test_packages(crd_file):
     assert crd.data_pkg.sum() == crd.data.sum()
     np.testing.assert_equal(crd.data_pkg.sum(axis=0), crd.data)
     assert crd.nof_shots_pkg.sum() == crd.nof_shots
+
+
+def test_sort_backgrounds(crd_file):
+    """Sort backgrounds by number of protons, mass, and starting mass of interval."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_backgrounds()  # does nothing, since None
+    crd.def_backgrounds = ["Fe-56", "Ti-46", "Fe-56"], np.array(
+        [[58.8, 59.2], [45.8, 46.2], [55.8, 56.2]]
+    )
+
+    crd.backgrounds = np.array([[2, 2], [1, 1]])
+    crd.backgrounds_pkg = np.array([crd.backgrounds, crd.backgrounds - 1])
+
+    names_exp = ["Ti-46", "Fe-56", "Fe-56"]
+    values_exp = np.array([[45.8, 46.2], [55.8, 56.2], [58.8, 59.2]])
+
+    crd.sort_backgrounds()
+    crd.sort_backgrounds()  # already sorted, does nothing
+    names_rec, values_rec = crd.def_backgrounds
+    assert names_rec == names_exp
+    np.testing.assert_equal(values_rec, values_exp)
+
+
+def test_sort_backgrounds_non_element(crd_file) -> None:
+    """Sort recognizable elements and other names together, all others last."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    crd.sort_backgrounds()  # does nothing, since None
+    crd.def_backgrounds = ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"], np.array(
+        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    )
+    crd.backgrounds = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
+
+    names_exp = ["Zr-96", "Mo-94", "ZrO-94", "MoO-96"]
+    crd.sort_backgrounds()
+    assert crd.def_backgrounds[0] == names_exp
 
 
 def test_sort_integrals(crd_file):

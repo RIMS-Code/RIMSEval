@@ -9,6 +9,35 @@ from scipy import optimize
 from .utilities import fitting, ini, utils
 
 
+def check_peaks_overlap(peak_limits: np.ndarray) -> bool:
+    """Check if peaks overlap and return the result.
+
+    If any two peaks overlap, this will return `True`, otherwise `False`.
+
+    :param peak_limits: Range of peaks, n x 2 array
+    :return: Do the peaks overlap?
+    """
+    if peak_limits is None:
+        return False
+    if len(peak_limits) <= 1:  # no overlap is possible
+        return False
+
+    for it, lims in enumerate(peak_limits):
+        other_peaks = np.delete(peak_limits, it, axis=0)
+        mask_low = np.logical_and(
+            lims[0] < other_peaks[:, 0], lims[1] <= other_peaks[:, 0]
+        )
+        mask_high = np.logical_and(
+            lims[0] >= other_peaks[:, 1], lims[1] > other_peaks[:, 1]
+        )
+        mask = mask_low == mask_high
+        if any(mask):  # some peaks overlap!
+            return True
+
+    # all good!
+    return False
+
+
 @njit
 def create_packages(
     shots: int,
@@ -443,6 +472,98 @@ def multi_range_indexes(rng: np.array) -> np.array:
     return indexes
 
 
+def peak_background_overlap(
+    def_integrals: Tuple[List, np.ndarray], def_backgrounds: Tuple[List, np.ndarray]
+) -> Tuple[Tuple[List, np.ndarray], Tuple[List, np.ndarray]]:
+    """Check if the backgrounds and peaks overlap and correct if they do.
+
+    Two types of overlap are possible: Overlap of the background with its own peak and
+    overlap of the background with another peak. Two background definitions are
+    returned: One where only the peak itself is cut out but other overlaps are kept and
+    one where both are cut out. The user ultimately needs to specify which one
+    gets applied.
+    Backgrounds that are not present in integrals are deleted.
+
+    :param def_integrals: Integral definitions
+    :param def_backgrounds: Background definitions
+
+    :return: Integral definitions corrected for peaks of bgs,
+        Integral definitions corrected for all overlapping peaks
+    """
+    int_names, int_vals = def_integrals
+    bg_names, bg_vals = def_backgrounds
+
+    # delete backgrounds that are unused
+    ind_to_delete = []
+    for it, name in enumerate(bg_names):
+        if name not in int_names:
+            ind_to_delete.append(it)
+    if len(ind_to_delete) == len(bg_names):
+        return ([], np.empty(0)), ([], np.empty(0))
+    else:  # remove existing
+        bg_names = [ele for id, ele in enumerate(bg_names) if id not in ind_to_delete]
+        bg_vals = np.delete(bg_vals, ind_to_delete, axis=0)
+
+    # cut backgrounds such that they don't overlap with their own peak
+    bg_names_self, bg_vals_self = [], []
+    for it, bg_name in enumerate(bg_names):
+        int_low, int_high = int_vals[int_names.index(bg_name)]
+        bg_low, bg_high = bg_vals[it]
+        if bg_low < int_low and bg_high > int_high:  # bg passes through peak:
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, int_low]))
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([int_high, bg_high]))
+        elif bg_low < int_low and bg_high > int_low:  # overlap on negative side
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, int_low]))
+        elif bg_low < int_high and bg_high > int_high:  # overlap on positive side
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([int_high, bg_high]))
+        elif (bg_low < int_low and bg_high <= int_low) or (
+            bg_low >= int_high and bg_high > int_high
+        ):  # all good!
+            bg_names_self.append(bg_name)
+            bg_vals_self.append(np.array([bg_low, bg_high]))
+
+    def_bg_self_corr = sort_backgrounds((bg_names_self, np.array(bg_vals_self)))
+
+    # sorted integrals values:
+    int_vals_sorted = int_vals[int_vals[:, 0].argsort()]
+
+    # cut backgrounds such that they don't overlap with any peak
+    bg_names_all, bg_vals_all = [], []
+    for it, bg_name in enumerate(bg_names):
+        bg_low, bg_high = bg_vals[it]
+        # peak limits that are within bounds
+        boundaries = int_vals_sorted[
+            np.logical_and(int_vals_sorted > bg_low, int_vals_sorted < bg_high)
+        ]
+        if len(boundaries) == 0:  # no overlap
+            test_mask = np.logical_and(
+                bg_low >= int_vals_sorted[:, 0], bg_high <= int_vals_sorted[:, 1]
+            )
+            if not test_mask.any():  # if any of these are true, bg inside a peak
+                bg_names_all.append(bg_name)
+                bg_vals_all.append(bg_vals[it])
+            continue
+        # add the lower and upper boundaries if of bg, if necessary
+        if bg_low < boundaries[0] and any(boundaries[0] == int_vals_sorted[:, 0]):
+            boundaries = np.insert(boundaries, 0, bg_low)
+        if bg_high > boundaries[-1] and any(boundaries[-1] == int_vals_sorted[:, 1]):
+            boundaries = np.insert(boundaries, len(boundaries), bg_high)
+
+        all_values = boundaries.reshape(int(len(boundaries) / 2), 2)
+
+        for val in all_values:
+            bg_names_all.append(bg_name)
+            bg_vals_all.append(val)
+
+    def_bg_all_corr = sort_backgrounds((bg_names_all, np.array(bg_vals_all)))
+
+    return def_bg_self_corr, def_bg_all_corr
+
+
 @njit
 def remove_shots_from_filtered_packages_ind(
     shots_rejected: np.array,
@@ -525,6 +646,73 @@ def remove_shots_from_packages(
         nof_shots_pkg[pkg_ind] -= 1
 
         return data_pkg, nof_shots_pkg
+
+
+def sort_backgrounds(
+    def_backgrounds: Tuple[List[str], np.ndarray]
+) -> Tuple[List[str], np.ndarray]:
+    """Sort a background list and return the sorted list.
+
+    Sorting takes place first by Z, then by A, finally by start of the background area.
+    Backgrounds given to this routine cannot be None.
+
+    :param def_backgrounds: Background definition.
+    :return: Sorted background definition.
+    """
+    names, values = def_backgrounds
+
+    zz = []  # number of protons per isotope - first sort key
+    for name in names:
+        try:
+            zz.append(ini.iso[name].z)
+        except IndexError:
+            zz.append(999)  # at the end of everything
+
+    mass = []  # mass - second sort key
+    for name in names:
+        try:
+            mass.append(ini.iso[name].mass)
+        except IndexError:
+            mass.append(999)
+
+    sort_ind = sorted(
+        np.arange(len(names)), key=lambda x: (zz[x], mass[x], values[x, 0])
+    )
+
+    if (sort_ind == np.arange(len(names))).all():  # already sorted
+        return names, values
+
+    names_sorted = list(np.array(names)[sort_ind])
+    return names_sorted, values[sort_ind]
+
+
+def sort_integrals(
+    def_integrals: Tuple[List[str], np.ndarray]
+) -> Tuple[Tuple[List[str], np.ndarray], Union[np.ndarray, None]]:
+    """Sort integral definitions and return them plus the sorting array.
+
+    The latter is required to also sort the already calculated integrals.
+    Sorting takes place first by Z, then by A.
+
+    :param def_integrals: Integral definitions.
+    :return: Sorted integral definition, sorting array (None if already sorted).
+    """
+    names, values = def_integrals
+
+    zz = []  # number of protons per isotope - first sort key
+    for name in names:
+        try:
+            zz.append(ini.iso[name].z)
+        except IndexError:
+            zz.append(999)  # at the end of everything
+
+    sort_ind = sorted(np.arange(len(names)), key=lambda x: (zz[x], values[x, 0]))
+
+    if (sort_ind == np.arange(len(names))).all():  # already sorted
+        return (names, values), None
+
+    names_sorted = list(np.array(names)[sort_ind])
+    return (names_sorted, values[sort_ind]), sort_ind
 
 
 @njit
