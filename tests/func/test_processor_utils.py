@@ -6,6 +6,7 @@ from hypothesis import given, strategies as st
 import matplotlib.pyplot as plt
 import numpy as np
 
+import rimseval
 import rimseval.processor_utils as pu
 import rimseval.data_io.crd_utils as crdu
 
@@ -76,6 +77,15 @@ def test_delta_calc():
     assert np.isnan(deltas[2:3]).all()  # last two must be nans
 
 
+def test_delta_calc_verbosity_warning():
+    """Raise warning if VERBOSITY is >= 2 and division by zero occurs."""
+    rimseval.VERBOSITY = 2
+    names = ["Fe54", "Fe56"]
+    integrals = np.array([[10000, 100], [0, 240]])
+    with pytest.warns(RuntimeWarning):
+        _ = pu.delta_calc(names, integrals)
+
+
 def test_gaussian_fit():
     """Do a Gaussian feed on fixed-seed random data."""
     np.random.seed(42)
@@ -87,6 +97,18 @@ def test_gaussian_fit():
 
     max_calc = pu.gaussian_fit_get_max(xdat, ydat)
     assert mu == pytest.approx(max_calc, abs=0.01)
+
+
+def test_gaussian_fit_verbosity_warning(mocker):
+    """Warn if verbosity level is set to >=2."""
+    rimseval.VERBOSITY = 2
+    xdat = np.arange(10)
+    ydat = np.zeros_like(xdat)
+
+    mock = mocker.patch("warnings.simplefilter")
+
+    _ = pu.gaussian_fit_get_max(xdat, ydat)
+    mock.assert_not_called()
 
 
 def test_integrals_bg_corr():
@@ -233,8 +255,11 @@ def test_mask_filter_max_ions_per_tof_window():
     np.testing.assert_equal(exp_mask, rec_mask)
 
 
-def test_mass_calibration():
+def test_mass_calibration(mocker):
     """Perform a mass calibration, functionality tested in unit tests."""
+    mock = mocker.patch("warnings.simplefilter")
+    rimseval.VERBOSITY = 2
+
     params = np.array([[1, 1], [10, 10], [20, 28.35]])
     tofs = np.arange(0, 20)
 
@@ -242,6 +267,7 @@ def test_mass_calibration():
 
     assert tofs.shape == mass.shape
     assert params_fit is not None
+    mock.assert_not_called()
 
 
 def test_mass_to_tof():

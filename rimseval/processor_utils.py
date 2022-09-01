@@ -1,11 +1,13 @@
 """Utilities for CRD processors. Mostly methods that can be jitted."""
 
 from typing import List, Tuple, Union
+import warnings
 
 from numba import njit
 import numpy as np
 from scipy import optimize
 
+import rimseval
 from .utilities import fitting, ini, utils
 
 
@@ -157,19 +159,22 @@ def delta_calc(names: List[str], integrals: np.ndarray) -> np.ndarray:
             msr_denom = integrals[integrals_dict[norm_iso]][0]
             msr_denom_unc = integrals[integrals_dict[norm_iso]][1]
 
-            msr_ratio = msr_nom / msr_denom
-            integrals_delta[it][0] = ini.iso_delta(iso, norm_iso, msr_ratio)
+            with warnings.catch_warnings():
+                if rimseval.VERBOSITY < 2:
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                msr_ratio = msr_nom / msr_denom
+                integrals_delta[it][0] = ini.iso_delta(iso, norm_iso, msr_ratio)
 
-            # error calculation
-            std_ratio = ini.iso_ratio(iso, norm_iso)
-            integrals_delta[it][1] = (
-                1000
-                / std_ratio
-                * np.sqrt(
-                    (msr_nom_unc / msr_denom) ** 2
-                    + (msr_nom * msr_denom_unc / msr_denom**2) ** 2
+                # error calculation
+                std_ratio = ini.iso_ratio(iso, norm_iso)
+                integrals_delta[it][1] = (
+                    1000
+                    / std_ratio
+                    * np.sqrt(
+                        (msr_nom_unc / msr_denom) ** 2
+                        + (msr_nom * msr_denom_unc / msr_denom**2) ** 2
+                    )
                 )
-            )
 
     return integrals_delta
 
@@ -190,7 +195,12 @@ def gaussian_fit_get_max(xdata: np.ndarray, ydata: np.ndarray) -> float:
 
     # need some more error checking here to make sure there really is a peak
 
-    params = optimize.leastsq(fitting.residuals_gaussian, coeffs, args=(ydata, xdata))
+    with warnings.catch_warnings():
+        if rimseval.VERBOSITY < 2:
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+        params = optimize.leastsq(
+            fitting.residuals_gaussian, coeffs, args=(ydata, xdata)
+        )
     return params[0][0]
 
 
@@ -414,7 +424,12 @@ def mass_calibration(
     b = np.sqrt((ch1 - t0) ** 2.0 / m1)
 
     # fit the curve and store the parameters
-    params_fit = optimize.curve_fit(calc_mass, params[:, 0], params[:, 1], p0=(t0, b))
+    with warnings.catch_warnings():
+        if rimseval.VERBOSITY < 2:
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+        params_fit = optimize.curve_fit(
+            calc_mass, params[:, 0], params[:, 1], p0=(t0, b)
+        )
 
     mass = calc_mass(tof, params_fit[0][0], params_fit[0][1])
 

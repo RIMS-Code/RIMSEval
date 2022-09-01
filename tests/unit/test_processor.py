@@ -327,3 +327,18 @@ def test_optimize_mcal(crd_data):
     crd.optimize_mcal()
 
     np.testing.assert_allclose(mcal_input, crd.def_mcal, rtol=0.01)
+
+
+def test_optimize_mcal_verbosity_warnings(crd_data):
+    """Warn user in mass calibration at verbosity levels >= 1."""
+    rimseval.VERBOSITY = 1
+    fname = crd_data.joinpath("ti_standard_01.crd")
+    # input with peaks intentianlly off
+    mcal_input = np.array([[1.01150472, 45.95262772], [1.24462075, 46.95175879]])
+    crd = CRDFileProcessor(fname)
+    crd.spectrum_full()
+    crd.def_mcal = mcal_input
+    crd.mass_calibration()
+
+    with pytest.warns(UserWarning):
+        crd.optimize_mcal()

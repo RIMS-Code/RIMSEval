@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 
+import rimseval
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
 from .utilities import peirce, utils
@@ -753,9 +754,13 @@ class CRDFileProcessor:
 
         mcal_new = np.delete(mcal_new, index_to_del, axis=0)
         if len(mcal_new) < 2:
-            warnings.warn(
-                "Automatic mass calibration optimization did not find enough peaks."
-            )
+            if rimseval.VERBOSITY >= 1:
+                warnings.warn(
+                    "Automatic mass calibration optimization did not find enough "
+                    "peaks.",
+                    UserWarning,
+                )
+            return
         else:
             self.def_mcal = mcal_new
 
