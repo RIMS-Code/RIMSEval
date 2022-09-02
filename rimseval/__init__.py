@@ -9,9 +9,12 @@ from . import utilities
 from .multi_proc import MultiFileProcessor
 from .processor import CRDFileProcessor
 
+VERBOSITY = 0
+
 ini = iniabu.IniAbu(database="nist")
 
 __all__ = [
+    "VERBOSITY",
     "ini",
     "CRDFileProcessor",
     "data_io",

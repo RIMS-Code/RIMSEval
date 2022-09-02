@@ -53,6 +53,7 @@ Contents
     pkg/filters
     pkg/variables
     pkg/special
+    pkg/verbose
 
 .. toctree::
     :maxdepth: 2
