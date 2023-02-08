@@ -279,7 +279,6 @@ class DefineBackgrounds(DefineAnyTemplate):
         :param name: Name of the peak, for reloading the UI.
         """
 
-        # dialog
         def set_selected_peak_name(val):
             """Set the selected peak_name to the value provided by signal."""
             self._selected_peak_name = val
