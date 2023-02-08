@@ -199,7 +199,7 @@ class CRDReader:
         """
         with open(self.fname, "rb") as f_in:
             # read start of the header
-            for (name, size, fmt) in crd_utils.HEADER_START:
+            for name, size, fmt in crd_utils.HEADER_START:
                 self.header[name] = struct.unpack(fmt, f_in.read(size))[0]
 
             # get the rest of the header
@@ -212,7 +212,7 @@ class CRDReader:
                     f"which is not available."
                 ) from exc
 
-            for (name, size, fmt) in hdr_description:
+            for name, size, fmt in hdr_description:
                 self.header[name] = struct.unpack(fmt, f_in.read(size))[0]
 
             # now read in the rest of the file
