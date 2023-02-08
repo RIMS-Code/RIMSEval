@@ -22,7 +22,6 @@ description-file = "README.rst"
 
 [tool.flit.metadata.requires-extra]
 dev = [
-    "black",
     "darglint>=1.5.1",
     "flake8",
     "flake8-bandit",
