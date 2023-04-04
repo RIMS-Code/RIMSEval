@@ -154,6 +154,7 @@ class CRDReader:
                 f"nof_shots: {self.nof_shots}\n"
                 f"nof_ions: {self.nof_ions}\n",
                 UserWarning,
+                stacklevel=1,
             )
             self.parse_data_fallback(data)
             return
