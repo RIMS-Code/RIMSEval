@@ -146,7 +146,8 @@ class LIONEvalCal:
         if len(settings_block) != 21:
             warnings.warn(
                 "Calibration file contains the wrong number of settings. "
-                "No calculation filters will be loaded."
+                "No calculation filters will be loaded.",
+                stacklevel=1
             )
             return None
 
