@@ -364,7 +364,7 @@ class LST2CRD:
                 "The lst file contained ions that were outside the allowed "
                 "range. These ions were not written to the crd file.",
                 UserWarning,
-                stacklevel=1
+                stacklevel=1,
             )
 
     def set_data_format(self):

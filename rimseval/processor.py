@@ -278,7 +278,7 @@ class CRDFileProcessor:
                 warnings.warn(
                     "Your backgrounds have overlaps with peaks other than themselves.",
                     UserWarning,
-                    stacklevel=1
+                    stacklevel=1,
                 )
 
     def apply_individual_shots_filter(self, shots_rejected: np.ndarray):
@@ -412,8 +412,9 @@ class CRDFileProcessor:
 
         if self.nof_shots == 0:
             warnings.warn(
-                "No data available; maybe all shots were filtered out?", UserWarning,
-                stacklevel=1
+                "No data available; maybe all shots were filtered out?",
+                UserWarning,
+                stacklevel=1,
             )
             return
 
@@ -573,7 +574,7 @@ class CRDFileProcessor:
             "This routine to reject packages according to the Peirce criterium is "
             "largely untested.",
             UserWarning,
-            stacklevel=1
+            stacklevel=1,
         )
 
         self.applied_filters["pkg_peirce_rejection"] = True
@@ -762,7 +763,7 @@ class CRDFileProcessor:
                     "Automatic mass calibration optimization did not find enough "
                     "peaks.",
                     UserWarning,
-                    stacklevel=1
+                    stacklevel=1,
                 )
             return
         else:
@@ -897,7 +898,7 @@ class CRDFileProcessor:
             warnings.warn(
                 "Bin ranges in CRD file were of bad length. Creating ToF "
                 "array without CRD header input.",
-                stacklevel=1
+                stacklevel=1,
             )
             self.tof = (
                 np.arange(len(self.data)) * bin_length / 1e6
