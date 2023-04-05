@@ -10,8 +10,8 @@ home-page = "https://github.com/RIMS-Code/RIMSEval"
 requires = [
     "iniabu>=1.1.1",
     "matplotlib",
-    "numba~=0.56.0",
-    "numpy~=1.22.4",
+    "numba~=0.56.4",
+    "numpy~=1.23.5",
     "PyQt6",
     "scipy",
     "xlsxwriter"
