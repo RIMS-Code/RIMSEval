@@ -11,6 +11,7 @@ from rimseval.processor import CRDFileProcessor
 
 def export(crd: CRDFileProcessor, fname: Path = None) -> None:
     """Export integrals to csv file.
+
     If no file name is given, the file name of the CRD file is used, '_int' is added,
     and '.csv' is used as the extension.
 
@@ -22,7 +23,6 @@ def export(crd: CRDFileProcessor, fname: Path = None) -> None:
 
     :raises ValueError: CRD file has no integrals.
     """
-
     if crd.integrals is None:
         raise ValueError("CRD file has no integrals.")
 
