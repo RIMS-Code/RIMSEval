@@ -23,6 +23,15 @@ def test_integrals_overlap(crd_file):
     assert not crd.integrals_overlap
 
 
+def test_name(crd_file):
+    """Get the filename of the input file."""
+    _, _, _, fname = crd_file
+    crd = CRDFileProcessor(Path(fname))
+    name = crd.name
+    assert name == Path(fname).name
+    assert isinstance(name, str)
+
+
 def test_timestamp(crd_file):
     """Get the time stamp of the CRD file as a python datetime."""
     _, _, _, fname = crd_file

@@ -208,6 +208,11 @@ class CRDFileProcessor:
         return processor_utils.check_peaks_overlap(self.def_integrals[1])
 
     @property
+    def name(self):
+        """Get the name of the CRD file."""
+        return self.fname.name
+
+    @property
     def peak_fwhm(self) -> float:
         """Get / Set the FWHM of the peak.
 

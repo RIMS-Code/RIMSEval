@@ -113,6 +113,26 @@ Excel Writer
 
 
 
+.. py:currentmodule:: rimseval.data_io.integrals
+
+------------------------
+Integral export / import
+------------------------
+
+**************
+:func:`export`
+**************
+
+.. autofunction:: export
+
+************
+:func:`load`
+************
+
+.. autofunction:: mass_spectrum
+
+
+
 .. py:currentmodule:: rimseval.data_io.export
 
 ----------------
