@@ -11,7 +11,6 @@ from rimseval.processor import CRDFileProcessor
 
 def export(crd: CRDFileProcessor, fname: Path = None) -> None:
     """Export integrals to csv file.
-
     If no file name is given, the file name of the CRD file is used, '_int' is added,
     and '.csv' is used as the extension.
 
@@ -62,7 +61,7 @@ def load(fname: Path) -> Tuple[str, datetime.datetime, List, np.ndarray]:
     crd_name = None
     timestamp = None
 
-    for it, line in enumerate(lines):
+    for line in lines:
         if line[0] == "#":  # header
             if line.startswith("# CRD File:"):
                 crd_name = line.split(":")[1].strip()
