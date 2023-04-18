@@ -1,6 +1,9 @@
 """PyTest fixtures for func tests in data_io."""
 
+from pathlib import Path
+
 import pytest
+import numpy as np
 
 import rimseval
 
@@ -28,3 +31,20 @@ def mpa4a_data_ascii():
         "000a00b95a54",
     ]
     return channel, fmt, data
+
+
+@pytest.fixture
+def crdproc_int(crd_file) -> rimseval.processor.CRDFileProcessor:
+    """Provides a dummy CRDProcessor file with integrals.
+
+    :return: Dummy CRDProcessor file with integrals.
+    """
+    _, _, _, fname = crd_file
+    crd = rimseval.processor.CRDFileProcessor(Path(fname))
+    crd.spectrum_full()
+    crd.def_mcal = np.array([[1, 2], [10, 20]])
+    crd.mass_calibration()
+    crd.def_integrals = ["Int1", "Int2"], np.array([[1, 2], [3, 4]])
+    crd.integrals = np.array([[103, 104], [203, 204]])
+
+    return crd
