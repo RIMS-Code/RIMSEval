@@ -60,21 +60,8 @@ class IntegralEvaluator:
         self._integral_dict = {}
         self._timestamp_dict = {}
 
-        # load integrals
         if integrals_in is not None:
-            if isinstance(integrals_in, Path):
-                (
-                    self._name,
-                    timestamp,
-                    self._peaks,
-                    integrals_tmp,
-                ) = data_io.integrals.load(integrals_in)
-            else:
-                self._name, timestamp, self._peaks, integrals_tmp = integrals_in
-
-            # create dictionaries for integrals and timestamps where the names are the keys
-            self._integral_dict = {self._name: integrals_tmp}
-            self._timestamp_dict = {self._name: timestamp}
+            self.add_integral(integrals_in)
 
         # default settings
         self._mode = self.Mode.SUM
@@ -82,7 +69,7 @@ class IntegralEvaluator:
     # PROPERTIES #
 
     @property
-    def integrals(self) -> Dict:
+    def integral_dict(self) -> Dict:
         """Return a dictionary with all integrals."""
         return self._integral_dict
 
@@ -116,6 +103,56 @@ class IntegralEvaluator:
         return self._peaks
 
     @property
-    def timestamps(self) -> Dict:
+    def timestamp_dict(self) -> Dict:
         """Return a dictionary with all timestamps."""
         return self._timestamp_dict
+
+    # METHODS #
+
+    def add_integral(
+        self, integrals_in: Union[Path, List], overwrite: bool = False
+    ) -> None:
+        """Add an integral file to the evaluator.
+
+        :param integrals_in: Path to a directory containing integral files or a list of
+            integral parameters. The file will be read with the
+            ``rimseval.data_io.integrals.load`` method.
+            If a list is given, it should contain the following entries:
+                1. CRD file name (equiv to ``crd.name``)
+                2. Timestamp (equiv to ``crd.timestamp``)
+                3. Peak names (equiv to ``crd.def_integrals[0]``)
+                4. Integrals (equiv to ``crd.integrals``)
+        :param overwrite: If `True`, the integrals will be overwritten if the name
+            already exists.
+
+        :raises ValueError: If the peak names are not the same.
+        :raises KeyError: If the name already exists and ``overwrite`` is `False`.
+        """
+        if isinstance(integrals_in, Path):
+            (
+                name,
+                timestamp,
+                peaks,
+                integrals_tmp,
+            ) = data_io.integrals.load(integrals_in)
+        else:
+            name, timestamp, peaks, integrals_tmp = integrals_in
+
+        # check if the name already exists
+        if name in self._integral_dict.keys():
+            if not overwrite:
+                raise KeyError(f"Name {name} already exists.")
+
+        # check if the peaks are the same
+        if self._peaks is not None:
+            if peaks != self._peaks:
+                raise ValueError("Peak names are not the same.")
+        else:  # set the peaks for the first time
+            self._peaks = peaks
+
+        if self._name is None:
+            self._name = name
+
+        # add the integrals to the dictionary
+        self._integral_dict[name] = integrals_tmp
+        self._timestamp_dict[name] = timestamp

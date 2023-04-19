@@ -17,8 +17,8 @@ def test_init(integral_data):
     assert ev.name == name
     assert ev.names == [name]
     assert ev.peaks == integral_data[2]
-    assert ev.timestamps == {name: integral_data[1]}
-    np.testing.assert_array_equal(ev.integrals[name], integral_data[3])
+    assert ev.timestamp_dict == {name: integral_data[1]}
+    np.testing.assert_array_equal(ev.integral_dict[name], integral_data[3])
 
     # ensure default mode is sum
     assert ev.mode == IntegralEvaluator.Mode.SUM
@@ -35,9 +35,9 @@ def test_init_from_file(crd_int_delta, integral_data, tmpdir):
     assert ev_file.name == ev_data.name
     assert ev_file.names == ev_data.names
     assert ev_file.peaks == ev_data.peaks
-    assert ev_file.timestamps == ev_data.timestamps
+    assert ev_file.timestamp_dict == ev_data.timestamp_dict
     np.testing.assert_array_equal(
-        ev_file.integrals[ev_file.name], ev_data.integrals[ev_data.name]
+        ev_file.integral_dict[ev_file.name], ev_data.integral_dict[ev_data.name]
     )
     assert ev_file.mode == ev_data.mode
 
@@ -49,8 +49,8 @@ def test_init_empty():
     assert ev.name is None
     assert ev.names == []
     assert ev.peaks is None
-    assert ev.timestamps == {}
-    assert ev.integrals == {}
+    assert ev.timestamp_dict == {}
+    assert ev.integral_dict == {}
     assert ev.mode == IntegralEvaluator.Mode.SUM
 
 
@@ -72,3 +72,39 @@ def test_mode_type_error():
 
     with pytest.raises(TypeError):
         ev.mode = "test"
+
+
+# METHODS #
+
+
+def test_add_integral_overwrite(integral_data):
+    """Add an integral to the evaluator and overwrite the existing one."""
+    ev = IntegralEvaluator(integral_data)
+    data = list(integral_data)
+    data[3] = np.array([1, 2, 3])
+
+    ev.add_integral(data, overwrite=True)
+
+    assert ev.name == data[0]
+    assert ev.names == [data[0]]
+    assert ev.peaks == data[2]
+    assert ev.timestamp_dict == {data[0]: data[1]}
+    np.testing.assert_array_equal(ev.integral_dict[data[0]], data[3])
+
+
+def test_add_integral_exists_no_overwrite(integral_data):
+    """Raise error if integral already exists and overwrite is False."""
+    ev = IntegralEvaluator(integral_data)
+
+    with pytest.raises(KeyError):
+        ev.add_integral(integral_data)
+
+
+def test_add_integral_peaks_not_the_same(integral_data):
+    """Raise error if peaks are not the same."""
+    ev = IntegralEvaluator(integral_data)
+    data = list(integral_data)
+    data[2] = ["test"]
+
+    with pytest.raises(ValueError):
+        ev.add_integral(data, overwrite=True)
