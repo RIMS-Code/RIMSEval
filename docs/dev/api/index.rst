@@ -10,6 +10,7 @@ Some words on API reference.
 .. toctree::
     :maxdepth: 2
 
+    evaluator
     processor
     processor_utils
     interfacer

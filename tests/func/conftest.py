@@ -1,5 +1,7 @@
 """Fixtures for functional tests."""
 
+from datetime import datetime
+from typing import List
 from pathlib import Path
 
 import pytest
@@ -57,3 +59,13 @@ def data_files_path(request) -> Path:
     """
     curr = Path(request.fspath).parents[0]
     return Path(curr).joinpath("data_files").absolute()
+
+
+@pytest.fixture
+def integral_data(crd_int_delta) -> List:
+    """Return some integral example data."""
+    name = crd_int_delta.name
+    timestamp = crd_int_delta.timestamp
+    peak_names = crd_int_delta.def_integrals[0]
+    integrals = crd_int_delta.integrals
+    return [name, timestamp, peak_names, integrals]

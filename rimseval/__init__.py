@@ -8,6 +8,7 @@ from . import interfacer
 from . import utilities
 from .multi_proc import MultiFileProcessor
 from .processor import CRDFileProcessor
+from .evaluator import IntegralEvaluator
 
 VERBOSITY = 0
 
@@ -20,6 +21,7 @@ __all__ = [
     "data_io",
     "guis",
     "interfacer",
+    "IntegralEvaluator",
     "MultiFileProcessor",
     "utilities",
 ]
@@ -38,4 +40,4 @@ __uri__ = "https://rimseval.readthedocs.io"
 __author__ = "Reto Trappitsch"
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2022, Reto Trappitsch"
+__copyright__ = "Copyright (c) 2023, Reto Trappitsch"
