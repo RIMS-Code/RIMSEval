@@ -12,7 +12,7 @@ from .processor import CRDFileProcessor
 
 VERBOSITY = 0
 
-ini = iniabu.IniAbu(database="nist")
+# ini = iniabu.IniAbu(database="nist")
 
 __all__ = [
     "VERBOSITY",

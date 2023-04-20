@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 
 import rimseval
-from rimseval.utilities import ini
+from .utils import ini
 
 
 def delta_calc(names: List[str], integrals: np.ndarray) -> np.ndarray:
