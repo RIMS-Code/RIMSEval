@@ -6,7 +6,7 @@
 from enum import Enum
 
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -27,19 +27,6 @@ class IntegralEvaluator:
     Example:
         >>> # todo
     """
-
-    class Mode(Enum):
-        """Evaluation mode.
-
-        .. note:: The value of the modes is used as explanations of function, e.g.,
-            for the GUI.
-
-        - ``Mode.SUM``: Sum all the integrals (default).
-        - ``Mode.AVERAGE``: Average the individual integrals.
-        """
-
-        SUM = "Sum of integrals"
-        AVERAGE = "Average of integrals"
 
     def __init__(self, integrals_in: Union[Path, List] = None):
         """Initialize the IntegralEvaluator class.
@@ -63,29 +50,32 @@ class IntegralEvaluator:
         if integrals_in is not None:
             self.add_integral(integrals_in)
 
-        # default settings
-        self._mode = self.Mode.SUM
-
     # PROPERTIES #
+
+    @property
+    def integrals(self) -> Tuple[List, np.ndarray]:
+        """Return the integrals and their errors.
+
+        Integrals are summed up and the error are propagated as the square root of the
+        sum of the squared errors.
+
+        :return: Tuple of peak names and integrals.
+        """
+        integrals = np.zeros((len(self._peaks), 2))
+        for it in range(len(self._peaks)):
+            peak_sum = 0
+            peak_err_sum = 0
+            for fl in self._integral_dict.keys():
+                peak_sum += self._integral_dict[fl][it][0]
+                peak_err_sum += self._integral_dict[fl][it][1] ** 2
+            integrals[it, 0] = peak_sum
+            integrals[it, 1] = np.sqrt(peak_err_sum)
+        return self._peaks, integrals
 
     @property
     def integral_dict(self) -> Dict:
         """Return a dictionary with all integrals."""
         return self._integral_dict
-
-    @property
-    def mode(self) -> Mode:
-        """Get / set the evaluation mode.
-
-        :raises TypeError: If the mode is not of type ``IntegralEvaluator.Mode``.
-        """
-        return self._mode
-
-    @mode.setter
-    def mode(self, value):
-        if not isinstance(value, self.Mode):
-            raise TypeError(f"Mode must be of type {self.Mode}")
-        self._mode = value
 
     @property
     def name(self):
@@ -126,7 +116,7 @@ class IntegralEvaluator:
             already exists.
 
         :raises ValueError: If the peak names are not the same.
-        :raises KeyError: If the name already exists and ``overwrite`` is `False`.
+        :raises KeyError: If the name already exists and ``overwrite`` is ``False``.
         """
         if isinstance(integrals_in, Path):
             (

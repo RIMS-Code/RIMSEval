@@ -21,7 +21,6 @@ def test_init(integral_data):
     np.testing.assert_array_equal(ev.integral_dict[name], integral_data[3])
 
     # ensure default mode is sum
-    assert ev.mode == IntegralEvaluator.Mode.SUM
 
 
 def test_init_from_file(crd_int_delta, integral_data, tmpdir):
@@ -39,7 +38,6 @@ def test_init_from_file(crd_int_delta, integral_data, tmpdir):
     np.testing.assert_array_equal(
         ev_file.integral_dict[ev_file.name], ev_data.integral_dict[ev_data.name]
     )
-    assert ev_file.mode == ev_data.mode
 
 
 def test_init_empty():
@@ -51,27 +49,34 @@ def test_init_empty():
     assert ev.peaks is None
     assert ev.timestamp_dict == {}
     assert ev.integral_dict == {}
-    assert ev.mode == IntegralEvaluator.Mode.SUM
 
 
-# PROPERTIES not tested in inits #
+# PROPERTIES #
 
 
-@pytest.mark.parametrize("mode", IntegralEvaluator.Mode)
-def test_mode(mode):
-    """Get / set mode."""
-    ev = IntegralEvaluator()
-    ev.mode = mode
+def test_integrals(integral_data):
+    """Return the summed integrals property for a simple case."""
+    ev = IntegralEvaluator(integral_data)
+    peaks, integrals = ev.integrals
 
-    assert ev.mode == mode
+    assert peaks == integral_data[2]
+    np.testing.assert_array_equal(integrals, integral_data[3])
 
 
-def test_mode_type_error():
-    """Set mode with wrong type."""
-    ev = IntegralEvaluator()
+def test_integrals_multiple(integral_data):
+    "Return the summed integrals for multiple samples."
+    ev = IntegralEvaluator(integral_data)
+    integral_data[0] = "second_file.crd"
+    ev.add_integral(integral_data)
+    peaks, integrals = ev.integrals
 
-    with pytest.raises(TypeError):
-        ev.mode = "test"
+    integrals_expected = np.zeros_like(integral_data[3])
+    for it in range(len(integrals_expected)):
+        integrals_expected[it][0] = integral_data[3][it][0] * 2
+        integrals_expected[it][1] = np.sqrt(integral_data[3][it][1] ** 2 * 2)
+
+    assert peaks == integral_data[2]
+    np.testing.assert_array_almost_equal(integrals, integrals_expected)
 
 
 # METHODS #
@@ -108,3 +113,12 @@ def test_add_integral_peaks_not_the_same(integral_data):
 
     with pytest.raises(ValueError):
         ev.add_integral(data, overwrite=True)
+
+
+def test_add_integral_peaks_different_sorting(integral_data):
+    """Raise error if peaks are not sorted the same."""
+    ev = IntegralEvaluator(integral_data)
+    integral_data[2] = integral_data[2][::-1]
+
+    with pytest.raises(ValueError):
+        ev.add_integral(integral_data, overwrite=True)
