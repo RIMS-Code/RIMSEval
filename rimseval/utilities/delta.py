@@ -1,7 +1,7 @@
 """Utility file to calculate delta values and correlated uncertainties."""
 
-import warnings
 from typing import List
+import warnings
 
 import numpy as np
 
