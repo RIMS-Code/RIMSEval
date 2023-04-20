@@ -6,9 +6,9 @@ from . import data_io
 from . import guis
 from . import interfacer
 from . import utilities
+from .evaluator import IntegralEvaluator
 from .multi_proc import MultiFileProcessor
 from .processor import CRDFileProcessor
-from .evaluator import IntegralEvaluator
 
 VERBOSITY = 0
 

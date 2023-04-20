@@ -1,9 +1,4 @@
-"""Evaluation class for integral files.
-
-
-"""
-
-from enum import Enum
+"""Evaluation class for integral files."""
 
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
