@@ -9,6 +9,7 @@ import numpy as np
 import rimseval
 import rimseval.processor_utils as pu
 import rimseval.data_io.crd_utils as crdu
+import rimseval.utilities.delta
 
 
 @pytest.mark.parametrize(
@@ -64,26 +65,6 @@ def test_create_packages():
     )
     np.testing.assert_equal(pkg_nof_shots_rec, pkg_nof_shots_exp)
     np.testing.assert_equal(pkg_data_rec, pkg_data_exp)
-
-
-def test_delta_calc():
-    """Take an integrals like array and calculate delta values.
-
-    Details of delta calculation is not tested.
-    """
-    names = ["Fe54", "Fe56", "244Pu", "bg"]
-    integrals = np.array([[10000, 100], [100000, 240], [100, 10], [2001, 21]])
-    deltas = pu.delta_calc(names, integrals)
-    assert np.isnan(deltas[2:3]).all()  # last two must be nans
-
-
-def test_delta_calc_verbosity_warning():
-    """Raise warning if VERBOSITY is >= 2 and division by zero occurs."""
-    rimseval.VERBOSITY = 2
-    names = ["Fe54", "Fe56"]
-    integrals = np.array([[10000, 100], [0, 240]])
-    with pytest.warns(RuntimeWarning):
-        _ = pu.delta_calc(names, integrals)
 
 
 def test_gaussian_fit():

@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 
 import rimseval
+import rimseval.utilities.delta
 from . import processor_utils
 from .data_io.crd_reader import CRDReader
 from .utilities import peirce, utils
@@ -693,12 +694,16 @@ class CRDFileProcessor:
 
         peak_names = self.def_integrals[0]
 
-        integrals_delta = processor_utils.delta_calc(peak_names, self.integrals)
+        integrals_delta = rimseval.utilities.delta.delta_calc(
+            peak_names, self.integrals
+        )
 
         if self.integrals_pkg is not None:
             integrals_delta_pkg = np.zeros_like(self.integrals_pkg, dtype=float)
             for it, line in enumerate(self.integrals_pkg):
-                integrals_delta_pkg[it] = processor_utils.delta_calc(peak_names, line)
+                integrals_delta_pkg[it] = rimseval.utilities.delta.delta_calc(
+                    peak_names, line
+                )
             self.integrals_delta_pkg = integrals_delta_pkg
 
         self.integrals_delta = integrals_delta
