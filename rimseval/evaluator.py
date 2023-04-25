@@ -1,4 +1,5 @@
 """Evaluation class for integral files."""
+
 import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Set, Tuple, Union
@@ -16,9 +17,7 @@ class IntegralEvaluator:
     - Combine multiple measurements of the same sample / standard.
     - Standard normalize the sample measurements.
     - Full error propagation and correlated uncertainty calculations.
-    - Export the data to csv files.
     - Feature to save and reload the evaluation.
-    - Export the data to a LaTeX table.
 
     Example:
         >>> # todo
@@ -32,6 +31,7 @@ class IntegralEvaluator:
             from file).
         """
         self._name = None
+        self._fnames = set()
         self._peaks = None
         self._integral_dict = {}
         self._timestamp_dict = {}
@@ -66,11 +66,11 @@ class IntegralEvaluator:
 
         :raises TypeError: No standard is loaded
         """
-        if self._standard is None:
+        if self.standard is None:
             raise TypeError("No standard is loaded.")
 
         self._deltas, self._ratio_indexes = delta.delta_calc(
-            self._peaks, self.integrals, self._standard, return_ind=True
+            self._peaks, self.integrals, self.standard.integrals, return_ind=True
         )
 
         return self._deltas
@@ -100,6 +100,14 @@ class IntegralEvaluator:
                 )
 
         return labels
+
+    @property
+    def file_names(self) -> Set[Path]:
+        """Return the set of file names that are loaded.
+
+        :return: Set of file names.
+        """
+        return self._fnames
 
     @property
     def integrals(self) -> np.ndarray:
@@ -147,9 +155,23 @@ class IntegralEvaluator:
         return self._timestamp_dict
 
     @property
-    def standard(self) -> np.ndarray:
-        """Return the standard integrals."""
+    def standard(self) -> "IntegralEvaluator":
+        """Get/set the standard class.
+
+        :return: Standard class.
+
+        :raise TypeError: If the standard is not of type ``IntegralEvaluator``.
+        :raise ValueError: Peak names of the standard and the sample do not match.
+        """
         return self._standard
+
+    @standard.setter
+    def standard(self, value: "IntegralEvaluator"):
+        if not isinstance(value, IntegralEvaluator):
+            raise TypeError("Standard must be of type IntegralEvaluator.")
+        if self._peaks != value.peaks:
+            raise ValueError("Peak names of the standard and the sample do not match.")
+        self._standard = value
 
     @property
     def standard_timestamp(self) -> datetime.datetime:
@@ -180,7 +202,8 @@ class IntegralEvaluator:
             already exists.
 
         :raises ValueError: If the peak names are not the same.
-        :raises KeyError: If the name already exists and ``overwrite`` is ``False``.
+        :raises KeyError: If the name already exists and ``overwrite`` is ``False`` or
+            the file is already loaded and ``overwrite`` is ``False``.
         """
         (
             name,
@@ -188,6 +211,10 @@ class IntegralEvaluator:
             peaks,
             integrals_tmp,
         ) = data_io.integrals.load(integrals_in)
+
+        if integrals_in.absolute() in self._fnames:
+            if not overwrite:
+                raise KeyError(f"File {integrals_in} already loaded.")
 
         # check if the name already exists
         if name in self._integral_dict.keys():
@@ -205,6 +232,7 @@ class IntegralEvaluator:
             self._name = name
 
         # add the integrals to the dictionary
+        self._fnames.add(integrals_in.absolute())
         self._integral_dict[name] = integrals_tmp
         self._timestamp_dict[name] = timestamp
 
@@ -271,24 +299,12 @@ class IntegralEvaluator:
         diak = self.deltas[delta1_ind]
         djak = self.deltas[delta2_ind]
         ik = self.integrals[delta1_ratio_ind[1]]
-        sk = self.standard[delta1_ratio_ind[1]]
+        sk = self.standard.integrals[delta1_ratio_ind[1]]
 
         # add requested correlations to the correlation set
         self._correlation_set.add((delta1_ind, delta2_ind))
 
         return delta.correlation_coefficient_delta(diak, djak, ik, sk)
-
-    def load_standard(self, standard: "IntegralEvaluator") -> None:
-        """Load a standard and save the integrals in this class.
-
-        :param standard: Standard to load, must be an IntegralEvaluator class.
-
-        :raises ValueError: If the peak names are not the same.
-        """
-        if standard.peaks != self._peaks:
-            raise ValueError("Peak names are not the same.")
-
-        self._standard = standard.integrals
 
     def reset_correlation_set(self) -> None:
         """Reset the correlation coefficients that were requested."""

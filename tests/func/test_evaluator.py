@@ -2,6 +2,7 @@
 
 import datetime
 from pathlib import Path
+import shutil
 
 import pytest
 import numpy as np
@@ -62,7 +63,7 @@ def test_deltas_no_standard(integral_file):
 def test_delta_labels(integral_file):
     """Get nicely formatted labels for delta-values."""
     ev = IntegralEvaluator(integral_file)
-    ev.load_standard(ev)
+    ev.standard = ev
 
     labels = ev.delta_labels
     assert len(labels) == len(ev.peaks)
@@ -135,10 +136,21 @@ def test_add_integral_overwrite(tmpdir, integral_file, crd_int_delta):
     np.testing.assert_array_equal(ev.integrals, crd_int_delta.integrals)
 
 
-def test_add_integral_exists_no_overwrite(integral_file):
-    """Raise error if integral already exists and overwrite is False."""
+def test_add_integral_file_loaded_no_overwrite(integral_file):
+    """Raise KeyError if file was already loaded and overwrite is False."""
     ev = IntegralEvaluator(integral_file)
 
+    with pytest.raises(KeyError):
+        ev.add_integral(integral_file)
+
+
+def test_add_integral_name_exists_no_overwrite(tmpdir, integral_file):
+    """Raise KeyError if integral already exists and overwrite is False."""
+    ev = IntegralEvaluator(integral_file)
+
+    # second file with same data
+    integral_file2 = Path(tmpdir).joinpath("second_file.csv")
+    shutil.copy(integral_file, integral_file2)
     with pytest.raises(KeyError):
         ev.add_integral(integral_file)
 
@@ -174,7 +186,7 @@ def test_correlation_coefficient_delta(integral_file):
     """Calculate correlation coefficient for d(54Fe/56Fe) and d(57Fe/56Fe)."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     indexes = (0, 2)
 
@@ -199,7 +211,7 @@ def test_correlation_coefficient_delta_methods(integral_file):
     """Ensure all methods of calling the routine result in the same results."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     delta_labels = ev.delta_labels
     # pick d(54Fe/56Fe) and d(57Fe/56Fe)
@@ -225,7 +237,7 @@ def test_correlation_coefficient_delta_invalid_type(integral_file):
     """Raise TypeError if input is invalid."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     with pytest.raises(TypeError):
         _ = ev.correlation_coefficient_delta(0.1, 2)
@@ -237,7 +249,7 @@ def test_correlation_coefficient_delta_invalid_nominator(integral_file):
     """Raise ValueError if nominators are the same."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     with pytest.raises(ValueError):
         _ = ev.correlation_coefficient_delta(0, 0)
@@ -247,7 +259,7 @@ def test_correlation_coefficient_delta_invalid_denominator(integral_file):
     """Raise ValueError if denominators are not the same."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     with pytest.raises(ValueError):
         _ = ev.correlation_coefficient_delta(0, 4)
@@ -257,7 +269,7 @@ def test_correlation_coefficient_delta_invalid_string(integral_file):
     """Raise ValueError if input delta string cannot be found."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     delta_valid = ev.delta_labels[0]
     with pytest.raises(ValueError):
@@ -270,7 +282,7 @@ def test_correlation_coefficient_delta_invalid_tuple(integral_file):
     """Raise IndexError if input delta tuple cannot be found."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     with pytest.raises(IndexError):
         _ = ev.correlation_coefficient_delta((0, 20), (0, 2))
@@ -282,7 +294,7 @@ def test_correlation_coefficient_delta_invalid_int(integral_file):
     """Raise IndexError if input integer is out of range."""
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
-    ev.load_standard(std)
+    ev.standard = std
 
     with pytest.raises(IndexError):
         _ = ev.correlation_coefficient_delta(20, 2)
@@ -295,13 +307,13 @@ def test_load_standard(integral_file, crd_int_delta):
     ev = IntegralEvaluator(integral_file)
     std = IntegralEvaluator(integral_file)
 
-    ev.load_standard(std)
+    ev.standard = std
 
-    np.testing.assert_array_equal(ev.standard, crd_int_delta.integrals)
+    np.testing.assert_array_equal(ev.standard.integrals, crd_int_delta.integrals)
 
 
 def test_load_standard_peaks_not_same(tmpdir, integral_file, crd_int_delta):
-    """Raise error if peaks are not the same."""
+    """Raise ValueError if peaks are not the same."""
     ev = IntegralEvaluator(integral_file)
 
     # create a new file with different peaks
@@ -313,7 +325,7 @@ def test_load_standard_peaks_not_same(tmpdir, integral_file, crd_int_delta):
     std = IntegralEvaluator(std_file)
 
     with pytest.raises(ValueError):
-        ev.load_standard(std)
+        ev.standard = std
 
 
 def test_reset_correlation_set(integral_file):
