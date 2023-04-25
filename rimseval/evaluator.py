@@ -175,29 +175,19 @@ class IntegralEvaluator:
     ) -> None:
         """Add an integral file to the evaluator.
 
-        :param integrals_in: Path to a directory containing integral files or a list of
-            integral parameters. The file will be read with the
-            ``rimseval.data_io.integrals.load`` method.
-            If a list is given, it should contain the following entries:
-                1. CRD file name (equiv to ``crd.name``)
-                2. Timestamp (equiv to ``crd.timestamp``)
-                3. Peak names (equiv to ``crd.def_integrals[0]``)
-                4. Integrals (equiv to ``crd.integrals``)
+        :param integrals_in: Path to a integral file.
         :param overwrite: If `True`, the integrals will be overwritten if the name
             already exists.
 
         :raises ValueError: If the peak names are not the same.
         :raises KeyError: If the name already exists and ``overwrite`` is ``False``.
         """
-        if isinstance(integrals_in, Path):
-            (
-                name,
-                timestamp,
-                peaks,
-                integrals_tmp,
-            ) = data_io.integrals.load(integrals_in)
-        else:
-            name, timestamp, peaks, integrals_tmp = integrals_in
+        (
+            name,
+            timestamp,
+            peaks,
+            integrals_tmp,
+        ) = data_io.integrals.load(integrals_in)
 
         # check if the name already exists
         if name in self._integral_dict.keys():
@@ -250,7 +240,7 @@ class IntegralEvaluator:
             delta1_ind = self.delta_labels.index(delta1)
         elif hasattr(delta1, "__iter__"):
             delta1_ind = np.where(np.all(self._ratio_indexes == delta1, axis=1))[0][0]
-        elif isinstance(delta2, int):
+        elif isinstance(delta1, int):
             delta1_ind = delta1
         else:
             raise TypeError(

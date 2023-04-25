@@ -228,7 +228,7 @@ def test_correlation_coefficient_delta_invalid_type(integral_file):
     ev.load_standard(std)
 
     with pytest.raises(TypeError):
-        _ = ev.correlation_coefficient_delta(0.1, 2.3)
+        _ = ev.correlation_coefficient_delta(0.1, 2)
     with pytest.raises(TypeError):
         _ = ev.correlation_coefficient_delta(0, 2.3)
 
