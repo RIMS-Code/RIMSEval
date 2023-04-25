@@ -1,5 +1,5 @@
 """Evaluation class for integral files."""
-
+import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
@@ -38,6 +38,7 @@ class IntegralEvaluator:
 
         self._deltas = None
         self._standard = None
+        self._standard_timestamp = None  # timestamp of the standard, None if stable
         self._ratio_indexes = None
         self._correlation_set = set()  # set for correlations: to update
 
@@ -149,6 +150,23 @@ class IntegralEvaluator:
     def standard(self) -> np.ndarray:
         """Return the standard integrals."""
         return self._standard
+
+    @property
+    def standard_timestamp(self) -> datetime.datetime:
+        """Get / set the timestamp of the standard.
+
+        :return: Timestamp of the standard or None if all isotopes are stable and
+            therefore no decay correction is required.
+
+        :raise TypeError: If the timestamp is not of type ``datetime.datetime``.
+        """
+        return self._standard_timestamp
+
+    @standard_timestamp.setter
+    def standard_timestamp(self, value: datetime.datetime):
+        if not isinstance(value, datetime.datetime):
+            raise TypeError("Timestamp must be of type datetime.datetime.")
+        self._standard_timestamp = value
 
     # METHODS #
 

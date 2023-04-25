@@ -1,5 +1,6 @@
 """Function tests for evaluator class methods, focusing on each function."""
 
+import datetime
 from pathlib import Path
 
 import pytest
@@ -93,6 +94,26 @@ def test_integrals_multiple(tmpdir, integral_file, crd_int_delta):
         integrals_expected[it][1] = np.sqrt(crd_int_delta.integrals[it][1] ** 2 * 2)
 
     np.testing.assert_array_almost_equal(integrals, integrals_expected)
+
+
+def test_standard_timestamp():
+    """Get the timestamp of the standard."""
+    ev = IntegralEvaluator()
+    timestamp = datetime.datetime.now()
+
+    assert ev.standard_timestamp is None
+
+    ev.standard_timestamp = timestamp
+
+    assert ev.standard_timestamp == timestamp
+
+
+def test_standard_timestamp_type_error():
+    """Raise TypeError if timestamp is not a datetime object."""
+    ev = IntegralEvaluator()
+
+    with pytest.raises(TypeError):
+        ev.standard_timestamp = "asdf"
 
 
 # METHODS #
