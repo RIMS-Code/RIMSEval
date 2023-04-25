@@ -1,11 +1,12 @@
 """Evaluation class for integral files."""
 
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Iterable, List, Set, Tuple, Union
 
 import numpy as np
 
 from rimseval import data_io
+from rimseval.utilities import delta, utils
 
 
 class IntegralEvaluator:
@@ -23,17 +24,10 @@ class IntegralEvaluator:
         >>> # todo
     """
 
-    def __init__(self, integrals_in: Union[Path, List] = None):
+    def __init__(self, integrals_in: Path = None):
         """Initialize the IntegralEvaluator class.
 
-        :param integrals_in: Path to a directory containing integral files or a list of
-            integral parameters. The file will be read with the
-            ``rimseval.data_io.integrals.load`` method.
-            If a list is given, it should contain the following entries:
-                1. CRD file name (equiv to ``crd.name``)
-                2. Timestamp (equiv to ``crd.timestamp``)
-                3. Peak names (equiv to ``crd.def_integrals[0]``)
-                4. Integrals (equiv to ``crd.integrals``)
+        :param integrals_in: Path to an integral file.
             If `None` is given, the class is initialized empty (mainly used for loading
             from file).
         """
@@ -42,19 +36,78 @@ class IntegralEvaluator:
         self._integral_dict = {}
         self._timestamp_dict = {}
 
+        self._deltas = None
+        self._standard = None
+        self._ratio_indexes = None
+        self._correlation_set = set()  # set for correlations: to update
+
         if integrals_in is not None:
             self.add_integral(integrals_in)
 
     # PROPERTIES #
 
     @property
-    def integrals(self) -> Tuple[List, np.ndarray]:
+    def correlation_set(self) -> Set[Tuple[int, int]]:
+        """Return the set of correlations that were calculated.
+
+        :return: Set of correlations, where each entry is a tuple of the form (i, j),
+            and i, j are the indexes of the delta-values that were correlated.
+        """
+        return self._correlation_set
+
+    @property
+    def deltas(self) -> np.ndarray:
+        """Return the deltas and their errors.
+
+        Delta values are calculated with respect to the standard.
+
+        :return: Deltas values.
+
+        :raises TypeError: No standard is loaded
+        """
+        if self._standard is None:
+            raise TypeError("No standard is loaded.")
+
+        self._deltas, self._ratio_indexes = delta.delta_calc(
+            self._peaks, self.integrals, self._standard, return_ind=True
+        )
+
+        return self._deltas
+
+    @property
+    def delta_labels(self) -> List[str]:
+        """Return the labels for the delta values.
+
+        Returns a list of strings, formatted to be displayed as the labels for the
+        delta values. If the ratio for a given integral is undefined, the list will
+        contain ``None``.
+
+        If no delta values are available, they will be calculated first.
+
+        :return: List of labels.
+        """
+        if self._deltas is None:
+            _ = self.deltas
+
+        labels = []
+        for nomit, denomit in self._ratio_indexes:
+            if nomit == -1 or denomit == -1:
+                labels.append(None)
+            else:
+                labels.append(
+                    utils.delta_label(self._peaks[nomit], self._peaks[denomit])
+                )
+
+        return labels
+
+    @property
+    def integrals(self) -> np.ndarray:
         """Return the integrals and their errors.
 
         Integrals are summed up and the error are propagated as the square root of the
         sum of the squared errors.
 
-        :return: Tuple of peak names and integrals.
+        :return: Integrals
         """
         integrals = np.zeros((len(self._peaks), 2))
         for it in range(len(self._peaks)):
@@ -65,7 +118,7 @@ class IntegralEvaluator:
                 peak_err_sum += self._integral_dict[fl][it][1] ** 2
             integrals[it, 0] = peak_sum
             integrals[it, 1] = np.sqrt(peak_err_sum)
-        return self._peaks, integrals
+        return integrals
 
     @property
     def integral_dict(self) -> Dict:
@@ -91,6 +144,11 @@ class IntegralEvaluator:
     def timestamp_dict(self) -> Dict:
         """Return a dictionary with all timestamps."""
         return self._timestamp_dict
+
+    @property
+    def standard(self) -> np.ndarray:
+        """Return the standard integrals."""
+        return self._standard
 
     # METHODS #
 
@@ -141,3 +199,89 @@ class IntegralEvaluator:
         # add the integrals to the dictionary
         self._integral_dict[name] = integrals_tmp
         self._timestamp_dict[name] = timestamp
+
+    def correlation_coefficient_delta(
+        self,
+        delta1: Union[Iterable, int, str],
+        delta2: Union[Iterable, int, str],
+    ) -> float:
+        """Calculate the correlation factor between two delta values.
+
+        For details, see ``rimseval.utils.delta.correlation_coefficient``.
+
+        :param delta1: The first delta value. This can be either given as an iterable
+            of indices indicating the numerator and denominator peak, as an integer
+            indicating the position in the list of ratio indexes, or as a string
+            indicating the name of the delta value, as in ``delta_labels``.
+        :param delta2: The second delta value. This can be either given as an iterable
+            of indices indicating the numerator and denominator peak, as an integer
+            indicating the position in the list of ratio indexes, or as a string
+            indicating the name of the delta value, as in ``delta_labels``.
+
+        :return: Correlation coefficient rho.
+
+        :raises ValueError: The denominators are not the same or the nominators are the
+            same.
+        :raises TypeError: The input is of invalid type.
+        """
+        if self._ratio_indexes is None:
+            _ = self.deltas
+
+        # if deltas are givenas string, convert to integer with position in list
+        if isinstance(delta1, str):
+            delta1_ind = self.delta_labels.index(delta1)
+        elif hasattr(delta1, "__iter__"):
+            delta1_ind = np.where(np.all(self._ratio_indexes == delta1, axis=1))[0][0]
+        elif isinstance(delta2, int):
+            delta1_ind = delta1
+        else:
+            raise TypeError(
+                "Invalid input for delta1, needs to be string, iterable, or int"
+            )
+
+        if isinstance(delta2, str):
+            delta2_ind = self.delta_labels.index(delta2)
+        elif hasattr(delta2, "__iter__"):
+            delta2_ind = np.where(np.all(self._ratio_indexes == delta2, axis=1))[0][0]
+        elif isinstance(delta2, int):
+            delta2_ind = delta2
+        else:
+            raise TypeError(
+                "Invalid input for delta2, needs to be string, an iterable, or int"
+            )
+
+        delta1_ratio_ind = self._ratio_indexes[delta1_ind]
+        delta2_ratio_ind = self._ratio_indexes[delta2_ind]
+
+        if delta1_ratio_ind[1] != delta2_ratio_ind[1]:
+            raise ValueError("The denominators are not the same.")
+
+        if delta1_ratio_ind[0] == delta2_ratio_ind[0]:
+            raise ValueError("The nominators are the same.")
+
+        # prepare the data for correlation coefficient
+        diak = self.deltas[delta1_ind]
+        djak = self.deltas[delta2_ind]
+        ik = self.integrals[delta1_ratio_ind[1]]
+        sk = self.standard[delta1_ratio_ind[1]]
+
+        # add requested correlations to the correlation set
+        self._correlation_set.add((delta1_ind, delta2_ind))
+
+        return delta.correlation_coefficient_delta(diak, djak, ik, sk)
+
+    def load_standard(self, standard: "IntegralEvaluator") -> None:
+        """Load a standard and save the integrals in this class.
+
+        :param standard: Standard to load, must be an IntegralEvaluator class.
+
+        :raises ValueError: If the peak names are not the same.
+        """
+        if standard.peaks != self._peaks:
+            raise ValueError("Peak names are not the same.")
+
+        self._standard = standard.integrals
+
+    def reset_correlation_set(self) -> None:
+        """Reset the correlation coefficients that were requested."""
+        self._correlation_set = set()

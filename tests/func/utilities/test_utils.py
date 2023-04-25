@@ -7,6 +7,14 @@ import numpy as np
 from rimseval.utilities import utils
 
 
+@pytest.mark.parametrize(
+    "isos", [["54Fe", "56Fe"], ["Fe54", "Fe56"], ["Fe-54", "Fe-56"]]
+)
+def test_delta_label(isos):
+    """Create labels in delta format."""
+    assert utils.delta_label(*isos) == "δ(54Fe/56Fe)"
+
+
 def test_not_index():
     """Return all indices not of length that are not in a given array."""
     # docstring example

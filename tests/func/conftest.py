@@ -1,12 +1,11 @@
 """Fixtures for functional tests."""
 
-from datetime import datetime
-from typing import List
 from pathlib import Path
 
 import pytest
 import numpy as np
 
+from rimseval import data_io
 from rimseval.processor import CRDFileProcessor
 
 
@@ -62,10 +61,8 @@ def data_files_path(request) -> Path:
 
 
 @pytest.fixture
-def integral_data(crd_int_delta) -> List:
+def integral_file(tmpdir, crd_int_delta) -> Path:
     """Return some integral example data."""
-    name = crd_int_delta.name
-    timestamp = crd_int_delta.timestamp
-    peak_names = crd_int_delta.def_integrals[0]
-    integrals = crd_int_delta.integrals
-    return [name, timestamp, peak_names, integrals]
+    int_file = Path(tmpdir).joinpath("int_file.csv")
+    data_io.integrals.export(crd_int_delta, int_file)
+    return int_file

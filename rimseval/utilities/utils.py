@@ -7,6 +7,23 @@ import numpy as np
 ini = iniabu.IniAbu(database="nist")  # select correct iniabu database for this program
 
 
+def delta_label(iso1: str, iso2: str) -> str:
+    """Return the delta-ratio label for a pair of isotopes.
+
+    :param iso1: First isotope.
+    :param iso2: Second isotope.
+
+    :return: The delta label.
+    """
+    iso1 = ini.iso[iso1]
+    iso2 = ini.iso[iso2]
+
+    ele1 = iso1.name.split("-")[0]
+    ele2 = iso2.name.split("-")[0]
+
+    return f"δ({iso1.a}{ele1}/{iso2.a}{ele2})"
+
+
 @njit
 def not_index(ind: np.array, length: int) -> np.array:  # pragma: nocover
     """Reverse an index.
