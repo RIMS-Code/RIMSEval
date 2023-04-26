@@ -5,6 +5,7 @@ from . import guis
 from . import interfacer
 from . import utilities
 from .evaluator import IntegralEvaluator
+from .multi_eval import MultiEvaluator
 from .multi_proc import MultiFileProcessor
 from .processor import CRDFileProcessor
 
@@ -17,6 +18,7 @@ __all__ = [
     "guis",
     "interfacer",
     "IntegralEvaluator",
+    "MultiEvaluator",
     "MultiFileProcessor",
     "utilities",
 ]
