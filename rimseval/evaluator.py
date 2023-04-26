@@ -53,8 +53,17 @@ class IntegralEvaluator:
 
         :return: Set of correlations, where each entry is a tuple of the form (i, j),
             and i, j are the indexes of the delta-values that were correlated.
+
+        :raise TypeError: Correlation set to load is not of type ``set``.
         """
         return self._correlation_set
+
+    @correlation_set.setter
+    def correlation_set(self, corr_set: Set[Tuple[int, int]]):
+        if not isinstance(corr_set, set):
+            raise TypeError("Correlation set to load is not of type ``set``.")
+
+        self._correlation_set = corr_set
 
     @property
     def deltas(self) -> np.ndarray:
@@ -186,7 +195,7 @@ class IntegralEvaluator:
 
     @standard_timestamp.setter
     def standard_timestamp(self, value: datetime.datetime):
-        if not isinstance(value, datetime.datetime):
+        if not isinstance(value, datetime.datetime) and value is not None:
             raise TypeError("Timestamp must be of type datetime.datetime.")
         self._standard_timestamp = value
 
