@@ -3,29 +3,37 @@
 import datetime
 import json
 from pathlib import Path
+from typing import Union
 
 from rimseval.evaluator import IntegralEvaluator
 
 
-def load_integral_evaluator(fname_in: Path, cwd: Path = None) -> IntegralEvaluator:
+def load_integral_evaluator(
+    din: Union[Path, str], cwd: Path = None
+) -> IntegralEvaluator:
     """Load an integral evaluation class from an `.eval` file.
 
     Files will be loaded from an absolute path first, if not available, the routine
     will try to look for the file relative to the working directory.
 
-    :param fname_in: Path to the input file. Suffix `.eval` will be added if not
-        present.
+    :param din: Path to the input file. Suffix `.eval` will be added if not
+        present. Alternatively, the json content can be given as a string.
     :param cwd: Current working directory, will be used to look for integral files if
         given and file cannot be found in the absolute path saved in the `.eval` file.
 
     :return: IntegralEvaluator class with all information as stored.
 
+    :raises TypeError: ``din`` is of bad type.
     :raises FileNotFoundError: If a file cannot be found.
     """
-    fname_in = fname_in.with_suffix(".eval")
-
-    with open(fname_in) as f:
-        eval_dict = json.load(f)
+    if isinstance(din, Path):
+        din = din.with_suffix(".eval")
+        with open(din) as f:
+            eval_dict = json.load(f)
+    elif isinstance(din, str):
+        eval_dict = json.loads(din)
+    else:
+        raise TypeError(f"Input must be a Path or string, not {type(din)}.")
 
     # create the evaluator
     ev = IntegralEvaluator()
@@ -62,7 +70,9 @@ def load_integral_evaluator(fname_in: Path, cwd: Path = None) -> IntegralEvaluat
     return ev
 
 
-def save_integral_evaluator(ev: IntegralEvaluator, fname_out: Path) -> None:
+def save_integral_evaluator(
+    ev: IntegralEvaluator, dout: Path = None
+) -> Union[None, str]:
     """Save an integral evaluation class with all information to an `.eval` file.
 
     The eval file will be in json format. The file contains references to the
@@ -70,16 +80,22 @@ def save_integral_evaluator(ev: IntegralEvaluator, fname_out: Path) -> None:
     the set of correlations set by the user (requested by the user), and the
     timestamp of the standard.
 
-    :param ev: IntegralEvaluator class to save.
-    :param fname_out: Path to the output file. Suffix `.eval` will be added if not
-        present.
+    :return: None (if written to file) or json string (if ``dout`` is ``None``).
 
-    :raises TypeError: If the path is not of type ``pathlib.Path``.
+    :param ev: IntegralEvaluator class to save.
+    :param dout: Path to the output file. Suffix `.eval` will be added if not
+        present. If ``None`` is given, the json string will be returned.
+
+    :raises TypeError: If ``ev`` is not of type ``IntegralEvaluator`` or ``dout``
+        is not of type ``pathlib.Path``.
     """
-    if not isinstance(fname_out, Path):
+    if not isinstance(ev, IntegralEvaluator):
+        raise TypeError("Input must be of type IntegralEvaluator.")
+    if not isinstance(dout, Path) and dout is not None:
         raise TypeError("Path must be of type pathlib.Path.")
 
-    fname_out = fname_out.with_suffix(".eval")
+    if dout is not None:
+        dout = dout.with_suffix(".eval")
 
     # create the dictionary
     eval_dict = {
@@ -97,5 +113,8 @@ def save_integral_evaluator(ev: IntegralEvaluator, fname_out: Path) -> None:
         eval_dict["standard_timestamp"] = ev.standard_timestamp.isoformat()
 
     # save the dictionary
-    with open(fname_out, "w") as f:
-        json.dump(eval_dict, f, indent=4)
+    if dout is None:
+        return json.dumps(eval_dict, indent=4)
+    else:
+        with open(dout, "w") as f:
+            json.dump(eval_dict, f, indent=4)

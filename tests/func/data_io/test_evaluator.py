@@ -20,6 +20,56 @@ def assert_integral_evaluator_equal(ev1, ev2):
     assert ev1.standard_timestamp == ev2.standard_timestamp
 
 
+def test_load_integral_evaluator_bad_type():
+    """Raise TypeError if input is of bad type."""
+    with pytest.raises(TypeError):
+        evaluator.load_integral_evaluator(1)
+
+
+@pytest.mark.parametrize("cwd", [None, Path.cwd()])
+def test_load_integral_evaluator_sample_file_not_found(tmpdir, integral_file, cwd):
+    """Raise FileNotFoundError if sample file cannot be found."""
+    ev = IntegralEvaluator(integral_file)
+    fout = Path(tmpdir).joinpath("test.eval")
+    evaluator.save_integral_evaluator(ev, fout)
+
+    shutil.move(integral_file, integral_file.parent.joinpath("something.csv"))
+
+    with pytest.raises(FileNotFoundError):
+        evaluator.load_integral_evaluator(fout, cwd=cwd)
+
+
+@pytest.mark.parametrize("cwd", [None, Path.cwd()])
+def test_load_integral_evaluator_standard_file_not_found(tmpdir, integral_file, cwd):
+    """Raise FileNotFoundError if standard file cannot be found."""
+    ev = IntegralEvaluator(integral_file)
+    std_file = Path(tmpdir).joinpath("standard.csv")
+    shutil.copy(integral_file, std_file)
+    std = IntegralEvaluator(std_file)
+    ev.standard = std
+
+    fout = Path(tmpdir).joinpath("test.eval")
+    evaluator.save_integral_evaluator(ev, fout)
+
+    shutil.move(std_file, std_file.parent.joinpath("something.csv"))
+
+    with pytest.raises(FileNotFoundError):
+        evaluator.load_integral_evaluator(fout, cwd=cwd)
+
+
+def test_save_integral_evaluator_bad_type_dout(integral_file):
+    """Raise TypeError if input is of bad type."""
+    ev = IntegralEvaluator(integral_file)
+    with pytest.raises(TypeError):
+        evaluator.save_integral_evaluator(ev, 1)
+
+
+def test_save_integral_evaluator_bad_type_ev():
+    """Raise TypeError if input is of bad type."""
+    with pytest.raises(TypeError):
+        evaluator.save_integral_evaluator(1)
+
+
 def test_save_load_integral_evaluator(tmpdir, integral_file):
     """Save and load an integral evaluator with a standard."""
     ev = IntegralEvaluator(integral_file)
@@ -74,6 +124,18 @@ def test_save_load_integral_evaluator_relative_path(tmpdir, crd_int_delta):
     assert Path(tmpdir).joinpath(integral_fout.name).exists()
 
     ev_loaded = evaluator.load_integral_evaluator(fout, cwd=Path(tmpdir))
+
+    assert_integral_evaluator_equal(ev, ev_loaded)
+
+
+def test_save_load_integral_evaluator_string(integral_file):
+    """Save and load an integral evaluator from a json string."""
+    ev = IntegralEvaluator(integral_file)
+    std = IntegralEvaluator(integral_file)
+
+    json_out = evaluator.save_integral_evaluator(ev, dout=None)
+
+    ev_loaded = evaluator.load_integral_evaluator(json_out)
 
     assert_integral_evaluator_equal(ev, ev_loaded)
 
