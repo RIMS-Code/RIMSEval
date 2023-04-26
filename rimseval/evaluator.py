@@ -20,7 +20,13 @@ class IntegralEvaluator:
     - Feature to save and reload the evaluation.
 
     Example:
-        >>> # todo
+        >>> integral_smp = Path("my_sample.csv")  # path to sample
+        >>> integral_std = Path("my_standard.csv")  # path to standard
+        >>> ev = IntegralEvaluator(integral_smp)  # load sample
+        >>> std = IntegralEvaluator(integral_std)  # load standard
+        >>> ev.standard = std  # define standard for sample
+        >>> ev.deltas  # print delta values
+        array([[23.1, 2.3], [-27.2, 8.1]])
     """
 
     def __init__(self, integrals_in: Path = None):
