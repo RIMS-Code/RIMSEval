@@ -36,6 +36,7 @@ def test_mfp_close_files(crd_file):
 
     crds.close_files()
     assert crds._files is None
+    assert crds.num_of_files == 0
 
 
 def test_mfp_close_selected_files(crd_file):
@@ -60,6 +61,9 @@ def test_mfp_close_selected_files(crd_file):
     assert crds.close_selected_files([0]) == 0
     assert len(crds.files) == len(files) - len(ids_to_del) - 2
 
+    # number of files updated
+    assert crds.num_of_files == len(crds.files)
+
 
 def test_mfp_load_calibration_pass_through(crd_file):
     """Do nothing if no calibration file is available."""
@@ -79,6 +83,7 @@ def test_mfp_open_crd_file(crd_file):
     assert crds.files is not None
     for crd in crds.files:
         assert isinstance(crd, CRDFileProcessor)
+    assert crds.num_of_files == len(files)
 
 
 def test_mfp_open_additional_file(crd_file):
@@ -96,6 +101,9 @@ def test_mfp_open_additional_file(crd_file):
     # ensure all files were read
     for crd in crds.files:
         assert crd.tof is not None
+
+    # assert number of files is updates
+    assert crds.num_of_files == len(crds.files)
 
 
 def test_mfp_read_crd_file(crd_file):
