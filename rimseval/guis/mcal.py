@@ -4,6 +4,7 @@ from functools import partial
 import sys
 from typing import List, Tuple, Union
 
+import darkdetect
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 
@@ -32,6 +33,12 @@ class CreateMassCalibration(PlotSpectrum):
         """
         super().__init__(crd, logy=logy, theme=theme)
         self.setWindowTitle("Create mass calibration")
+
+        if theme is None or theme == "auto":
+            if darkdetect.isDark():
+                theme = "dark"
+            else:
+                theme = "light"
         self.theme = theme
 
         # create a matpotlib canvas

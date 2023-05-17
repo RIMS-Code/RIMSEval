@@ -4,6 +4,7 @@ import itertools
 import sys
 from typing import Tuple
 
+import darkdetect
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -41,6 +42,12 @@ class PlotFigure(QtWidgets.QMainWindow):
         if theme is not None and qdarktheme is not None:
             self.setStyleSheet(qdarktheme.load_stylesheet(theme))
 
+        # detect theme
+        if theme is None or theme == "auto":  # detect system theme
+            if darkdetect.isDark():
+                theme = "dark"
+
+        # set theme
         if theme == "dark":
             plt.style.use("dark_background")
             self.main_color = "w"

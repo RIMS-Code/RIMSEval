@@ -8,6 +8,7 @@ author = "Reto Trappitsch"
 author-email = "reto@galactic-forensics.space"
 home-page = "https://github.com/RIMS-Code/RIMSEval"
 requires = [
+    "darkdetect",
     "iniabu>=1.1.1",
     "matplotlib",
     "numba~=0.56.4",
