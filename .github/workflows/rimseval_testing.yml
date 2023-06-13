@@ -33,5 +33,7 @@ jobs:
         pip install .[test]
     - name: Run nox
       run: nox --no-error-on-missing-interpreters
+    - name: Generate coverage report
+      run: pytest
     - name: Coveralls
       uses: coverallsapp/github-action@v2
