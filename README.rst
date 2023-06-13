@@ -12,9 +12,9 @@ RIMS Evaluation Software
 .. image:: https://readthedocs.org/projects/rimseval/badge/?version=latest
     :target: https://rimseval.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-.. image:: https://coveralls.io/repos/github/RIMS-Code/RIMSEval/badge.svg?branch=main
-    :target: https://coveralls.io/github/RIMS-Code/RIMSEval?branch=main
-    :alt: Coverage Status
+.. image:: https://codecov.io/gh/RIMS-Code/RIMSEval/branch/main/graph/badge.svg?token=AWWOT5Y4VD
+    :target: https://codecov.io/gh/RIMS-Code/RIMSEval
+    :alt: Code Coverage
 .. image:: https://img.shields.io/badge/License-MIT-blue.svg
     :target: https://github.com/RIMS-Code/RIMSEval/blob/main/LICENSE
     :alt: License: MIT
