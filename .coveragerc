@@ -1,2 +1,4 @@
 [report]
-omit = */guis/*
+omit =
+        */guis/*
+        noxfile.py

@@ -12,6 +12,12 @@ download the latest release version for your operating system from
 You do not need to have an existing python environment,
 since all dependencies will be installed along.
 
+.. warning:: Installing a new version
+
+    If you already have a previous version of the software installed,
+    you should first uninstall it before installing a new version.
+    This is to ensure that all dependencies are correctly updated.
+
 .. note:: Issues on macOS
 
     Once you moved the `RIMSEvaluation` program from the `dmg` archive
