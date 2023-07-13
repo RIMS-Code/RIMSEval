@@ -6,6 +6,9 @@
 *.sublime-project
 *.sublime-workspace
 
+# VSCode
+.vscode
+
 ## temporary files and folders ##
 temp
 tmp
