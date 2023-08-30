@@ -1,7 +1,7 @@
 [flake8]
 select = B,B9,BLK,C,D,DAR,E,F,I,S,W
 
-exclude rimseval/_version.py
+exclude = rimseval/_version.py
 
 # black configuration
 ignore = E203,E501,W503
