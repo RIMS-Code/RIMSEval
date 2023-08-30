@@ -2,8 +2,8 @@
 
 
 from hypothesis import given, strategies as st
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.utilities import peirce
 

@@ -1,12 +1,11 @@
 """Tests for export routines."""
 
-from hypothesis import given, strategies as st
-import numpy as np
 from pathlib import Path
-import pytest
 
-from rimseval.processor import CRDFileProcessor
+import numpy as np
+
 from rimseval.data_io import export
+from rimseval.processor import CRDFileProcessor
 
 
 def test_bin_array_avg():

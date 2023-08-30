@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval import interfacer
 
@@ -13,6 +13,9 @@ def test_read_lion_eval_calfile(mocker, crd_proc_mock):
 
     Mocking getting a file since the LIONEvalCal is actually tested in its own unit
     tests with proper files. Here we just fake some data.
+
+    :param mocker: Pytest mocker object.
+    :param crd_proc_mock: Mock fixture for CRDFileProcessor instance.
     """
     mcal_exp = np.array([[1, 1], [2, 2]])  # expected and returned
     integrals_ret = [["46Ti", 46.0, 0.2, 0.3], ["47Ti", 47.1, 0.3, 0.3]]

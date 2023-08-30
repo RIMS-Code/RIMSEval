@@ -5,7 +5,7 @@ import nox
 nox.options.sessions = ["lint", "tests"]
 
 package = "rimseval"
-locations = "rimseval", "noxfile.py"
+locations = "rimseval", "tests"
 python_default = "3.11"
 python_suite = ["3.11", "3.10", "3.9", "3.8"]
 

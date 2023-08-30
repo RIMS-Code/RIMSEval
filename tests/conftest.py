@@ -2,10 +2,10 @@
 
 from pathlib import Path
 import struct
-
 from typing import Tuple
-import pytest
+
 import numpy as np
+import pytest
 
 import rimseval
 
@@ -16,6 +16,8 @@ import rimseval
 @pytest.fixture(scope="function")
 def crd_file(tmpdir) -> Tuple[dict, np.ndarray, np.ndarray, Path]:
     """Create and write a CRD file to a temporary folder, then return it.
+
+    :param tmpdir: Temporary directory provided by pytest.
 
     :return: Header as dictionary, ions_per_shot, arrival_bins, Path to file
     """
@@ -71,7 +73,7 @@ def crd_file(tmpdir) -> Tuple[dict, np.ndarray, np.ndarray, Path]:
     bin_index = 0
     for ion in ions_per_shot:  # write data
         crd_cont += struct.pack("<I", ion)
-        for it in range(ion):
+        for _ in range(ion):
             crd_cont += struct.pack("<I", all_tofs[bin_index])
             bin_index += 1
     crd_cont += struct.pack("4s", b"OK!\0")
