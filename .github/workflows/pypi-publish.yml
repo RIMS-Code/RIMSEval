@@ -4,9 +4,10 @@
 name: Upload Python Package PyPi
 
 on:
-  release:
-    types: [created]
-
+#  release:
+#    types: [created]
+  pull_request:
+    branches: [ main ]
 jobs:
   deploy:
     if: github.repository_owner == 'RIMS-Code'
@@ -20,6 +21,8 @@ jobs:
         python-version: '3.11'
     - name: Install dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get -y install libegl1-mesa
         python -m pip install --upgrade pip
         pip install flit flit-scm setuptools-scm
         pip install .
@@ -28,4 +31,5 @@ jobs:
         FLIT_USERNAME: '__token__'
         FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        flit publish
+        flit build
+#        flit publish
