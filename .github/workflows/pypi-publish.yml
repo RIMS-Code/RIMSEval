@@ -4,10 +4,8 @@
 name: Upload Python Package PyPi
 
 on:
-#  release:
-#    types: [created]
-  pull_request:
-    branches: [ main ]
+  release:
+    types: [created]
 jobs:
   deploy:
     if: github.repository_owner == 'RIMS-Code'
@@ -31,5 +29,4 @@ jobs:
         FLIT_USERNAME: '__token__'
         FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        flit build
-#        flit publish
+        flit publish
