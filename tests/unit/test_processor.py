@@ -79,7 +79,6 @@ def test_integrals_bg_corr_behavior(crd_file):
     crd.integrals_calc()
 
     integrals_only = np.array(crd.integrals)
-    integrals_pkg_only = np.array(crd.integrals_pkg)
 
     # set the background correction
     crd.def_backgrounds = (["all"], np.array([[0.1, 0.9]]))
@@ -224,7 +223,6 @@ def test_integrals_pkg_with_filtering(crd_file):
     """Filtering in packages and get the sum of the integrals."""
     _, _, _, fname = crd_file
     shots_per_pkg = 1
-    max_ions_per_shot = 1
 
     crd = CRDFileProcessor(Path(fname))
     crd.spectrum_full()
@@ -252,6 +250,8 @@ def test_calculation_with_filters(crd_data, macro_path):
     """Test that reapplying all filters results in the correct data.
 
     Ensured that all filters do something on this file!
+
+    :param macro_path: Fixture to return the path to the macro files.
 
     :param crd_data: Fixture to return the data path to the CRD files.
     """
@@ -296,7 +296,7 @@ def test_calculation_with_filters(crd_data, macro_path):
 
 
 def test_calculation_tof_spectrum_never_cut(crd_data):
-    """Ensure tof spectrum length stays the same throughout filters"""
+    """Ensure tof spectrum length stays the same throughout filters."""
     fname = crd_data.joinpath("ti_standard_01.crd")
     crd = CRDFileProcessor(fname)
     interfacer.load_cal_file(crd)

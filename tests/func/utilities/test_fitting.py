@@ -1,7 +1,6 @@
 """Test for fitting utilities."""
 
 from hypothesis import given, strategies as st
-import pytest
 import numpy as np
 
 from rimseval.utilities import fitting

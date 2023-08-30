@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.multi_proc import MultiFileProcessor as mfp
 

@@ -1,14 +1,17 @@
 """PyTest fixtures for unit tests."""
 
 from pathlib import Path
+
 import pytest
 
 
 @pytest.fixture
 def crd_data(request) -> Path:
-    """Provides the path to the `crd_data` folder.
+    """Provide the path to the `crd_data` folder.
 
     This folder contains simple, small CRD files with real data for testing.
+
+    :param request: PyTest request object.
 
     :return: Path to the folder
     """
@@ -18,7 +21,9 @@ def crd_data(request) -> Path:
 
 @pytest.fixture
 def legacy_files_path(request) -> Path:
-    """Provides the path to the `legacy_files` folder.
+    """Provide the path to the `legacy_files` folder.
+
+    :param request: PyTest request object.
 
     :return: Path to the folder
     """
@@ -28,7 +33,9 @@ def legacy_files_path(request) -> Path:
 
 @pytest.fixture
 def macro_path(request) -> Path:
-    """Provides the path to this folder where the macros are.
+    """Provide the path to this folder where the macros are.
+
+    :param request: PyTest request object.
 
     :return: Path to the folder
     """

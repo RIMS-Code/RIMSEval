@@ -2,10 +2,9 @@
 
 from pathlib import Path
 
-import hypothesis
 from hypothesis import given, HealthCheck, settings, strategies as st
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.processor import CRDFileProcessor
 

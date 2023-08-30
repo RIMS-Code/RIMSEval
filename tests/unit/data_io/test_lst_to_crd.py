@@ -13,8 +13,9 @@ def test_binary_data_not_implemented(lst_crd_path):
 
     err_msg_exp = "Binary data is currently not supported."
 
+    conv = LST2CRD(lst_crd_path.joinpath(lst_fname), channel_data=7)
+
     with pytest.raises(NotImplementedError) as err:
-        conv = LST2CRD(lst_crd_path.joinpath(lst_fname), channel_data=7)
         conv.read_list_file()
 
     msg = err.value.args[0]
@@ -113,7 +114,7 @@ def test_mcs8a_short_10k(tmpdir, lst_crd_path):
 
 
 def test_mcs8a_short_10k_wrong_channel_error_message(tmpdir, lst_crd_path):
-    """Raise OSError and propose the correct channel to user"""
+    """Raise OSError and propose the correct channel to user."""
     lst_fname = "MCS8a_short_10k_signal.lst"
     other_channels = [9]
 

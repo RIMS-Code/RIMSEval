@@ -1,7 +1,5 @@
 """Test list file utilities."""
 
-import pathlib
-import pytest
 import numpy as np
 
 import rimseval.data_io.lst_utils as utl
@@ -93,6 +91,7 @@ def test_separate_signal_with_tag():
 
 
 def test_transfer_lst_to_crd_data():
+    """Transfer list data to CRD data."""
     max_sweep = 1023
     data_in = np.array(
         [
