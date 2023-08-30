@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import rimseval
 from rimseval.multi_proc import MultiFileProcessor as mfp
 from rimseval.processor import CRDFileProcessor
 

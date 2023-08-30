@@ -4,12 +4,13 @@ import sys
 
 sys.path.append("../")
 
+from rimseval._version import __version__ as version  # noqa E402
+
 # -- Project information -----------------------------------------------------
 
 project = "RIMSEval"
 author = "Reto Trappitsch"
-copyright = f"2021, {author}"
-version = "2.0.1"
+copyright = f"2020-2023, {author}"
 release = version
 
 

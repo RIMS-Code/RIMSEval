@@ -2,17 +2,18 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 import rimseval
 
 
 @pytest.fixture
 def mpa4a_data_ascii():
-    """Provides data for the MCS6 TDC, header states [MPA4A] format.
+    """Provide data for the MCS6 TDC, header states [MPA4A] format.
 
-    Provide data in ASCII format, also provide the correct formatting and channel that contains data.
+    Provide data in ASCII format, also provide the correct formatting and channel that
+    contains data.
 
     :return: A tuple with channel, format, and data
     :rtype: (int, DataFormat, list)
@@ -35,7 +36,9 @@ def mpa4a_data_ascii():
 
 @pytest.fixture
 def crdproc_int(crd_file) -> rimseval.processor.CRDFileProcessor:
-    """Provides a dummy CRDProcessor file with integrals.
+    """Provide a dummy CRDProcessor file with integrals.
+
+    :param crd_file: Fixture for crd file return.
 
     :return: Dummy CRDProcessor file with integrals.
     """

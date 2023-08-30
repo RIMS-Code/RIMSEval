@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.compatibility.lion_eval import LIONEvalCal
 

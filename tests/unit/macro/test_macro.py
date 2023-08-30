@@ -2,15 +2,17 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.processor import CRDFileProcessor
 
 
 @pytest.fixture
 def macro_path(request) -> Path:
-    """Provides the path to this folder where the macros are.
+    """Provide the path to this folder where the macros are.
+
+    :param request: pytest request object.
 
     :return: Path to the folder
     """

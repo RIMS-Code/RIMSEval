@@ -1,13 +1,12 @@
 """Tests for processors utilities."""
 
-import pytest
 
 from hypothesis import given, strategies as st
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 
 import rimseval
-import rimseval.processor_utils as pu
 import rimseval.data_io.crd_utils as crdu
 import rimseval.utilities.delta
 
@@ -53,7 +52,7 @@ def test_create_packages():
 
     pkg_data_exp = np.zeros((nof_pkg, len_data))
 
-    for it, shot in enumerate(ions_per_shot):
+    for it, _ in enumerate(ions_per_shot):
         pkg_it = it // pkg_length
         mapper = tofs_mapper[it]
         tofs = all_tofs[mapper[0] : mapper[1]]

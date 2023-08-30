@@ -4,6 +4,7 @@ from . import data_io
 from . import guis
 from . import interfacer
 from . import utilities
+from ._version import __version__
 from .evaluator import IntegralEvaluator
 from .multi_eval import MultiEvaluator
 from .multi_proc import MultiFileProcessor
@@ -21,10 +22,8 @@ __all__ = [
     "MultiEvaluator",
     "MultiFileProcessor",
     "utilities",
+    "__version__",
 ]
-
-# Package information
-__version__ = "2.0.1"
 
 __title__ = "rimseval"
 __description__ = (
@@ -37,4 +36,4 @@ __uri__ = "https://rimseval.readthedocs.io"
 __author__ = "Reto Trappitsch"
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2023, Reto Trappitsch"
+__copyright__ = "Copyright (c) 2020-2023, Reto Trappitsch"

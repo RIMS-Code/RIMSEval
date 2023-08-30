@@ -3,8 +3,8 @@
 import datetime
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval.processor import CRDFileProcessor
 import rimseval.processor_utils as pu

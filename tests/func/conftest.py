@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval import data_io
 from rimseval.processor import CRDFileProcessor
@@ -16,6 +16,8 @@ def crd_int_delta(crd_file) -> CRDFileProcessor:
     The integrals set are fake, no actual calculation takes place. This fixture simply
     serves to test functionality (i.e., delta calculation) after processing of the CRD
     file.
+
+    :param crd_file: Fixture for crd file return.
 
     :return: CRDFileProcessor instance with integrals defined and set.
     """
@@ -52,7 +54,9 @@ def crd_int_delta(crd_file) -> CRDFileProcessor:
 
 @pytest.fixture
 def data_files_path(request) -> Path:
-    """Provides the path to the `data_files` folder.
+    """Provide the path to the `data_files` folder.
+
+    :param request: Pytest request object.
 
     :return: Path to the folder
     """
