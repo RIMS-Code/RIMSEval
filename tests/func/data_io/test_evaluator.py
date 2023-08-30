@@ -2,9 +2,10 @@
 
 import datetime
 from pathlib import Path
-import pytest
-import numpy as np
 import shutil
+
+import numpy as np
+import pytest
 
 from rimseval import data_io
 from rimseval.data_io import evaluator
@@ -131,7 +132,6 @@ def test_save_load_integral_evaluator_relative_path(tmpdir, crd_int_delta):
 def test_save_load_integral_evaluator_string(integral_file):
     """Save and load an integral evaluator from a json string."""
     ev = IntegralEvaluator(integral_file)
-    std = IntegralEvaluator(integral_file)
 
     json_out = evaluator.save_integral_evaluator(ev, dout=None)
 

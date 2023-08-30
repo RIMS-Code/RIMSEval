@@ -21,7 +21,7 @@ class MultiTemplate:
 
         :param file_paths: List of pathes to the files to read in.
 
-        :raise TypeError: Class that is used for initialization has no loader defined.
+        :raises TypeError: Class that is used for initialization has no loader defined.
         """
         self._num_of_files = len(file_paths)
         self.file_paths = file_paths

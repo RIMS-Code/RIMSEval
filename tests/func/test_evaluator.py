@@ -4,8 +4,8 @@ import datetime
 from pathlib import Path
 import shutil
 
-import pytest
 import numpy as np
+import pytest
 
 from rimseval import data_io
 from rimseval.evaluator import IntegralEvaluator
@@ -78,7 +78,7 @@ def test_integrals(integral_file, crd_int_delta):
 
 
 def test_integrals_multiple(tmpdir, integral_file, crd_int_delta):
-    "Return the summed integrals for multiple samples."
+    """Return the summed integrals for multiple samples."""
     ev = IntegralEvaluator(integral_file)
 
     # second file with same data

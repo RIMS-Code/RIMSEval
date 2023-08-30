@@ -8,6 +8,7 @@ import pytest
 
 import rimseval
 import rimseval.data_io.crd_utils as crdu
+import rimseval.processor_utils as pu
 import rimseval.utilities.delta
 
 
