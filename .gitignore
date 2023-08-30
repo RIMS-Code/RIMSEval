@@ -53,3 +53,6 @@ lib64
 .nox
 .pytest_cache
 htmlcov
+
+# flit scm version stuff
+rimseval/_version.py

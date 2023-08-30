@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["flit_scm"]
+build-backend = "flit_scm:buildapi"
 
 [tool.flit.metadata]
 module = "rimseval"
@@ -48,3 +48,6 @@ test = [
 minversion = "6.0"
 addopts = "--cov=rimseval -v"
 testpaths = "tests"
+
+[tool.setuptools_scm]
+write_to = "rimseval/_version.py"
