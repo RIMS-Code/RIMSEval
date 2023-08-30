@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("../")
 
-from iniabu._version import __version__ as version  # noqa E402
+from rimseval._version import __version__ as version  # noqa E402
 
 # -- Project information -----------------------------------------------------
 
