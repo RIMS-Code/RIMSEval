@@ -812,7 +812,7 @@ class CRDFileProcessor:
 
         sys.path.append(str(file_path))
 
-        exec(f"import {pyfile}") in globals(), locals()  # noqa: S102
+        exec(f"import {pyfile}") in globals(), locals()  # noqa
         macro = vars()[pyfile]
         macro.calc(self)
 
