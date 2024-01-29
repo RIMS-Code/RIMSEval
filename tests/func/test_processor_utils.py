@@ -1,6 +1,5 @@
 """Tests for processors utilities."""
 
-
 from hypothesis import given, strategies as st
 import matplotlib.pyplot as plt
 import numpy as np
