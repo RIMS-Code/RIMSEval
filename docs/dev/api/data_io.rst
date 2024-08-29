@@ -129,7 +129,7 @@ Integral export / import
 :func:`load`
 ************
 
-.. autofunction:: mass_spectrum
+.. autofunction:: load
 
 
 

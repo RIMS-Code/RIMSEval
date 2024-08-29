@@ -314,8 +314,9 @@ def test_sort_backgrounds(crd_file):
     _, _, _, fname = crd_file
     crd = CRDFileProcessor(Path(fname))
     crd.sort_backgrounds()  # does nothing, since None
-    crd.def_backgrounds = ["Fe-56", "Ti-46", "Fe-56"], np.array(
-        [[58.8, 59.2], [45.8, 46.2], [55.8, 56.2]]
+    crd.def_backgrounds = (
+        ["Fe-56", "Ti-46", "Fe-56"],
+        np.array([[58.8, 59.2], [45.8, 46.2], [55.8, 56.2]]),
     )
 
     crd.backgrounds = np.array([[2, 2], [1, 1]])
@@ -336,8 +337,9 @@ def test_sort_backgrounds_non_element(crd_file) -> None:
     _, _, _, fname = crd_file
     crd = CRDFileProcessor(Path(fname))
     crd.sort_backgrounds()  # does nothing, since None
-    crd.def_backgrounds = ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"], np.array(
-        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    crd.def_backgrounds = (
+        ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"],
+        np.array([[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]),
     )
     crd.backgrounds = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
 
@@ -381,8 +383,9 @@ def test_sort_integrals_primary_and_secondary(crd_file) -> None:
     _, _, _, fname = crd_file
     crd = CRDFileProcessor(Path(fname))
     crd.sort_integrals()  # does nothing, since None
-    crd.def_integrals = ["Zr-94", "Mo-96", "Mo-94", "Zr-96"], np.array(
-        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    crd.def_integrals = (
+        ["Zr-94", "Mo-96", "Mo-94", "Zr-96"],
+        np.array([[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]),
     )
     crd.integrals = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
 
@@ -402,8 +405,9 @@ def test_sort_integrals_non_element(crd_file) -> None:
     _, _, _, fname = crd_file
     crd = CRDFileProcessor(Path(fname))
     crd.sort_integrals()  # does nothing, since None
-    crd.def_integrals = ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"], np.array(
-        [[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]
+    crd.def_integrals = (
+        ["ZrO-94", "MoO-96", "Mo-94", "Zr-96"],
+        np.array([[93.9, 94.2], [95.4, 95.7], [93.4, 93.7], [95.9, 96.2]]),
     )
     crd.integrals = np.array([[0, 0], [3, 3], [2, 2], [1, 1]])
 

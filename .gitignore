@@ -53,6 +53,11 @@ lib64
 .nox
 .pytest_cache
 htmlcov
+c4overage.xml
 
 # flit scm version stuff
 rimseval/_version.py
+
+# maturin
+target/*
+*.so

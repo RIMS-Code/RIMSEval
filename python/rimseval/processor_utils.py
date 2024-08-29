@@ -664,7 +664,7 @@ def remove_shots_from_packages(
 
 
 def sort_backgrounds(
-    def_backgrounds: Tuple[List[str], np.ndarray]
+    def_backgrounds: Tuple[List[str], np.ndarray],
 ) -> Tuple[List[str], np.ndarray]:
     """Sort a background list and return the sorted list.
 
@@ -702,7 +702,7 @@ def sort_backgrounds(
 
 
 def sort_integrals(
-    def_integrals: Tuple[List[str], np.ndarray]
+    def_integrals: Tuple[List[str], np.ndarray],
 ) -> Tuple[Tuple[List[str], np.ndarray], Union[np.ndarray, None]]:
     """Sort integral definitions and return them plus the sorting array.
 
