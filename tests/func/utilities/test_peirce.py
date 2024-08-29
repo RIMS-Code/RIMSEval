@@ -1,6 +1,5 @@
 """Test for Peirce criterion data rejection."""
 
-
 from hypothesis import given, strategies as st
 import numpy as np
 import pytest
