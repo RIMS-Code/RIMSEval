@@ -35,7 +35,6 @@ dev-dependencies = [
     "pytest-mock",
     "pytest-sugar",
     "pytest-mock",
-    "sphinx>=8.0.2",
 ]
 
 [tool.rye.scripts]
