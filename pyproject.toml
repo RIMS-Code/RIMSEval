@@ -24,8 +24,8 @@ Documentation = "https://rimseval.readthedocs.io"
 
 [project.optional-dependencies]
 doc = [
-    "sphinx>=8.0.2",
-    "sphinx-rtd-theme>=2.0.0",
+    "sphinx",
+    "sphinx-rtd-theme",
 ]
 
 [build-system]
