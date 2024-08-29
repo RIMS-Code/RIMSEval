@@ -22,12 +22,6 @@ license = { text = "MIT" }
 Source = "https://github.com/RIMS-Code/RIMSEval"
 Documentation = "https://rimseval.readthedocs.io"
 
-[project.optional-dependencies]
-doc = [
-    "sphinx",
-    "sphinx-rtd-theme",
-]
-
 [build-system]
 requires = ["maturin>=1.2,<2.0"]
 build-backend = "maturin"
@@ -41,11 +35,11 @@ dev-dependencies = [
     "pytest-mock",
     "pytest-sugar",
     "pytest-mock",
+    "sphinx>=8.0.2",
 ]
 
 [tool.rye.scripts]
 test_cov = "rye run pytest --cov --cov-report xml"
-docs = "rye run sphinx-build -b html . _build/html/"
 
 [tool.maturin]
 python-source = "python"
