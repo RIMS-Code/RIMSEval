@@ -427,9 +427,7 @@ class CRDFileProcessor:
             self.data.reshape(1, self.data.shape[0]),
             np.array(self.nof_shots).reshape(1),
             dbins,
-        )[
-            0
-        ]  # want to shape it back the way it was!
+        )[0]  # want to shape it back the way it was!
 
         if self.data_pkg is not None:
             self.data_pkg = processor_utils.dead_time_correction(

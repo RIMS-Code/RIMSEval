@@ -1,6 +1,8 @@
 # This workflows will upload a Python Package using Twine when a release is created
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
+# FIXME: This is currently not working at all yet! Needs be reworked with maturin, read up on it.
+
 name: Upload Python Package PyPi
 
 on:

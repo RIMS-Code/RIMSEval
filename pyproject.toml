@@ -1,12 +1,10 @@
-[build-system]
-requires = ["flit_scm"]
-build-backend = "flit_scm:buildapi"
-
 [project]
 name = "rimseval"
+version = "2.0.2"
+description = "Evaluate resonance ionization mass spectrometry measurements, correct, and filter. Contains a reader for crd files (Chicago Raw Data) but can also convert FastComTec lst files to crd."
 authors = [
-    {name="Reto Trappitsch", email="reto@galactic-forensics.space"}
-    ]
+    { name = "Reto Trappitsch", email = "reto@galactic-forensics.space" }
+]
 dependencies = [
     "iniabu>=1.1.2",
     "matplotlib",
@@ -16,46 +14,44 @@ dependencies = [
     "scipy",
     "xlsxwriter"
 ]
-requires-python=">=3.8,<3.12"
-classifiers = [ "License :: OSI Approved :: MIT License",]
 readme = "README.rst"
-dynamic = ["version", "description"]
+requires-python = ">= 3.8,<3.12"
+license = { text = "MIT" }
 
 [project.urls]
 Source = "https://github.com/RIMS-Code/RIMSEval"
 Documentation = "https://rimseval.readthedocs.io"
 
 [project.optional-dependencies]
-dev = [
-    "darglint>=1.5.1",
-    "flake8",
-    "flake8-bandit",
-    "flake8-black",
-    "flake8-bugbear",
-    "flake8-docstrings",
-    "flake8-import-order",
-    "bandit"
-]
 doc = [
-    "sphinx",
-    "sphinx_rtd_theme"
+    "sphinx>=8.0.2",
+    "sphinx-rtd-theme>=2.0.0",
 ]
-test = [
+
+[build-system]
+requires = ["maturin>=1.2,<2.0"]
+build-backend = "maturin"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
     "hypothesis",
     "pytest>=6.0.0",
     "pytest-cov",
     "pytest-mock",
     "pytest-sugar",
-    "pytest-mock"
+    "pytest-mock",
 ]
+
+[tool.rye.scripts]
+test_cov = "rye run pytest --cov --cov-report xml"
+
+[tool.maturin]
+python-source = "python"
+module-name = "rimseval._lowlevel"
+features = ["pyo3/extension-module"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--cov=rimseval -v"
 testpaths = "tests"
-
-[tool.flit.sdist]
-exclude = [".gitignore", ".readthedocs.yaml"]
-
-[tool.setuptools_scm]
-write_to = "rimseval/_version.py"
