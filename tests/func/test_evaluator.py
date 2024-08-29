@@ -97,6 +97,16 @@ def test_integrals_multiple(tmpdir, integral_file, crd_int_delta):
     np.testing.assert_array_almost_equal(integrals, integrals_expected)
 
 
+def test_name(integral_file):
+    """Set then get a user-defined name."""
+    ev = IntegralEvaluator(integral_file)
+
+    name = "test"
+    ev.name = name
+
+    assert ev.name == name
+
+
 def test_standard_timestamp():
     """Get the timestamp of the standard."""
     ev = IntegralEvaluator()

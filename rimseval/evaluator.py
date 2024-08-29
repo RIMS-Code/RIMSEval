@@ -150,9 +150,16 @@ class IntegralEvaluator:
         return self._integral_dict
 
     @property
-    def name(self):
-        """Name of the evaluator (equal to first sample name)."""
+    def name(self) -> str:
+        """Name of the evaluator (equal to first sample name).
+
+        :return: Name of the evaluator.
+        """
         return self._name
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
 
     @property
     def names(self) -> List:
