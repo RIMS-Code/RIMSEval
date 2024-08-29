@@ -53,7 +53,7 @@ lib64
 .nox
 .pytest_cache
 htmlcov
-coverage.xml
+c4overage.xml
 
 # flit scm version stuff
 rimseval/_version.py
