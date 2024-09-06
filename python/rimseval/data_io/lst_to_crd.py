@@ -51,7 +51,7 @@ class LST2CRD:
         ASC_1A = (48, ((0, 16), (16, 44), (45, 48)))
         ASC_9 = (64, ((1, 21), (21, 59), (60, 64)))
 
-    class DATFormat(Enum):
+    class DATFormat(Enum):  # NOTE: unused
         """Available formats (time_patch) for binary data.
 
         Various binary data formats are incorporated. Value is compmosed of 2 entries:
