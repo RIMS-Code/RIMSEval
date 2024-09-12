@@ -8,6 +8,9 @@
 
 mod lst;
 
+// Re-export
+pub use lst::LSTFile;
+
 use pyo3::prelude::*;
 
 /// Prints a message.
@@ -21,13 +24,3 @@ fn _lowlevel(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hello, m)?)?;
     Ok(())
 }
-
-//#[cfg(test)]
-//mod tests {
-//    use super::*;
-//
-//    #[test]
-//    fn test_hello() {
-//        assert_eq!(1, 1);
-//    }
-//}
