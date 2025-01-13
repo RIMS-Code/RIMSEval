@@ -43,7 +43,7 @@ for it, lims in enumerate(bg_shades):  # areas must be in limits
     ax.text(
         channels[lim2 - int((lim2 - lim1) / 2)],
         1.3,
-        f"$B_{{{it+1}}}$",
+        f"$B_{{{it + 1}}}$",
         ha="center",
         va="bottom",
     )
