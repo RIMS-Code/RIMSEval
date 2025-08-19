@@ -97,7 +97,7 @@ class LST2CRD:
         :return: Channel number of data
 
         :raises TypeError: Channel number is not an integer.
-        """  # noqa: DAR402
+        """
         return self._channel_data
 
     @channel_data.setter
@@ -113,7 +113,7 @@ class LST2CRD:
         :return: Channel number of tag
 
         :raises TypeError: Channel number is not an integer.
-        """  # noqa: DAR402
+        """
         return self._channel_tag
 
     @channel_tag.setter
@@ -129,7 +129,7 @@ class LST2CRD:
         :return: The currently chosen data format.
 
         :raises TypeError: Data format is not a DataFormat enum.
-        """  # noqa: DAR402
+        """
         return self._data_format
 
     @data_format.setter
@@ -148,7 +148,7 @@ class LST2CRD:
         :return: The path and file name to the selected object.
 
         :raises TypeError: Path is not a `pathlib.Path` object.
-        """  # noqa: DAR402
+        """
         return self._file_name
 
     @file_name.setter

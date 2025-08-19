@@ -23,29 +23,19 @@ Source = "https://github.com/RIMS-Code/RIMSEval"
 Documentation = "https://rimseval.readthedocs.io"
 
 [build-system]
-requires = ["maturin>=1.2,<2.0"]
-build-backend = "maturin"
+requires = ["uv_build>=0.8.12,<0.9.0"]
+build-backend = "uv_build"
 
-[tool.rye]
-managed = true
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "hypothesis",
     "pytest>=6.0.0",
     "pytest-cov",
     "pytest-mock",
     "pytest-sugar",
-    "pytest-mock",
 ]
 
-[tool.rye.scripts]
-test_cov = "rye run pytest --cov --cov-report xml"
-
-[tool.maturin]
-python-source = "python"
-module-name = "rimseval._lowlevel"
-features = ["pyo3/extension-module"]
-
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "8.0"
 addopts = "--cov=rimseval -v"
 testpaths = "tests"
