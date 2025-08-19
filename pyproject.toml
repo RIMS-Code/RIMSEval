@@ -8,14 +8,14 @@ authors = [
 dependencies = [
     "iniabu>=1.1.2",
     "matplotlib",
-    "numba~=0.60.0",
-    "numpy~=1.26.4",
+    "numba~=0.61",
+    "numpy~=2.2",
     "PyQt6",
     "scipy",
     "xlsxwriter"
 ]
 readme = "README.rst"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.14"
 license = { text = "MIT" }
 
 [project.urls]
