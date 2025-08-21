@@ -22,6 +22,10 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+    - name: Install depdencies
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install libgl1
     - name: Install uv and set the python version
       uses: astral-sh/setup-uv@v5
       with:
