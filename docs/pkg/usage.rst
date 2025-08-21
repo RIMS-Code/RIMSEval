@@ -65,7 +65,7 @@ Convert KORE LST to CRD
 
 To convert a KORE lst file to a CRD file,
 use the ``KORE2CRD`` class.
-Details can be found here: :meth:`rimseval.data_io.lst_to_crd.LST2CRD class`.
+Details can be found here: :meth:`rimseval.data_io.lst_to_crd.KORE2CRD class`.
 If your KORE list file is at ``path/to/file.lst``,
 you can convert it to a CRD file as following:
 

@@ -70,19 +70,19 @@ LST to CRD File Transformer
 
 
 
-.. currentmodule:: rimseval.data_io.lst_utils
+.. currentmodule:: rimseval.data_io.kore_to_crd
 
 --------------------------------
 KORE LST to CRD File Transformer
 --------------------------------
 
-.. autoclass:: KORE2LST
+.. autoclass:: KORE2CRD
     :members:
     :undoc-members:
 
 
 
-.. currentmodule:: rimseval.data_io.kore_to_crd
+.. currentmodule:: rimseval.data_io.lst_utils
 
 ------------------
 LST File Utilities
