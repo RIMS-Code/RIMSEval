@@ -12,7 +12,7 @@ Convert LST to CRD
 
 To convert a list file to a CRD file,
 use the ``LST2CRD`` class.
-Details can be found here: :meth:`rimseval.processor.data_io.lst_to_crd.LST2CRD class`.
+Details can be found here: :meth:`rimseval.data_io.lst_to_crd.LST2CRD class`.
 If your list file is at ``path/to/file.lst``,
 you can convert it to a CRD file as following:
 
@@ -58,6 +58,36 @@ and in the same folder.
           - STOP 6
         * - 15
           - STOP 7
+
+-----------------------
+Convert KORE LST to CRD
+-----------------------
+
+To convert a KORE lst file to a CRD file,
+use the ``KORE2CRD`` class.
+Details can be found here: :meth:`rimseval.data_io.lst_to_crd.LST2CRD class`.
+If your KORE list file is at ``path/to/file.lst``,
+you can convert it to a CRD file as following:
+
+.. code-block:: python
+
+     from pathlib import Path
+     from rimseval.data_io import KORE2CRD
+     file = Path("path/to/file.lst")
+     kore = KORE2CRD(file_name=file)
+     kore.write_crd()
+
+You will get a `crd` file with the same name
+and in the same folder.
+Note that both, the KORE `.ini.` and the KORE `.lst` files
+must be in the same folder!
+
+.. note::
+   Currently, only the "Mapping" mode of the KORE software is supported.
+   The CRD file is written such that the it assumes the raster starts top left
+   and then goes line-by-line to the bottom right.
+   While this does not yet matter for the `RIMSEval` software
+   as image processing is not yet included, this will be important for future versions.
 
 -------------------
 Work with CRD files

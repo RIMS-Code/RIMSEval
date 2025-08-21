@@ -14,11 +14,13 @@ import rimseval.data_io.crd_utils as crd_utils
 class KORE2CRD:
     """Convert KORE list files to CRD files."""
 
-    def __init__(self, file_name: Path, write_crd: bool = True):
+    def __init__(self, file_name: Path) -> None:
         """Initialize the converter with a file name.
 
+        After initialization of the class, please run `write_crd()` method
+        to create the CRD file.
+
         :param file_name: Path to the KORE lst or ini file without extension.
-        :param write_crd: If True, write the CRD file. Default is True.
 
         :raises FileNotFoundError: If the ini or lst file does not exist.
         """
@@ -40,8 +42,6 @@ class KORE2CRD:
         self._shot_pattern = None
 
         self._parse_ini_file()
-        if write_crd:
-            self._write_crd_file()
 
     def _parse_ini_file(self):
         """Parse the ini file an set the required attributes of the class."""
@@ -144,7 +144,7 @@ class KORE2CRD:
         """Return the y dimension of the image in pixels - assume square image always."""
         return self.xdim
 
-    def _write_crd_file(self):
+    def write_crd(self):
         """Write the CRD file based on the parsed ini file and the lst file."""
         crd_name = self.file_lst.with_suffix(".crd")
         default = crd_utils.CURRENT_DEFAULTS

@@ -10,7 +10,7 @@ FNAME = "run001.lst"
 def test_ini_file_parsing(kore_crd_path):
     """Parse the ini file and check all values are okay."""
     file_name = kore_crd_path.joinpath(FNAME)
-    converter = KORE2CRD(file_name, write_crd=False)
+    converter = KORE2CRD(file_name)
 
     assert converter.acq_datetime == "2025:08:11 21:50:37"
     assert converter.bin_width_ps == 250
@@ -29,7 +29,8 @@ def test_ini_file_parsing(kore_crd_path):
 def test_write_crd(kore_crd_path):
     """Write the CRD file from the `run001.lst` file."""
     file_name = kore_crd_path.joinpath(FNAME)
-    _ = KORE2CRD(file_name)
+    kore = KORE2CRD(file_name)
+    kore.write_crd()
 
     crd_file = file_name.with_suffix(".crd")
     assert crd_file.exists()
@@ -39,5 +40,6 @@ def test_empty_data_raises_error(kore_crd_path):
     """An empty data file should raise an error."""
     file_name = kore_crd_path.joinpath("empty.lst")
     with pytest.raises(IOError, match="The lst file is empty."):
-        _ = KORE2CRD(file_name)
+        kore = KORE2CRD(file_name)
+        kore.write_crd()
     assert not file_name.with_suffix(".crd").exists()
