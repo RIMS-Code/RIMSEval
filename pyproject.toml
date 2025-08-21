@@ -35,6 +35,9 @@ dev = [
     "pytest-mock",
     "pytest-sugar",
 ]
+doc = [
+    "sphinx-rtd-theme>=3.0.2",
+]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
