@@ -842,7 +842,7 @@ dev = [
     { name = "pytest-sugar" },
     { name = "ruff" },
 ]
-doc = [
+docs = [
     { name = "sphinx-rtd-theme" },
 ]
 
@@ -866,7 +866,7 @@ dev = [
     { name = "pytest-sugar" },
     { name = "ruff" },
 ]
-doc = [{ name = "sphinx-rtd-theme", specifier = ">=3.0.2" }]
+docs = [{ name = "sphinx-rtd-theme", specifier = ">=3.0.2" }]
 
 [[package]]
 name = "roman-numerals-py"

@@ -38,8 +38,49 @@ def test_write_crd(kore_crd_path):
 
 def test_empty_data_raises_error(kore_crd_path):
     """An empty data file should raise an error."""
-    file_name = kore_crd_path.joinpath("empty.lst")
+    file_name = kore_crd_path.joinpath("faulty_files/empty.lst")
     with pytest.raises(IOError, match="The lst file is empty."):
         kore = KORE2CRD(file_name)
         kore.write_crd()
     assert not file_name.with_suffix(".crd").exists()
+
+
+def test_file_not_found_only_lst(kore_crd_path):
+    """A file not found error should be raised if only the .lst file is present."""
+    file_name = kore_crd_path.joinpath("faulty_files/only_lst.lst")
+    file_name_ini = file_name.with_suffix(".ini")
+    with pytest.raises(FileNotFoundError, match=f"{file_name_ini} does not exist."):
+        KORE2CRD(file_name)
+
+
+def test_file_not_found_only_ini(kore_crd_path):
+    """A file not found error should be raised if only the .ini file is present."""
+    file_name = kore_crd_path.joinpath("faulty_files/only_ini.ini")
+    file_name_lst = file_name.with_suffix(".lst")
+    with pytest.raises(FileNotFoundError, match=f"{file_name_lst} does not exist."):
+        KORE2CRD(file_name)
+
+
+def test_unsupported_experiment_type(kore_crd_path):
+    """An unsupported experiment type should raise a ValueError."""
+    file_name = kore_crd_path.joinpath("faulty_files/unsupported_exp_type.ini")
+    with pytest.raises(ValueError, match="Unsupported experiment type:"):
+        KORE2CRD(file_name)
+
+
+@pytest.mark.parametrize(
+    "file_name",
+    [
+        "bin_width_not_found.ini",
+        "first_bin_not_found.ini",
+        "last_bin_not_found.ini",
+        "num_scans_not_found.ini",
+        "num_shots_not_found.ini",
+        "shots_per_px_not_found.ini",
+    ],
+)
+def test_missing_parameters_ini_file(kore_crd_path, file_name):
+    """Test that missing parameters in the ini file raise a ValueError."""
+    file_name = kore_crd_path.joinpath(f"faulty_files/{file_name}")
+    with pytest.raises(ValueError, match="not found in the INI file."):
+        KORE2CRD(file_name)

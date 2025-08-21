@@ -55,25 +55,39 @@ class KORE2CRD:
                         )
                     else:
                         self._shot_pattern = 32  # see CRD pdf
+                elif line.startswith("Acq start time="):
+                    ts = get_right(line)
+                    fmt = "%Y-%m-%d %H:%M:%S"
+                    self._acq_datetime = datetime.strptime(ts, fmt)
                 elif line.startswith("Time unit ns="):
                     self._bin_width_ns = float(get_right(line))
                 elif line.startswith("First bin="):
                     self._first_bin = int(get_right(line))
                 elif line.startswith("Last bin="):
                     self._last_bin = int(get_right(line))
-                elif line.startswith("Number of cycles="):
-                    self._num_shots = int(get_right(line))
-                elif line.startswith("Acq start time="):
-                    ts = get_right(line)
-                    fmt = "%Y-%m-%d %H:%M:%S"
-                    self._acq_datetime = datetime.strptime(ts, fmt)
                 elif line.startswith("Frames="):
                     self._num_scans = int(get_right(line))
+                elif line.startswith("Number of cycles="):
+                    self._num_shots = int(get_right(line))
                 elif line.startswith("Cycles per point="):
                     self._shots_per_pixel = int(get_right(line))
 
-        if not self._acq_datetime:
+        if self.shot_pattern is None:
+            raise ValueError("Experiment type not found in the INI file.")
+        if self.acq_datetime is None:
             raise ValueError("Acquisition date not found in the INI file.")
+        if self._bin_width_ns is None:
+            raise ValueError("Bin width not found in the INI file.")
+        if self.first_bin is None:
+            raise ValueError("First bin not found in the INI file.")
+        if self.last_bin is None:
+            raise ValueError("Last bin not found in the INI file.")
+        if self.num_scans is None:
+            raise ValueError("Number of scans not found in the INI file.")
+        if self.num_shots is None:
+            raise ValueError("Number of shots not found in the INI file.")
+        if self.shots_per_pixel is None:
+            raise ValueError("Shots per pixel not found in the INI file.")
 
     @property
     def acq_datetime(self) -> str:
@@ -105,13 +119,6 @@ class KORE2CRD:
 
         Calculated as an integer of number of shots / shots per pixel / number of scans.
         """
-        if (
-            self._num_shots is None
-            or self._shots_per_pixel is None
-            or self._num_scans is None
-        ):
-            return None
-
         return int(self._num_shots / self._shots_per_pixel / self._num_scans)
 
     @property
@@ -197,9 +204,7 @@ class KORE2CRD:
         out_lst = []
         get_next_byte = self._get_next_byte()
         for next_byte in get_next_byte:
-            if next_byte is None:  # we are done
-                return
-            elif next_byte == 0:  # found a start, yield the list and reset it
+            if next_byte == 0:  # found a start, yield the list and reset it
                 yield out_lst
                 out_lst = []
             elif next_byte >> 8 == 0xFFFF:  # do nothing
