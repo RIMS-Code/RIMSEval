@@ -27,4 +27,6 @@ formats:
 python:
    install:
      - method: pip
-       path: . --group docs
+       path: .
+       extra_requirements:
+             - docs
