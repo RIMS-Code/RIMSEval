@@ -30,3 +30,16 @@ def lst_crd_path(request):
     """
     curr = Path(request.fspath).parents[0]
     return Path(curr).joinpath("lst_crd_files").absolute()
+
+
+@pytest.fixture
+def kore_crd_path(request):
+    """Provide the path to the `kore_crd_files` folder.
+
+    :param request: PyTest request object.
+
+    :return: Path to the folder
+    :rtype: Path
+    """
+    curr = Path(request.fspath).parents[0]
+    return Path(curr).joinpath("kore_crd_files").absolute()

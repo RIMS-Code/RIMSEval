@@ -392,10 +392,10 @@ def test_peak_background_overlap_all_excluded():
     def_bgs_self_corr, def_bgs_all_corr = pu.peak_background_overlap(
         def_integral, def_bgs
     )
-    assert not def_bgs_self_corr[0]
-    assert not def_bgs_self_corr[1]
-    assert not def_bgs_all_corr[0]
-    assert not def_bgs_all_corr[1]
+    assert def_bgs_self_corr[0] == []
+    assert def_bgs_self_corr[1].size == 0
+    assert def_bgs_all_corr[0] == []
+    assert def_bgs_all_corr[1].size == 0
 
 
 def test_sort_data_into_spectrum():

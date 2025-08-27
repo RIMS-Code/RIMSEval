@@ -1,16 +1,18 @@
 """Configuration file for the Sphinx documentation builder."""
 
-from importlib.metadata import version
+from importlib import metadata
 import sys
 
 sys.path.append("../")
+
 
 # -- Project information -----------------------------------------------------
 
 project = "RIMSEval"
 author = "Reto Trappitsch"
-copyright = f"2020-2023, {author}"
-release = version("rimseval")
+copyright = f"2020-2025, {author}"
+version = str(metadata.version("rimseval"))
+release = version
 
 
 # -- General configuration ---------------------------------------------------
