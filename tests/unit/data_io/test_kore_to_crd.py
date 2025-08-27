@@ -71,6 +71,8 @@ def test_unsupported_experiment_type(kore_crd_path):
 @pytest.mark.parametrize(
     "file_name",
     [
+        "exp_type_not_found.ini",
+        "acq_time_not_found.ini",
         "bin_width_not_found.ini",
         "first_bin_not_found.ini",
         "last_bin_not_found.ini",
@@ -84,3 +86,24 @@ def test_missing_parameters_ini_file(kore_crd_path, file_name):
     file_name = kore_crd_path.joinpath(f"faulty_files/{file_name}")
     with pytest.raises(ValueError, match="not found in the INI file."):
         KORE2CRD(file_name)
+
+
+def test_first_three_lst_bytes_bad(kore_crd_path):
+    """Test that a .lst file with bad first three bytes raises a ValueError."""
+    file_name = kore_crd_path.joinpath("faulty_files/first_three_lst_bytes_bad.lst")
+    kore = KORE2CRD(file_name)
+    with pytest.raises(ValueError, match="The first three bytes are not a start."):
+        kore.write_crd()
+
+
+def test_warning_bad_number_shots(kore_crd_path):
+    """Test that a warning is raised for a bad number of shots."""
+    file_name = kore_crd_path.joinpath("faulty_files/bad_number_shots.ini")
+    kore = KORE2CRD(file_name)
+    with pytest.warns(
+        UserWarning,
+        match=r"Number of shots in the LST file \(3\) does not match the number in the INI file \(1310720\).",
+    ):
+        _ = kore.write_crd()
+    crd_file = file_name.with_suffix(".crd")
+    assert crd_file.exists()

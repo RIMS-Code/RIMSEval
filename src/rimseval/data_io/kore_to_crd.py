@@ -74,7 +74,7 @@ class KORE2CRD:
 
         if self.shot_pattern is None:
             raise ValueError("Experiment type not found in the INI file.")
-        if self.acq_datetime is None:
+        if self._acq_datetime is None:
             raise ValueError("Acquisition date not found in the INI file.")
         if self._bin_width_ns is None:
             raise ValueError("Bin width not found in the INI file.")
@@ -191,9 +191,10 @@ class KORE2CRD:
                 raise OSError(f"Error reading the lst file: {e}")
 
             if num_shots != self.num_shots:
-                # FIXME: This will not show up in GUI!
                 warnings.warn(
-                    f"Number of shots in the LST file ({num_shots}) does not match the number in the INI file ({self.num_shots})."
+                    f"Number of shots in the LST file ({num_shots}) does not match the number in the INI file ({self.num_shots}).",
+                    UserWarning,
+                    stacklevel=1,
                 )
 
             # Write EoF
