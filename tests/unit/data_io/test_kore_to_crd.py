@@ -33,7 +33,12 @@ def test_write_crd(kore_crd_path):
     kore.write_crd()
 
     crd_file = file_name.with_suffix(".crd")
-    assert crd_file.exists()
+
+    # compare crd files byte by byte with expexted
+    crd_content = crd_file.read_bytes()
+    crd_fname_exp = kore_crd_path.joinpath("run001_exp.crd")
+    crd_exp = crd_fname_exp.read_bytes()
+    assert crd_content == crd_exp
 
 
 def test_empty_data_raises_error(kore_crd_path):
