@@ -1,0 +1,23 @@
+name: Upload Python Package PyPi
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    if: github.repository_owner == 'RIMS-Code'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv and set the python version
+      uses: astral-sh/setup-uv@v6
+    - name: Sync UV
+      run: uv sync --all-extras --dev
+    - name: Build and publish
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        uv build
+        uv publish --token $PYPI_TOKEN
