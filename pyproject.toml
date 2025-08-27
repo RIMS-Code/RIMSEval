@@ -1,6 +1,6 @@
 [project]
 name = "rimseval"
-version = "2.0.2"
+version = "2.1.0"
 description = "Evaluate resonance ionization mass spectrometry measurements, correct, and filter. Contains a reader for crd files (Chicago Raw Data) but can also convert FastComTec lst files to crd."
 authors = [
     { name = "Reto Trappitsch", email = "reto@galactic-forensics.space" }
