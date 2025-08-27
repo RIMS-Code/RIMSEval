@@ -12,18 +12,18 @@ def test_ini_file_parsing(kore_crd_path):
     file_name = kore_crd_path.joinpath(FNAME)
     converter = KORE2CRD(file_name)
 
-    assert converter.acq_datetime == "2025:08:11 21:50:37"
+    assert converter.acq_datetime == "2025:05:15 15:03:16"
     assert converter.bin_width_ps == 250
     assert converter.first_bin == 16000
-    assert converter.last_bin == 400_000
-    assert converter.num_shots == 614_400
+    assert converter.last_bin == 360_000
+    assert converter.num_shots == 1_310_720
     assert converter.num_scans == 1
-    assert converter.shots_per_pixel == 150
+    assert converter.shots_per_pixel == 5
     assert converter.shot_pattern == 32
 
-    assert converter.num_pixels == 4096
-    assert converter.xdim == 64
-    assert converter.ydim == 64
+    assert converter.num_pixels == 262_144
+    assert converter.xdim == 512
+    assert converter.ydim == 512
 
 
 def test_write_crd(kore_crd_path):
